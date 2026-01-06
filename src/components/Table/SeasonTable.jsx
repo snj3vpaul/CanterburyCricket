@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./Table3.css";
+import "./SeasonTable.module.css";
 import { Checkbox } from "./Table3Example";
 
 const pageSize = 5;
