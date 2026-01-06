@@ -1,0 +1,44 @@
+/* globals.css */
+
+/* Reset default margins/padding */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Base font and color */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #0b1c2d; /* Dark navy background for the site */
+  color: white;
+}
+
+/* Links default style */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
+/* Utility classes (optional) */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.text-center {
+  text-align: center;
+}
+:root {
+  --primary-color: #0b1c2d;   /* Dark navy */
+  --secondary-color: #111b2c; /* Slightly lighter navy */
+  --gold-color: #c9a24d;      /* Gold accents */
+  --white-color: #ffffff;
+}
+

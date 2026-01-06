@@ -6,6 +6,11 @@
   margin: 0;
 }
 
+.card {
+  background-color: var(--secondary-color);
+  color: var(--gold-color);
+}
+
 .navbar-1 {
   position: fixed;
   z-index: 1;
