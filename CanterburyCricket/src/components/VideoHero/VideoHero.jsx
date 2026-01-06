@@ -10,7 +10,7 @@ export default function VideoHero() {
         muted
         loop
         playsInline
-        src="/assets/club-intro.mp4"
+        src="/assets/CanterburyIntro.mp4"
       />
       <div className={styles.overlay}>
         <div className={styles.text}>

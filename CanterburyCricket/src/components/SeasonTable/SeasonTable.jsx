@@ -31,7 +31,7 @@ const PaginatedTable = ({ pageNumber, totalPages, totalRows, goToPage }) => {
   );
 };
 
-export const Table3 = ({ columns, rows }) => {
+const SeasonTable = ({ columns, rows }) => {
   const [pageNumber, setPageNumber] = useState(1);
 
   const totalPages = Math.ceil(rows.length / pageSize);
@@ -74,3 +74,5 @@ export const Table3 = ({ columns, rows }) => {
     </>
   );
 };
+
+export default SeasonTable; // ✅ default export

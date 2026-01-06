@@ -5,6 +5,7 @@ import image3 from "./3.svg";
 import image4 from "./4.svg";
 import image5 from "./5.svg";
 import image6 from "./6.svg";
+import { Link } from "react-router-dom";
 
 import "./Navbar1.css";
 
@@ -34,11 +35,11 @@ export const Navbar1 = () => {
       <nav className={`navbar-1 ${isVisible ? "visible" : ""} `}>
         <h1>F</h1>
         <div className="nav-items">
-          <a href="#">About</a>
-          <a href="#">Services</a>
-          <a href="#">Products</a>
-          <a href="#">Contact</a>
-        </div>
+  <Link to="/">About</Link>
+  <Link to="/services">Services</Link>
+  <Link to="/products">Products</Link>
+  <Link to="/contact">Contact</Link>
+</div>
       </nav>
       <section>
         <div>

@@ -1,4 +1,7 @@
-import { Table3 } from "./Table3";
+import SeasonTable from "./SeasonTable"; // default export
+import "./SeasonTable.module.css";       // CSS module
+
+
 import "./Table3Example.css";
 import image from "./image.svg";
 
