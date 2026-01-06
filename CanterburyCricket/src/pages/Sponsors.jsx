@@ -1,5 +1,5 @@
 import React from "react";
-import SponsorsAccordion from "../components/SponsorsAccordion/SponsorsAccordion";
+import {Sponsors as SponsorsAccordion} from "../components/SponsorsAccordion/SponsorsAccordion";
 
 export default function Sponsors() {
   return (
