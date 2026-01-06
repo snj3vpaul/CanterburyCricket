@@ -1,78 +1,147 @@
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
+import stats from "../../assets/T20_division_stats.json"; // Your JSON file
 import "./SeasonTable.module.css";
-import { Checkbox } from "./Table3Example";
 
-const pageSize = 5;
+export default function SeasonTable() {
+  const [activeTab, setActiveTab] = useState("batting"); // "batting", "bowling", "fielding"
 
-const PaginatedTable = ({ pageNumber, totalPages, totalRows, goToPage }) => {
-  return (
-    <footer className="table-3-footer">
-      <div className="table-3-pagination">
-        {[...Array(totalPages)].map((_, index) => (
-          <button
-            key={index + 1}
-            onClick={() => goToPage(index + 1)}
-            disabled={pageNumber === index + 1}
-            className={pageNumber === index + 1 ? "active" : ""}
-          >
-            {index + 1}
-          </button>
-        ))}
-      </div>
-      <p>
-        Viewing{" "}
-        <em>
-          {pageNumber === 1 ? 1 : (pageNumber - 1) * pageSize + 1}-
-          {pageNumber * pageSize}
-        </em>{" "}
-        of <em>{totalRows}</em> rows
-      </p>
-    </footer>
+  // Map flat JSON to grouped objects
+  const groupedStats = useMemo(
+    () =>
+      stats.map((player) => ({
+        name: player.name,
+        batting: {
+          runs: player.total_runs_bat ?? 0,
+          highestRun: player.highest_run_bat ?? 0,
+          average: player.average_bat ?? 0,
+          strikeRate: player.strike_rate_bat ?? 0,
+        },
+        bowling: {
+          wickets: player.total_wickets ?? 0,
+          bestBowling: player.highest_wicket ?? "-",
+          economy: player.economy ?? "-",
+          avg: player.avg ?? "-",
+        },
+        fielding: {
+          catches: player.total_catches ?? 0,
+          stumpings: player.stumpings ?? 0,
+          runOuts: player.run_outs ?? 0,
+          totalDismissals:
+            (player.total_catches ?? 0) +
+            (player.stumpings ?? 0) +
+            (player.run_outs ?? 0),
+        },
+      })),
+    []
   );
-};
 
-const SeasonTable = ({ columns, rows }) => {
-  const [pageNumber, setPageNumber] = useState(1);
+  // Determine top value for highlighting
+  const topValue = useMemo(() => {
+    if (activeTab === "batting")
+      return Math.max(...groupedStats.map((p) => p.batting.runs));
+    if (activeTab === "bowling")
+      return Math.max(...groupedStats.map((p) => p.bowling.wickets));
+    if (activeTab === "fielding")
+      return Math.max(
+        ...groupedStats.map((p) => p.fielding.totalDismissals)
+      );
+  }, [activeTab, groupedStats]);
 
-  const totalPages = Math.ceil(rows.length / pageSize);
+  const renderRows = () =>
+    groupedStats.map((player, idx) => {
+      const data = player[activeTab];
+      let highlight = false;
 
-  const paginateArray = (array, pageSize, pageNumber) => {
-    return array.slice((pageNumber - 1) * pageSize, pageNumber * pageSize);
-  };
+      if (activeTab === "batting") highlight = data.runs === topValue;
+      if (activeTab === "bowling") highlight = data.wickets === topValue;
+      if (activeTab === "fielding") highlight = data.totalDismissals === topValue;
 
-  const goToPage = (page) => setPageNumber(page);
+      return (
+        <tr key={idx} className={highlight ? "highlight" : ""}>
+          <td>{player.name}</td>
+          {activeTab === "batting" && (
+            <>
+              <td>{data.runs}</td>
+              <td>{data.highestRun}</td>
+              <td>{data.average}</td>
+              <td>{data.strikeRate}</td>
+            </>
+          )}
+          {activeTab === "bowling" && (
+            <>
+              <td>{data.wickets}</td>
+              <td>{data.bestBowling}</td>
+              <td>{data.economy}</td>
+              <td>{data.avg}</td>
+            </>
+          )}
+          {activeTab === "fielding" && (
+            <>
+              <td>{data.catches}</td>
+              <td>{data.stumpings}</td>
+              <td>{data.runOuts}</td>
+              <td>{data.totalDismissals}</td>
+            </>
+          )}
+        </tr>
+      );
+    });
 
   return (
-    <>
-      <table className="table-3">
+    <div className="season-table-container">
+      <div className="tabs">
+        <button
+          className={activeTab === "batting" ? "active" : ""}
+          onClick={() => setActiveTab("batting")}
+        >
+          Batting
+        </button>
+        <button
+          className={activeTab === "bowling" ? "active" : ""}
+          onClick={() => setActiveTab("bowling")}
+        >
+          Bowling
+        </button>
+        <button
+          className={activeTab === "fielding" ? "active" : ""}
+          onClick={() => setActiveTab("fielding")}
+        >
+          Fielding
+        </button>
+      </div>
+
+      <table className="season-table">
         <thead>
           <tr>
-            <th>
-              <Checkbox />
-            </th>
-            {columns.map((column, index) => (
-              <th key={`column${index + 1}`}>{column}</th>
-            ))}
+            <th>Player</th>
+            {activeTab === "batting" && (
+              <>
+                <th>Runs</th>
+                <th>Highest</th>
+                <th>Average</th>
+                <th>SR</th>
+              </>
+            )}
+            {activeTab === "bowling" && (
+              <>
+                <th>Wickets</th>
+                <th>Best</th>
+                <th>Economy</th>
+                <th>Avg</th>
+              </>
+            )}
+            {activeTab === "fielding" && (
+              <>
+                <th>Catches</th>
+                <th>Stumpings</th>
+                <th>Run Outs</th>
+                <th>Total</th>
+              </>
+            )}
           </tr>
         </thead>
-        <tbody>
-          {paginateArray(rows, pageSize, pageNumber).map((row, index) => (
-            <tr key={`row${index + 1}`}>
-              {row.map((control, index) => (
-                <td key={`control${index + 1}`}>{control}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
+        <tbody>{renderRows()}</tbody>
       </table>
-      <PaginatedTable
-        pageNumber={pageNumber}
-        totalPages={totalPages}
-        totalRows={rows.length}
-        goToPage={goToPage}
-      />
-    </>
+    </div>
   );
-};
-
-export default SeasonTable; // ✅ default export
+}

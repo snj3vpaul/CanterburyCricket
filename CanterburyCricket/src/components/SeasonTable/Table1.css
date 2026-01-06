@@ -1,0 +1,40 @@
+.table-1-wrapper {
+  overflow: auto;
+  position: relative;
+  z-index: 2;
+  width: 440px;
+  min-width: 440px;
+  max-width: 440px;
+}
+
+.table-1-card table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table-1-card table th {
+  opacity: 0.5;
+  font-weight: 400;
+  user-select: none;
+  text-transform: capitalize;
+  background: rgb(255 255 255 / 6%);
+}
+
+.table-1-card table :is(th, td) {
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.table-1-card table th .draggable {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+}

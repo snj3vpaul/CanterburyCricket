@@ -1,0 +1,42 @@
+.sponsors-page {
+  position: relative;
+  min-height: 100vh;
+  font-family: "Roboto", sans-serif;
+  overflow: hidden;
+}
+
+/* Background SVG */
+.sponsors-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.1; /* subtle background */
+  z-index: 0;
+}
+
+/* Accordion above background */
+.sponsors-content {
+  position: relative;
+  z-index: 1;
+  padding: 60px 10%;
+}
+
+/* Footer / credit */
+.sponsors-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  font-size: 0.8rem;
+  margin-top: 40px;
+  color: #888;
+}
+
+.sponsors-footer a {
+  color: #888;
+  text-decoration: underline;
+}

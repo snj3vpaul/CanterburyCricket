@@ -1,17 +1,19 @@
 import { useState } from "react";
-import image1 from "./1.jpg";
-import image2 from "./2.jpg";
-import image3 from "./3.jpg";
-import image4 from "./4.jpg";
-import image5 from "./5.jpg";
+import image1 from "./Cha.png";
+import image2 from "./RedSwan.jpeg";
+import image3 from "./Akram.jpg";
+import image4 from "./Varun.jpg";
+import image5 from "./Aoun.jpeg";
+import image6 from "./MMG.jpg";
 import "./SponsorsAccordion.module.css";
 
 const cards = [
-  { header: "Canada", image: image2, text: `Image description here` },
-  { header: "Bali", image: image1, text: `Image description here` },
-  { header: "Spain", image: image3, text: `Image description here` },
-  { header: "Indonesia", image: image4, text: `Image description here` },
-  { header: "South Africa", image: image5, text: `Image description here` },
+  { header: "Chai Talks", image: image1, text: `Platinum Sponsor`, url: "https://www.chaitalks.ca" },
+  { header: "Red Swan Pizza", image: image2, text: `Gold Sponsor`, url: "https://ottawa-stittsville.redswanpizza.ca/zgrid/proc/site/start.jsp" },
+  { header: "Akram Syed", image: image3, text: `Gold Sponsor`, url: "https://www.coast2coastrealestateteam.ca/" },
+  { header: "Varun Harish", image: image4, text: `Silver Sponsor`, url: "www.realtor.ca/agent/2224383/varun-harish-1439-woodroffe-avenue-unit-2-ottawa-ontario-k2g1w1" },
+  { header: "Aoun Rizvi", image: image5, text: `Silver Sponsor`, url: "https://www.centum.ca/agent/aoun_rizvi" },
+  { header: "Mumbai Masala Grill", image: image6, text: `Silver Sponsor`, url: "https://mumbaimasalagrill.ca/" },
 ];
 
 export const Sponsors = () => {
@@ -22,25 +24,33 @@ export const Sponsors = () => {
 
   return (
     <section>
-      {cards.map((card, index) => {
-        const isActive = active === index ? "active" : "";
-        return (
-          <article
-            key={card.image}
-            className={isActive}
-            onClick={() => handleToggle(index)}
-          >
-            <img src={card.image} alt={card.header} />
-            <div className="content">
-              <span className="material-symbols-outlined">photo_camera</span>
-              <div>
-                <h2>{card.header}</h2>
-                <p>{card.text}</p>
-              </div>
+  {cards.map((card, index) => {
+    const isActive = active === index ? "active" : "";
+    return (
+      <a
+        key={card.image}
+        href={card.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ textDecoration: "none", color: "inherit" }}
+      >
+        <article
+          className={isActive}
+          onClick={() => handleToggle(index)}
+        >
+          <img src={card.image} alt={card.header} />
+          <div className="content">
+            <span className="material-symbols-outlined">Our Believers</span>
+            <div className="text-container">
+              <h2>{card.header}</h2>
+              <p>{card.text}</p>
             </div>
-          </article>
-        );
-      })}
-    </section>
+          </div>
+        </article>
+      </a>
+    );
+  })}
+</section>
+
   );
 };

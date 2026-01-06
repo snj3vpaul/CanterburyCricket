@@ -1,100 +1,46 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.page.carousel-1-page {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 50px;
-  padding: 0 8vw;
-  background: linear-gradient(45deg, #2c3d46, #0c0f13);
-  color: #f9f9f9;
-}
-
-.carousel-1-page .swiper a {
-  display: inline-block;
-  text-decoration: none;
-  text-transform: uppercase;
-  color: #717171;
-  font-weight: 500;
-  background: #fff;
-  border-radius: 3.125rem;
-  margin: 0 auto;
-  padding: 10px 26px;
-  font-size: 0.9rem;
-  transition: 0.3s ease-in-out;
-}
-
-.carousel-1-page .swiper {
+/* Container styling */
+.awardsSwiper {
   width: 100%;
-  max-width: 800px;
-  height: 440px;
+  max-width: 1000px; /* limit max width if needed */
+  padding: 50px 0; /* spacing around carousel */
+  margin: 0 auto;
 }
 
-.carousel-1-page .swiper-slide {
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: end;
-  align-items: center;
-  filter: grayscale(0.6);
-  background-size: cover;
-  background-position: center;
-}
-
-.carousel-1-page .swiper-slide h2 {
-  color: #fff;
-  font-weight: 100;
-  font-size: 20px;
-  line-height: 1.4;
-  margin-bottom: 0.625rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-align: center;
-}
-
-.carousel-1-page .swiper-slide a:hover {
-  color: #005baa;
-}
-
-.carousel-1-page .swiper-slide div {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background: linear-gradient(rgb(0 0 0 / 0%) 55%, rgb(0 0 0 / 80%));
-  transition: 0.25s;
-  opacity: 0;
-  align-self: stretch;
-  padding-bottom: 70px;
-  height: 100%;
+/* Each slide */
+.awardsSwiper .swiper-slide {
+  background-color: #f5f5f5; /* subtle background */
+  border-radius: 15px;
   display: flex;
   align-items: center;
-  flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
+  font-size: 24px;
+  color: #333;
+  width: 300px; /* required for coverflow auto */
+  height: 300px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.carousel-1-page .swiper-slide-active div {
+/* Slide shadows for Coverflow effect */
+.awardsSwiper .swiper-slide-shadow-left,
+.awardsSwiper .swiper-slide-shadow-right {
+  background: rgba(0, 0, 0, 0.2); /* subtle shadow */
+}
+
+/* Active slide pop-up effect */
+.awardsSwiper .swiper-slide-active {
+  transform: scale(1.1); /* active slide pops out */
+  z-index: 10;
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Pagination bullets */
+.awardsSwiper .swiper-pagination-bullet {
+  background: #333;
+  opacity: 0.6;
+}
+
+.awardsSwiper .swiper-pagination-bullet-active {
+  background: gold; /* highlight active slide */
   opacity: 1;
-}
-
-.carousel-1-page .swiper-slide > div > div {
-  translate: 0 100px;
-  transition: 0.3s;
-}
-
-.carousel-1-page .swiper-slide-active > div > div {
-  translate: 0;
-}
-
-.carousel-1-page .swiper-pagination-bullet,
-.carousel-1-page .swiper-pagination-bullet-active {
-  background: #fff !important;
-}
-
-.carousel-1-page .swiper-pagination {
-  bottom: 10px !important;
-  transform: scale(1.3);
 }
