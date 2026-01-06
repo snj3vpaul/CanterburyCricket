@@ -1,0 +1,77 @@
+/* Page styles */
+.page.parallax-1-page {
+  background: #0e0d0e;
+  min-height: 100%;
+  font-family: 'Roboto', sans-serif; /* default body font */
+  color: #f8f8f8;
+  margin: 0;
+}
+
+/* Global box sizing */
+* {
+  box-sizing: border-box;
+}
+
+/* Parallax video/banner section */
+.parallax-banner {
+  height: 100vh;
+  background-image: url('../parallax/bg.png'); /* fallback background */
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* parallax effect */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* Heading in parallax section */
+.parallax-banner h2 {
+  font-family: 'Cinzel', serif; /* display font */
+  font-size: 3rem; /* 48px */
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  padding-top: 60px; /* optional spacing from top */
+  line-height: 1.2;
+}
+
+/* Button in parallax section */
+.parallax-banner button {
+  border: none;
+  background-color: #ffffff;
+  color: #222222;
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.parallax-banner button:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+/* Content sections below parallax */
+.parallax-container {
+  padding: 80px 10%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.parallax-container h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.parallax-container p {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}

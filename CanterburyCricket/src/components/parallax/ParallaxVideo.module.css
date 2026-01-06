@@ -1,0 +1,45 @@
+.parallax-video-banner {
+  width: 100%;
+  height: 80vh;           /* full section height */
+  overflow: hidden;
+  position: relative;     /* not absolute */
+}
+
+.video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.parallax-text-section {
+  padding: 80px 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.parallax-text-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.parallax-text-section p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.parallax-text-section button {
+  font-size: 1.1rem;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  background-color: #f1c40f;
+  color: #111;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.parallax-text-section button:hover {
+  background-color: #d4ac0d;
+}
