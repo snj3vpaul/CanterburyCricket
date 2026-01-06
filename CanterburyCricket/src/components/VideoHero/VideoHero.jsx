@@ -1,16 +1,17 @@
 import React from "react";
 import styles from "./VideoHero.module.css";
+import CanterburyIntro from "../../assets/CanterburyIntro.mp4"; // adjust path
 
 export default function VideoHero() {
   return (
-    <section className={styles.hero}>
+    <section className={styles.hero} style={{ marginTop: "72px" }}>
       <video
         className={styles.video}
         autoPlay
         muted
         loop
         playsInline
-        src="/assets/CanterburyIntro.mp4"
+        src={CanterburyIntro}
       />
       <div className={styles.overlay}>
         <div className={styles.text}>

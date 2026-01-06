@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { Navbar1 as Navbar } from "./components/Navbars/Navbar1";
-import Home from "./pages/Home";
+import Home from "./pages/home";
 import Sponsors from "./pages/Sponsors";
 import Awards from "./pages/Awards";
 import Season from "./pages/Season";
