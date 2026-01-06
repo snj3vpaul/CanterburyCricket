@@ -112,3 +112,34 @@ p {
   height: 150%;
   filter: grayscale(0.5);
 }
+
+.accordion {
+  width: 90%;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.item {
+  margin-bottom: 1rem;
+  border: 1px solid #c9a24d; /* gold */
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.header {
+  background-color: #0b1c2d; /* navy */
+  color: #c9a24d;
+  padding: 1rem;
+  width: 100%;
+  text-align: left;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.content {
+  background-color: #111b2c;
+  color: white;
+  padding: 1rem;
+  list-style: none;
+}

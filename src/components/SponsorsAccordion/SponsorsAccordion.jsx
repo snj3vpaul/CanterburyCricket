@@ -1,38 +1,34 @@
-import { useState } from "react";
-import "./styles.css";
+import React, { useState } from "react";
+import styles from "./SponsorsAccordion.module.css";
 
-export const Accordion1 = ({ items }) => {
-  const [active, setActive] = useState(0);
+export default function SponsorsAccordion() {
+  const [active, setActive] = useState(null);
 
-  const handleToggle = (index) => setActive(index);
+  const sponsors = [
+    { tier: "Platinum", names: ["Sponsor A", "Sponsor B"] },
+    { tier: "Gold", names: ["Sponsor C", "Sponsor D"] },
+    { tier: "Silver", names: ["Sponsor E", "Sponsor F", "Sponsor G"] },
+  ];
 
   return (
-    <section className=" page image-accordion-page">
-      <div
-        className="bg"
-        style={{ backgroundImage: `url(${items[active].image}` }}
-      />
-      <div className="image-accordion">
-        {items.map((item, index) => {
-          const isActive = active === index ? "active" : "";
-          return (
-            <div
-              key={item.image}
-              className={`image-accordion-item ${isActive}`}
-              onClick={() => handleToggle(index)}
-            >
-              <img src={item.image} />
-              <div className="content">
-                <span className="material-symbols-outlined">photo_camera</span>
-                <div>
-                  <h2>{item.header}</h2>
-                  <p>{item.text}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+    <div className={styles.accordion}>
+      {sponsors.map((sponsor, index) => (
+        <div key={index} className={styles.item}>
+          <button
+            className={styles.header}
+            onClick={() => setActive(active === index ? null : index)}
+          >
+            {sponsor.tier} Sponsors
+          </button>
+          {active === index && (
+            <ul className={styles.content}>
+              {sponsor.names.map((name, i) => (
+                <li key={i}>{name}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
+    </div>
   );
-};
+}
