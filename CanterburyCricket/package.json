@@ -12,10 +12,13 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@mantine/core": "^8.3.11",
+    "@mantine/hooks": "^8.3.11",
     "@mui/icons-material": "^7.3.6",
     "@mui/material": "^7.3.6",
     "@mui/x-charts": "^8.23.0",
     "@mui/x-data-grid": "^8.23.0",
+    "@tabler/icons-react": "^3.36.1",
     "framer-motion": "^12.24.10",
     "nodemailer": "^7.0.12",
     "papaparse": "^5.5.3",

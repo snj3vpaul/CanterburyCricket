@@ -80,7 +80,7 @@ export default function Navbar() {
           <NavLink to="/" end>
             About
           </NavLink>
-          
+          <NavLink to="/squad">Our Squad</NavLink>
           <NavLink to="/Season">Season</NavLink>
           <NavLink to="/Awards">Awards Night</NavLink>
           <NavLink to="/Sponsors">Sponsors</NavLink>

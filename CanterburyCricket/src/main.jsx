@@ -3,8 +3,13 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
+// MUI
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+
+// Mantine
+import "@mantine/core/styles.css";
+import { MantineProvider } from "@mantine/core";
 
 const theme = createTheme({
   palette: {
@@ -12,7 +17,7 @@ const theme = createTheme({
     primary: { main: "#4f52ff" },
     secondary: { main: "#f7b500" },
     background: {
-      default: "#070912", // ✅ must be a real color
+      default: "#070912",
       paper: "rgba(10, 12, 24, 0.72)",
     },
   },
@@ -21,7 +26,7 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: "transparent", // ✅ lets ClubBackground show
+          backgroundColor: "transparent",
         },
         "#root": {
           backgroundColor: "transparent",
@@ -35,7 +40,11 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <App />
+
+      {/* ✅ Mantine added without breaking MUI */}
+      <MantineProvider defaultColorScheme="dark">
+        <App />
+      </MantineProvider>
     </ThemeProvider>
   </StrictMode>
 );

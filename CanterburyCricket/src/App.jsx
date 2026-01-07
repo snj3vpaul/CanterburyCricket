@@ -10,6 +10,7 @@ import Awards from "./pages/Awards";
 import Season from "./pages/Season";
 import Contact from "./pages/Contact";
 import MemberLogin from "./pages/MemberLogin";
+import OurSquad from "./pages/OurSquad";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
       {/* Page routing */}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/squad" element={<OurSquad />} />
         <Route path="/season" element={<Season />} />
         <Route path="/awards" element={<Awards />} />
         <Route path="/sponsors" element={<Sponsors />} />
