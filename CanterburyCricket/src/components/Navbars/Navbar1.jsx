@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import "./Navbar1.css";
-import CburyLogo from "../../assets/Cburylogo.png"; // adjust path if needed
+import CburyLogo from "../../assets/CburyLogo.png"; // adjust path if needed
 
 export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
