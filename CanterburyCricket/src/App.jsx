@@ -23,9 +23,9 @@ export default function App() {
       {/* Page routing */}
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/sponsors" element={<Sponsors />} />
-        <Route path="/awards" element={<Awards />} />
         <Route path="/season" element={<Season />} />
+        <Route path="/awards" element={<Awards />} />
+        <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/member-login" element={<MemberLogin />} />
       </Routes>
