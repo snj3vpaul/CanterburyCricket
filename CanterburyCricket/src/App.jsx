@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import ClubBackground from "./components/background/ClubBackground";
 import Navbar from "./components/Navbars/Navbar1";
-
+import Footer from "./components/Footer/Footer";
 import Home from "./pages/home";
 import Sponsors from "./pages/Sponsors";
 import Awards from "./pages/Awards";
@@ -29,6 +29,8 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/member-login" element={<MemberLogin />} />
       </Routes>
+      {/* ✅ Footer appears on ALL pages */}
+      <Footer />
     </Router>
   );
 }

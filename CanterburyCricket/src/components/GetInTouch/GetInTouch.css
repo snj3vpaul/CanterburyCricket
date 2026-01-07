@@ -1,0 +1,97 @@
+/* src/components/contact/GetInTouch.css */
+
+.get-in-touch {
+  padding: 80px 20px;
+  background: linear-gradient(
+    180deg,
+    #0b0f1a,
+    #09090b
+  );
+  color: #faf9f5;
+}
+
+.get-in-touch-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.get-in-touch h2 {
+  font-size: 2rem;
+  margin-bottom: 12px;
+  color: #f5c77a; /* subtle gold */
+}
+
+.get-in-touch p {
+  font-size: 0.95rem;
+  opacity: 0.85;
+  margin-bottom: 32px;
+}
+
+.contact-form {
+  display: grid;
+  gap: 18px;
+  text-align: left;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #f5c77a;
+  box-shadow: 0 0 0 2px rgba(245, 199, 122, 0.15);
+}
+
+.submit-btn {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(
+    135deg,
+    #f5c77a,
+    #d4a24c
+  );
+  color: #09090b;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(245, 199, 122, 0.35);
+}
+
+/* Mobile tweaks */
+@media (max-width: 600px) {
+  .get-in-touch {
+    padding: 60px 16px;
+  }
+}

@@ -1,0 +1,259 @@
+.footer {
+  position: relative;
+  background: radial-gradient(1200px 600px at 20% 10%, rgba(83, 109, 255, 0.12), transparent 60%),
+              radial-gradient(1000px 500px at 80% 20%, rgba(79, 57, 246, 0.12), transparent 55%),
+              #07070a;
+  color: rgba(250, 249, 245, 0.92);
+  border-top: 1px solid rgba(99, 102, 241, 0.25);
+  overflow: hidden;
+}
+
+.glowLeft,
+.glowRight {
+  position: absolute;
+  pointer-events: none;
+  width: 520px;
+  height: 520px;
+  filter: blur(140px);
+  opacity: 0.7;
+}
+
+.glowLeft {
+  left: -180px;
+  top: -220px;
+  background: rgba(83, 109, 255, 0.5);
+}
+
+.glowRight {
+  right: -200px;
+  bottom: -260px;
+  background: rgba(79, 57, 246, 0.55);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 56px 18px 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+  padding-bottom: 26px;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.clubName {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.meta {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.tagline {
+  margin: 0;
+  opacity: 0.85;
+  font-size: 14px;
+  max-width: 360px;
+  line-height: 1.45;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heading {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(250, 249, 245, 0.9);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.item {
+  font-size: 14px;
+  opacity: 0.88;
+  line-height: 1.4;
+}
+
+.muted {
+  opacity: 0.75;
+}
+
+.link {
+  color: rgba(250, 249, 245, 0.9);
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.cta {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 206, 102, 0.18), rgba(255, 206, 102, 0.08));
+  border: 1px solid rgba(255, 206, 102, 0.35);
+  color: rgba(250, 249, 245, 0.95);
+  text-decoration: none;
+  font-weight: 700;
+  width: fit-content;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.cta:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 206, 102, 0.55);
+}
+
+.ctaArrow {
+  opacity: 0.9;
+}
+
+.socialRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.social {
+  width: 44px;
+  height: 38px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 13px;
+  color: rgba(250, 249, 245, 0.9);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  transition: transform 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  opacity: 0.9;
+}
+
+.social:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 206, 102, 0.45);
+  opacity: 1;
+}
+
+.smallNote {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.75;
+  line-height: 1.45;
+  max-width: 260px;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  padding-bottom: 10px;
+}
+
+.bottomText {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.bottomLinks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bottomLink {
+  font-size: 13px;
+  opacity: 0.75;
+  color: rgba(250, 249, 245, 0.85);
+  text-decoration: none;
+}
+
+.bottomLink:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.dot {
+  opacity: 0.35;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .top {
+    grid-template-columns: 1.2fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-top: 44px;
+  }
+
+  .top {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

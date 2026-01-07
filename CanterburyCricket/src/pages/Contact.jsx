@@ -1,10 +1,12 @@
 import React from "react";
-import FooterContact from "../components/FooterContact/FooterContact";
+import Footer from "../components/Footer/Footer";
+import GetInTouch from "../components/GetInTouch/GetInTouch";
 
 export default function Contact() {
   return (
     <div>
-      <FooterContact />
+      <GetInTouch/>
+      
     </div>
   );
 }

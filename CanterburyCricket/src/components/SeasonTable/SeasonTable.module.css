@@ -1,106 +1,532 @@
-/* SeasonModule.css */
-
-.season-table-container {
-  position: relative;
-  z-index: 1; /* lower than navbar */
-  font-family: "Roboto", sans-serif;
-  max-width: 1200px;
+/* =========================
+   Layout
+========================= */
+.wrapper {
+  width: min(1280px, 95vw);
   margin: 0 auto;
-  padding: 20px;
-  overflow-x: auto;
+  padding: 18px 0 34px;
+  color: rgba(255, 255, 255, 0.92);
 }
 
-/* Section title */
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #f7b500; /* Canterbury gold */
-}
-
-/* Tabs styling */
-.tabs {
+/* =========================
+   Header
+========================= */
+.header {
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  align-items: flex-start; /* FIX: keeps toggle aligned with title, not subtitle */
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
 }
 
-.tabs button {
-  padding: 8px 16px;
-  border: none;
-  background: #222;
-  color: #fff;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.2s;
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 260px;
 }
 
-.tabs button.active {
-  background: #f7b500;
-  color: #222;
+.title {
+  margin: 0;
+  font-size: clamp(20px, 2.2vw, 28px);
+  letter-spacing: 0.2px;
+  line-height: 1.05;
 }
 
-/* Search input */
-.search-input {
-  display: block;
-  margin: 0 auto 20px auto;
-  padding: 8px 12px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  width: 300px;
-  max-width: 90%;
-  text-align: center;
+.subtitle {
+  margin: 0; /* FIX: no default push-down */
+  opacity: 0.8;
+  font-size: 14px;
+  max-width: 560px;
 }
 
-/* Table styling */
-table {
-  width: 100%;
-  border-collapse: collapse;
+.segmentedWrap {
+  display: flex;
+  justify-content: flex-end;
+  align-self: flex-start; /* pin to top */
 }
 
-table th,
-table td {
-  border: 1px solid #ccc;
-  padding: 8px 12px;
-  text-align: center;
+/* =========================
+   Division Segmented Control
+========================= */
+.segmented {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 6px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
 }
 
-table th {
-  background-color: #0e0d0e;
-  color: #f7b500;
+/* Sliding active pill */
+.activePill {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: calc(33.333% - 8px);
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 215, 0, 0.33),
+    rgba(255, 215, 0, 0.14)
+  );
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.28);
+  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
 }
 
-table tr:nth-child(even) {
-  background-color: #1a1a1a;
-  color: #fff;
+.segmented[data-active="T20"] .activePill {
+  transform: translateX(0%);
+}
+.segmented[data-active="CTZ"] .activePill {
+  transform: translateX(100%);
+}
+.segmented[data-active="CHG"] .activePill {
+  transform: translateX(200%);
 }
 
-.top-performer {
-  background-color: #f7b500;
-  color: #0e0d0e;
-  font-weight: bold;
-}
-.season-page {
-  padding-top: 72px; /* equal to navbar height */
+.segBtn {
   position: relative;
   z-index: 1;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 12px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  user-select: none;
 }
 
+.segBtn:hover {
+  transform: translateY(-1px);
+}
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .tabs {
+.segBtn:active {
+  transform: scale(0.98);
+}
+
+.segActive {
+  color: #ffd700;
+}
+
+.segText {
+  white-space: nowrap;
+}
+
+/* Optional "Uploading Soon" pill if you use it */
+.uploadPill {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.16);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  color: #ffd700;
+  animation: glowPulse 1.6s infinite ease-in-out;
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+    opacity: 0.85;
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.55);
+    opacity: 1;
+  }
+}
+
+/* =========================
+   Top Section Layout
+========================= */
+.topSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+/* =========================
+   Leader Cards
+========================= */
+.leadersGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 10px 0 6px;
+  width: 100%;              /* ✅ ensures it spans full row */
+  justify-content: center;
+}
+
+.leaderCard {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.24);
+  overflow: hidden;
+  animation: fadeSlideIn 0.35s ease both;
+}
+
+.leaderTop {
+  padding: 14px 14px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.leaderTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.leaderTitle {
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  opacity: 0.9;
+}
+
+.leaderBadge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.14);
+  border: 1px solid rgba(255, 215, 0, 0.28);
+  color: #ffd700;
+}
+
+.leaderPrimary {
+  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.leaderPrimaryValue {
+  font-size: 28px;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 18px rgba(255, 215, 0, 0.22);
+}
+
+.leaderPrimaryLabel {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.leaderBody {
+  padding: 12px 14px 14px;
+}
+
+.leaderName {
+  font-weight: 900;
+}
+
+.leaderTeam {
+  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.leaderLines {
+  margin: 10px 0 0;
+  padding-left: 16px;
+  opacity: 0.9;
+}
+
+.leaderLines li {
+  margin: 6px 0;
+  font-size: 13px;
+}
+
+/* =========================
+   Category Tabs (Bat/Bowl/Field)
+========================= */
+.tabsRow {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 14px;
+}
+
+.tabsWide {
+  width: 100%;
+  max-width: 860px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.tabBtnWide {
+  flex: 1;
+  max-width: 260px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 18px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 800;
+  transition: transform 0.14s ease, background 0.14s ease, opacity 0.14s ease;
+}
+
+.tabBtnWide:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tabBtnWide:active {
+  transform: scale(0.985);
+}
+
+.tabBtnWide:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tabActiveWide {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* =========================
+   Table
+========================= */
+.tableWrapFull {
+  width: 100%;
+  margin: 0 auto;
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.24);
+  animation: fadeSlideIn 0.35s ease both;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.table th,
+.table td {
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
+}
+
+.table thead th {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.95);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(6px);
+}
+
+.table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.playerCell {
+  min-width: 220px;
+}
+
+.playerName {
+  font-weight: 800;
+}
+
+.playerTeam {
+  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Sortable headers */
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.12s ease;
+}
+
+.sortable:hover {
+  opacity: 0.9;
+}
+
+/* =========================
+   Pagination
+========================= */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.pageBtn {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 10px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.14s ease, opacity 0.14s ease;
+}
+
+.pageBtn:hover {
+  transform: translateY(-1px);
+}
+
+.pageBtn:active {
+  transform: scale(0.98);
+}
+
+.pageBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  opacity: 0.9;
+}
+
+/* =========================
+   Placeholder (Uploading / No data)
+========================= */
+.placeholderCard {
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.24);
+  padding: 18px;
+}
+
+.placeholderHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.pulseDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 215, 0, 0.95);
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.55);
+  animation: pulse 1.3s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+}
+
+.placeholderTitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.placeholderText {
+  margin: 8px 0 14px;
+  opacity: 0.85;
+}
+
+.progressBar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  width: 42%;
+  background: rgba(255, 215, 0, 0.5);
+  animation: progressMove 1.2s infinite ease-in-out;
+}
+
+@keyframes progressMove {
+  0% {
+    transform: translateX(-40%);
+  }
+  50% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(-40%);
+  }
+}
+
+/* =========================
+   Animations
+========================= */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 980px) {
+  .leadersGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabsWide {
     flex-direction: column;
-    gap: 8px;
+    align-items: stretch;
+    max-width: 520px;
   }
 
-  .search-input {
-    width: 90%;
+  .tabBtnWide {
+    max-width: none;
+    padding: 14px 12px;
+  }
+}
+
+@media (max-width: 780px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  table th,
-  table td {
-    padding: 6px 8px;
+  .segmentedWrap {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 560px) {
+  .segBtn {
+    padding: 12px 10px;
+  }
+
+  .uploadPill {
+    display: none;
   }
 }
