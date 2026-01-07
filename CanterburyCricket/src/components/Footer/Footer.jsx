@@ -52,8 +52,8 @@ export default function Footer() {
               </li>
               <li className={styles.item}>
                 <span className={styles.muted}>✉️</span>{" "}
-                <a className={styles.link} href="mailto:canterburyccottawa@gmail.com">
-                  canterburyccottawa@gmail.com
+                <a className={styles.link} href="mailto:cricketcanterbury@gmail.com">
+                  cricketcanterbury@gmail.com
                 </a>
               </li>
               <li className={styles.item}>
