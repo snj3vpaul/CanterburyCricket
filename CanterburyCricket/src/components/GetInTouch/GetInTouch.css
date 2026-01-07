@@ -84,6 +84,30 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.field-error {
+  color: #ffb4b4;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.form-status {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.form-status.error {
+  background: rgba(255, 80, 80, 0.15);
+  color: #ffb4b4;
+}
+
+.form-status.success {
+  background: rgba(80, 200, 120, 0.15);
+  color: #9ef0c1;
+}
+
 .submit-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(245, 199, 122, 0.35);
