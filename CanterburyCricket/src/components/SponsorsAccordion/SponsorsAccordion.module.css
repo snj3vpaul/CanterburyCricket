@@ -1,112 +1,119 @@
-/* Section holding all cards */
-section {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-  padding: 40px 10%;
+/* Outer layout */
+.section {
+  width: min(1200px, 92vw);
+  margin: 0 auto;
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  padding: 36px 0 60px;
 }
 
-/* Individual card */
-article {
-  flex: 1 1 250px;
-  max-width: 300px;
-  background: #111;
-  color: #fff;
-  border-radius: 12px;
+/* Card */
+.card {
+  background: rgba(10, 10, 12, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, flex-grow 0.3s ease;
-  display: flex;
+  backdrop-filter: blur(6px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+   display: flex;             /* ✅ ensures media + body stack correctly */
   flex-direction: column;
 }
 
-/* Card hover effect */
-article:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
-/* Image container */
-article img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  display: block;
-  border-bottom: 1px solid #222;
+.active {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-/* Content inside card */
-article .content {
-  padding: 15px;
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
+/* Logo area (forces consistency) */
+.media {
+ height: 190px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  overflow: hidden;          /* ✅ IMPORTANT: prevents image from bleeding into text */
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
-/* Icon inside content */
-article .content .material-symbols-outlined {
-  font-size: 24px;
-  color: #f8f8f8;
-  flex-shrink: 0;
-}
-
-/* Text inside content */
-article .text-container {
-  display: flex;
-  flex-direction: column;
-  max-height: 60px;          /* collapsed height */
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-}
-
-article .text-container h2 {
-  font-family: 'Cinzel', serif;
-  margin: 0 0 5px 0;
-  font-size: 1.2rem;
-}
-
-.sponsors-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
+.image {
   width: 100%;
   height: 100%;
-  z-index: 0;
-  opacity: 0.1; /* subtle background */
+  object-fit: contain;
+  max-height: 150px;         /* ✅ keeps padded logos from “hanging low” */
+  margin-bottom: 6px;        /* ✅ adds breathing room from the text area */
 }
 
-article .text-container p {
-  font-family: 'Roboto', sans-serif;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  margin: 0;
+/* Text area */
+.body {
+  padding: 16px 18px 18px;
+  text-align: center;
 }
 
-/* Active accordion card expands content */
-article.active .text-container {
-  max-height: 200px;          /* expanded height */
+.thankYou {
+  font-family: "Cinzel", serif;
+  font-size: 22px;
+  margin: 0 0 10px 0;
+  letter-spacing: 0.5px;
 }
 
-/* Active card slightly bigger */
-article.active {
-  transform: scale(1.05);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+.title {
+  font-family: "Cinzel", serif;
+  font-size: 18px;
+  margin: 0 0 8px 0;
+  line-height: 1.25;
+
+  /* prevents ugly wraps like “Masala / Grill” unless needed */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  section {
-    flex-direction: column;
-    gap: 20px;
-    padding: 30px 5%;
+.subtitle {
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;
+  opacity: 0.9;
+  margin: 0 0 12px 0;
+}
+
+.link {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  text-decoration: none;
+  color: inherit;
+  font-size: 14px;
+  opacity: 0.92;
+  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  .media {
+    height: 170px;
   }
-
-  article {
-    max-width: 100%;
+  .thankYou {
+    font-size: 20px;
   }
-
-  article img {
-    height: 180px;
+  .title {
+    font-size: 16px;
   }
 }
