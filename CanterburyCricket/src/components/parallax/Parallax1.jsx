@@ -27,7 +27,7 @@ export const Parallax1 = () => {
         <button>Join the Journey</button>
       </section>
       <section className="parallax-container">
-        <h2>Canterbury Cricket Club — Where Passion Meets the Pitch</h2>
+        <h2>Canterbury Cricket Club — Where Passion Meet the Pitch</h2>
         <p>
           Parallax is a displacement or difference in the apparent position of
           an object viewed along two different lines of sight and is measured by
