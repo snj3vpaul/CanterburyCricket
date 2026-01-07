@@ -1,19 +1,29 @@
+/* SeasonModule.css */
+
 .season-table-container {
+  position: relative;
+  z-index: 1; /* lower than navbar */
+  font-family: "Roboto", sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
   overflow-x: auto;
-  font-family: "Roboto", sans-serif;
 }
 
+/* Section title */
 h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: #f7b500; /* Canterbury gold */
 }
 
+/* Tabs styling */
 .tabs {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .tabs button {
@@ -23,23 +33,27 @@ h2 {
   color: #fff;
   border-radius: 5px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .tabs button.active {
-  background: #f7b500; /* Canterbury gold */
+  background: #f7b500;
   color: #222;
 }
 
+/* Search input */
 .search-input {
   display: block;
-  margin: 0 auto 15px auto;
+  margin: 0 auto 20px auto;
   padding: 8px 12px;
   border-radius: 5px;
   border: 1px solid #ccc;
   width: 300px;
+  max-width: 90%;
   text-align: center;
 }
 
+/* Table styling */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -50,7 +64,6 @@ table td {
   border: 1px solid #ccc;
   padding: 8px 12px;
   text-align: center;
-  cursor: pointer;
 }
 
 table th {
@@ -67,4 +80,27 @@ table tr:nth-child(even) {
   background-color: #f7b500;
   color: #0e0d0e;
   font-weight: bold;
+}
+.season-page {
+  padding-top: 72px; /* equal to navbar height */
+  position: relative;
+  z-index: 1;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .search-input {
+    width: 90%;
+  }
+
+  table th,
+  table td {
+    padding: 6px 8px;
+  }
 }

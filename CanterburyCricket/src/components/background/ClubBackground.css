@@ -1,0 +1,134 @@
+/* Full-bleed animated background behind everything */
+.club-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+
+  /* fallback in case effects fail */
+  background: #070912;
+}
+
+/* base gradient */
+.club-bg-base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(79, 82, 255, 0.35), transparent 55%),
+    radial-gradient(circle at 80% 30%, rgba(247, 181, 0, 0.22), transparent 52%),
+    radial-gradient(circle at 70% 82%, rgba(220, 38, 38, 0.16), transparent 55%),
+    linear-gradient(180deg, #070912 0%, #050615 55%, #070912 100%);
+}
+
+/* “orb” blobs */
+.club-orb {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 999px;
+  filter: blur(36px);
+  opacity: 0.85;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.orb-indigo {
+  top: 8%;
+  left: 10%;
+  background: radial-gradient(circle, rgba(79, 82, 255, 0.65), transparent 60%);
+}
+
+.orb-gold {
+  top: 18%;
+  right: 8%;
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle, rgba(247, 181, 0, 0.55), transparent 62%);
+}
+
+.orb-red {
+  bottom: -8%;
+  left: 38%;
+  width: 560px;
+  height: 560px;
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.40), transparent 62%);
+}
+
+/* moving light streak */
+.club-sweep {
+  position: absolute;
+  top: 50%;
+  left: -40%;
+  width: 120%;
+  height: 140px;
+  transform: translateY(-50%) skewX(-14deg);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    rgba(247, 181, 0, 0.14),
+    rgba(79, 82, 255, 0.12),
+    transparent
+  );
+  filter: blur(14px);
+  opacity: 0.65;
+  mix-blend-mode: normal; /* cross-platform stable */
+}
+
+/* abstract crest “ring” */
+.club-ring {
+  position: absolute;
+  inset: -35%;
+  margin: auto;
+  width: 1100px;
+  height: 1100px;
+  border-radius: 50%;
+  opacity: 0.30;
+  filter: blur(0.2px);
+
+  background:
+    radial-gradient(circle at center, transparent 56%, rgba(247, 181, 0, 0.12) 57%, transparent 60%),
+    radial-gradient(circle at center, transparent 70%, rgba(79, 82, 255, 0.10) 71%, transparent 74%),
+    conic-gradient(
+      from 90deg,
+      rgba(247, 181, 0, 0.0),
+      rgba(247, 181, 0, 0.10),
+      rgba(220, 38, 38, 0.10),
+      rgba(79, 82, 255, 0.10),
+      rgba(247, 181, 0, 0.0)
+    );
+}
+
+/* grain texture */
+.club-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.10;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* make it lighter on small devices */
+@media (max-width: 768px) {
+  .club-orb {
+    width: 360px;
+    height: 360px;
+    filter: blur(30px);
+    opacity: 0.75;
+  }
+  .club-ring {
+    width: 820px;
+    height: 820px;
+    opacity: 0.22;
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .club-sweep,
+  .club-ring,
+  .club-orb {
+    animation: none !important;
+  }
+}

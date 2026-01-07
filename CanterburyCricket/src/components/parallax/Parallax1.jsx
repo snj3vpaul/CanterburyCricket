@@ -29,39 +29,37 @@ export const Parallax1 = () => {
       <section className="parallax-container">
         <h2>Canterbury Cricket Club — Where Passion Meet the Pitch</h2>
         <p>
-          Parallax is a displacement or difference in the apparent position of
-          an object viewed along two different lines of sight and is measured by
-          the angle or half-angle of inclination between those two lines. Due to
-          foreshortening, nearby objects show a larger parallax than farther
-          objects, so parallax can be used to determine distances.
-        </p>
-        <p>
-          Parallax also affects optical instruments such as rifle scopes,
-          binoculars, microscopes, and twin-lens reflex cameras that view
-          objects from slightly different angles. Many animals, along with
-          humans, have two eyes with overlapping visual fields that use parallax
-          to gain depth perception; this process is known as stereopsis. In
-          computer vision the effect is used for computer stereo vision, and
-          there is a device called a parallax rangefinder that uses it to find
-          the range, and in some variations also altitude to a target.
-        </p>
-        <p>
-          Parallax is a displacement or difference in the apparent position of
-          an object viewed along two different lines of sight and is measured by
-          the angle or half-angle of inclination between those two lines. Due to
-          foreshortening, nearby objects show a larger parallax than farther
-          objects, so parallax can be used to determine distances.
-        </p>
-        <p>
-          Parallax also affects optical instruments such as rifle scopes,
-          binoculars, microscopes, and twin-lens reflex cameras that view
-          objects from slightly different angles. Many animals, along with
-          humans, have two eyes with overlapping visual fields that use parallax
-          to gain depth perception; this process is known as stereopsis. In
-          computer vision the effect is used for computer stereo vision, and
-          there is a device called a parallax rangefinder that uses it to find
-          the range, and in some variations also altitude to a target.
-        </p>
+  Canterbury Cricket Club Ottawa has been a proud part of the city’s cricketing
+  community since <strong>1983</strong>. What started as a small group of
+  passionate cricketers has grown into one of Ottawa’s most respected and
+  long-standing cricket clubs. Over the years, Canterbury has become known not
+  just for competitive cricket, but for strong friendships, sportsmanship, and
+  a deep love for the game.
+</p>
+
+<p>
+  From weekend league matches to tournament finals, Canterbury has always been
+  about playing hard, playing fair, and enjoying every moment on and off the
+  field. Our club proudly brings together players from diverse backgrounds,
+  united by a shared passion for cricket and a commitment to representing the
+  club with pride.
+</p>
+
+<p>
+  With decades of history behind us, Canterbury has celebrated countless
+  milestones — championship victories, unforgettable performances, and
+  generations of players who’ve worn the club colors with honor. Whether you’re
+  a seasoned cricketer or new to the game, there’s always a place for you in the
+  Canterbury family.
+</p>
+
+<p>
+  Today, Canterbury Cricket Club continues to build on its legacy while looking
+  toward the future — developing young talent, strengthening our community,
+  and keeping the spirit of cricket alive in Ottawa. Join us on the journey as
+  we write the next chapter of Canterbury cricket. 🏏❤️
+</p>
+
       </section>
     </div>
   );
