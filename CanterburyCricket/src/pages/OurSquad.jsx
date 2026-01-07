@@ -1,303 +1,293 @@
+// src/pages/OurSquad.jsx
 import React, { useMemo, useState } from "react";
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  Container,
-  Divider,
-  Grid,
-  Group,
-  Modal,
-  Select,
-  SimpleGrid,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
-
-const fallbackAvatar =
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(`
-  <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
-    <rect width="100%" height="100%" fill="#0b1220"/>
-    <circle cx="300" cy="245" r="110" fill="#1f2a44"/>
-    <rect x="130" y="375" width="340" height="170" rx="85" fill="#1f2a44"/>
-  </svg>
-`);
+import { Card, CardBody, Chip, Avatar } from "@nextui-org/react";
+import "./OurSquadFlip.css";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DIV_OPTIONS = ["All", "T20", "CTZ", "CHG"];
 
+// Replace image with real imports later (e.g. import ameer from "../assets/players/ameer.jpg")
+const fallbackImage =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200">
+    <defs>
+      <linearGradient id="g" x1="0" x2="1">
+        <stop offset="0" stop-color="#0b1220"/>
+        <stop offset="1" stop-color="#101b33"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#g)"/>
+    <circle cx="450" cy="420" r="160" fill="#1f2a44"/>
+    <rect x="220" y="640" width="460" height="320" rx="160" fill="#1f2a44"/>
+  </svg>
+`);
+
 const SQUAD = [
   {
     id: "p1",
+    number: 13,
     name: "Ameer Khan",
     role: "Batter",
     division: "T20",
-    battingStyle: "Right-hand",
-    bowlingStyle: "—",
-    playingStyle: ["Aggressive Opener", "Power-hitter"],
-    bio: "Explosive top-order batter. Loves taking on the powerplay and setting the tone early.",
-    strengths: ["Powerplay striker", "Boundary-hitting", "Fast starter"],
-    image: fallbackAvatar,
+    batting: "Right-hand",
+    bowling: "—",
+    styles: ["Aggressive Opener", "Power-hitter"],
+    bio: "Explosive top-order batter who attacks the powerplay.",
+    image: fallbackImage,
   },
   {
     id: "p2",
+    number: 5,
     name: "Varun Singh",
     role: "All-rounder",
     division: "CTZ",
-    battingStyle: "Right-hand",
-    bowlingStyle: "Medium",
-    playingStyle: ["Utility", "Clutch"],
-    bio: "Balanced all-rounder — contributes with both bat and ball and thrives in pressure moments.",
-    strengths: ["Middle overs control", "Finishing cameos", "Smart match-ups"],
-    image: fallbackAvatar,
+    batting: "Right-hand",
+    bowling: "Medium",
+    styles: ["Utility", "Clutch"],
+    bio: "Reliable all-rounder who delivers under pressure.",
+    image: fallbackImage,
   },
   {
     id: "p3",
+    number: 10,
     name: "Akram Syed",
     role: "Bowler",
     division: "CHG",
-    battingStyle: "Right-hand",
-    bowlingStyle: "Leg-spin",
-    playingStyle: ["Wicket-taker", "Clever variations"],
-    bio: "Leg-spinner who hunts wickets and uses flight/turn to break partnerships.",
-    strengths: ["Wicket-taking", "Deception", "Middle overs breakthroughs"],
-    image: fallbackAvatar,
+    batting: "Right-hand",
+    bowling: "Leg-spin",
+    styles: ["Wicket-taker", "Variations"],
+    bio: "Leg-spinner who breaks partnerships with flight and deception.",
+    image: fallbackImage,
   },
   {
     id: "p4",
+    number: 20,
     name: "Aoun Ali",
     role: "Wicket-keeper",
     division: "T20",
-    battingStyle: "Left-hand",
-    bowlingStyle: "—",
-    playingStyle: ["Safe hands", "Anchor"],
-    bio: "Calm keeper-batter who stabilizes the innings and keeps things tidy behind the stumps.",
-    strengths: ["Reliable glovework", "Rotation of strike", "Game awareness"],
-    image: fallbackAvatar,
+    batting: "Left-hand",
+    bowling: "—",
+    styles: ["Safe hands", "Anchor"],
+    bio: "Calm wicket-keeper and reliable batter who stabilizes the innings.",
+    image: fallbackImage,
   },
 ];
 
-function normalize(value) {
-  return (value || "").toString().trim().toLowerCase();
-}
+const norm = (v) => (v || "").toString().trim().toLowerCase();
 
 export default function OurSquad() {
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
   const [division, setDivision] = useState("All");
-  const [selected, setSelected] = useState(null);
+
+  // Tap-to-flip (mobile); desktop flips on hover via CSS media query.
+  const [tappedId, setTappedId] = useState(null);
 
   const filtered = useMemo(() => {
-    const q = normalize(query);
+    const q = norm(query);
 
     return SQUAD.filter((p) => {
-      const matchesRole = role === "All" ? true : p.role === role;
-      const matchesDivision = division === "All" ? true : p.division === division;
-
-      if (!matchesRole || !matchesDivision) return false;
-
+      if (role !== "All" && p.role !== role) return false;
+      if (division !== "All" && p.division !== division) return false;
       if (!q) return true;
 
-      const haystack = normalize(
-        [
-          p.name,
-          p.role,
-          p.division,
-          p.battingStyle,
-          p.bowlingStyle,
-          ...(p.playingStyle || []),
-          ...(p.strengths || []),
-        ].join(" ")
+      const hay = norm(
+        [p.name, p.role, p.division, p.batting, p.bowling, ...(p.styles || [])].join(" ")
       );
-
-      return haystack.includes(q);
+      return hay.includes(q);
     });
   }, [query, role, division]);
 
+  const clearAll = () => {
+    setQuery("");
+    setRole("All");
+    setDivision("All");
+  };
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg, #020617 0%, #070b18 40%, #0b1220 100%)",
-      }}
-    >
-      <Container size="lg" py={40}>
+    <div className="squadPage">
+      <div className="squadContainer">
         {/* Header */}
-        <Group justify="space-between" align="flex-end" wrap="wrap" gap="md">
-          <Stack gap={6}>
-            <Title order={1} style={{ color: "#f8fafc" }}>
-              Our Squad
-            </Title>
-            <Text c="dimmed" maw={720}>
-              Meet the Canterbury Cricket Club lineup — players, roles, and playing styles.
-            </Text>
-          </Stack>
+        <div className="squadHeader">
+          <div className="squadHeaderText">
+            <h1 className="squadTitle">Our Squad</h1>
+            <p className="squadSub">
+              Hover a card to flip on desktop — tap to flip on mobile.
+            </p>
+          </div>
 
-          <Group gap="sm" wrap="wrap">
-            <TextInput
-              value={query}
-              onChange={(e) => setQuery(e.currentTarget.value)}
-              placeholder="Search: name, role, style…"
-              w={260}
-            />
-            <Button
-              variant="light"
-              onClick={() => {
-                setQuery("");
-                setRole("All");
-                setDivision("All");
-              }}
-            >
-              Reset
-            </Button>
-          </Group>
-        </Group>
+          <div className="squadSearchRow">
+            <div className="squadSearch">
+              <span className="squadSearchIcon" aria-hidden="true">
+                ⌕
+              </span>
 
-        {/* Filters + Results */}
-        <Grid mt="lg" gutter="md">
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Card withBorder radius="lg" p="md">
-              <Stack gap="sm">
-                <Text fw={700}>Filters</Text>
+              <input
+                className="squadSearchInput"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search: name, role, style…"
+                aria-label="Search players"
+              />
 
-                <Select
-                  label="Division"
-                  data={DIV_OPTIONS}
+              {query && (
+                <button
+                  className="squadClearBtn"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  type="button"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="squadFilters">
+          <div className="squadFilterCard">
+            <div className="squadFilterTop">
+              <div className="squadFilterTitle">Filters</div>
+
+              {(query || role !== "All" || division !== "All") && (
+                <button className="squadResetBtn" onClick={clearAll} type="button">
+                  Reset
+                </button>
+              )}
+            </div>
+
+            <div className="squadFilterGrid">
+              <label className="squadField">
+                <span className="squadFieldLabel">Division</span>
+                <select
+                  className="squadSelect"
                   value={division}
-                  onChange={(v) => setDivision(v || "All")}
-                />
-
-                <Select
-                  label="Role"
-                  data={ROLE_OPTIONS}
-                  value={role}
-                  onChange={(v) => setRole(v || "All")}
-                />
-
-                <Divider />
-
-                <Group justify="space-between">
-                  <Text size="sm" c="dimmed">
-                    Results
-                  </Text>
-                  <Badge variant="light">{filtered.length}</Badge>
-                </Group>
-              </Stack>
-            </Card>
-          </Grid.Col>
-
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-              {filtered.map((p) => (
-                <Card key={p.id} withBorder radius="lg" p="md" h="100%">
-                  <Group align="flex-start" wrap="nowrap">
-                    <Avatar src={p.image} size={64} radius="lg" />
-                    <Stack gap={6} style={{ flex: 1 }}>
-                      <Group justify="space-between" align="flex-start" wrap="nowrap">
-                        <div style={{ minWidth: 0 }}>
-                          <Text fw={800} lineClamp={1}>
-                            {p.name}
-                          </Text>
-                          <Text size="sm" c="dimmed">
-                            {p.role} • {p.division}
-                          </Text>
-                        </div>
-
-                        <Button size="xs" onClick={() => setSelected(p)}>
-                          View
-                        </Button>
-                      </Group>
-
-                      <Group gap={6} wrap="wrap">
-                        {(p.playingStyle || []).slice(0, 3).map((tag) => (
-                          <Badge key={tag} variant="outline">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </Group>
-
-                      <Group gap="xs" wrap="wrap" mt={2}>
-                        <Badge variant="light">Bat: {p.battingStyle}</Badge>
-                        <Badge variant="light">Bowl: {p.bowlingStyle}</Badge>
-                      </Group>
-                    </Stack>
-                  </Group>
-                </Card>
-              ))}
-            </SimpleGrid>
-
-            {filtered.length === 0 && (
-              <Card withBorder radius="lg" p="lg" mt="md">
-                <Text fw={700}>No players match your filters.</Text>
-                <Text size="sm" c="dimmed" mt={4}>
-                  Try changing the division/role or clearing the search box.
-                </Text>
-              </Card>
-            )}
-          </Grid.Col>
-        </Grid>
-
-        {/* Player modal */}
-        <Modal
-          opened={!!selected}
-          onClose={() => setSelected(null)}
-          centered
-          radius="lg"
-          size="lg"
-          title={
-            selected ? (
-              <Group gap="xs" wrap="wrap">
-                <Text fw={800}>{selected.name}</Text>
-                <Badge variant="light">{selected.division}</Badge>
-                <Badge variant="outline">{selected.role}</Badge>
-              </Group>
-            ) : null
-          }
-        >
-          {selected && (
-            <Stack>
-              <Group align="flex-start" wrap="nowrap">
-                <Avatar src={selected.image} size={96} radius="xl" />
-                <Stack gap={8} style={{ flex: 1 }}>
-                  <Group gap={6} wrap="wrap">
-                    {(selected.playingStyle || []).map((t) => (
-                      <Badge key={t} variant="outline">
-                        {t}
-                      </Badge>
-                    ))}
-                  </Group>
-
-                  <Text size="sm" c="dimmed">
-                    Batting: <b>{selected.battingStyle}</b> • Bowling:{" "}
-                    <b>{selected.bowlingStyle}</b>
-                  </Text>
-                </Stack>
-              </Group>
-
-              <Text>{selected.bio}</Text>
-
-              <Divider />
-
-              <div>
-                <Text fw={800} mb={6}>
-                  Strengths
-                </Text>
-                <Stack gap={4}>
-                  {(selected.strengths || []).map((s) => (
-                    <Text key={s} size="sm">
-                      • {s}
-                    </Text>
+                  onChange={(e) => setDivision(e.target.value)}
+                >
+                  {DIV_OPTIONS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
                   ))}
-                </Stack>
+                </select>
+              </label>
+
+              <label className="squadField">
+                <span className="squadFieldLabel">Role</span>
+                <select
+                  className="squadSelect"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  {ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="squadResultsRow">
+              <span className="squadResultsLabel">Results</span>
+              <Chip size="sm" variant="flat" color="primary">
+                {filtered.length}
+              </Chip>
+            </div>
+          </div>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="squadGrid">
+          {filtered.map((p) => (
+            <div
+              key={p.id}
+              className={`flipCard ${tappedId === p.id ? "isFlipped" : ""}`}
+              onClick={() => setTappedId(tappedId === p.id ? null : p.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setTappedId(tappedId === p.id ? null : p.id);
+                }
+              }}
+              aria-label={`Flip card for ${p.name}`}
+            >
+              <div className="flipInner">
+                {/* FRONT */}
+                <Card className="flipFace flipFront" shadow="none">
+                  <CardBody className="p-0 h-full">
+                    <div className="frontTop">
+                      <img className="frontPhoto" src={p.image} alt={p.name} />
+                      <div className="numberBadge">#{p.number}</div>
+                      <div className="frontVignette" />
+                    </div>
+
+                    <div className="frontBottom">
+                      <div className="frontName">{p.name}</div>
+                      <div className="frontMeta">
+                        {p.role} • {p.division}
+                      </div>
+
+                      <Chip size="sm" variant="bordered" className="hintChip">
+                        Hover / Tap to flip
+                      </Chip>
+                    </div>
+                  </CardBody>
+                </Card>
+
+                {/* BACK */}
+                <Card className="flipFace flipBack" shadow="none">
+                  <CardBody className="p-4 h-full">
+                    <div className="backHeader">
+                      <div>
+                        <div className="backName">{p.name}</div>
+                        <div className="backMeta">
+                          {p.role} • {p.division}
+                        </div>
+                      </div>
+
+                      <Avatar src={p.image} className="backAvatar" radius="lg" />
+                    </div>
+
+                    <div className="backRow">
+                      <Chip size="sm" variant="bordered" className="backChip">
+                        Bat: {p.batting}
+                      </Chip>
+                      <Chip size="sm" variant="bordered" className="backChip">
+                        Bowl: {p.bowling}
+                      </Chip>
+                    </div>
+
+                    <div className="backStyles">
+                      {(p.styles || []).map((s) => (
+                        <Chip key={s} size="sm" variant="flat" color="primary">
+                          {s}
+                        </Chip>
+                      ))}
+                    </div>
+
+                    <p className="backBio">{p.bio}</p>
+                  </CardBody>
+                </Card>
               </div>
-            </Stack>
+            </div>
+          ))}
+
+          {filtered.length === 0 && (
+            <div className="emptyState">
+              <div className="emptyTitle">No players match your filters.</div>
+              <div className="emptySub">
+                Try changing Role/Division or clearing search.
+              </div>
+            </div>
           )}
-        </Modal>
-      </Container>
+        </div>
+      </div>
     </div>
   );
 }
+// ===== End of OurSquad.jsx =====

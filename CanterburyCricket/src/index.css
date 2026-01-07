@@ -19,6 +19,7 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --nav-h: 110px;
 }
 
 /* ✅ Don’t force link styling globally (MUI handles this) */
@@ -31,3 +32,5 @@ a {
 button {
   font-family: inherit;
 }
+
+@media (max-width: 768px) { :root { --nav-h: 86px; } }

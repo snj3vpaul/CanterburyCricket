@@ -3,13 +3,12 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
+// NextUI
+import { NextUIProvider } from "@nextui-org/react";
+
 // MUI
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-
-// Mantine
-import "@mantine/core/styles.css";
-import { MantineProvider } from "@mantine/core";
 
 const theme = createTheme({
   palette: {
@@ -25,12 +24,8 @@ const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        body: {
-          backgroundColor: "transparent",
-        },
-        "#root": {
-          backgroundColor: "transparent",
-        },
+        body: { backgroundColor: "transparent" },
+        "#root": { backgroundColor: "transparent" },
       },
     },
   },
@@ -40,11 +35,9 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-
-      {/* ✅ Mantine added without breaking MUI */}
-      <MantineProvider defaultColorScheme="dark">
+      <NextUIProvider>
         <App />
-      </MantineProvider>
+      </NextUIProvider>
     </ThemeProvider>
   </StrictMode>
 );

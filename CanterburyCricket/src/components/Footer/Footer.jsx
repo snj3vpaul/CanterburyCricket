@@ -34,9 +34,8 @@ export default function Footer() {
             <p className={styles.heading}>Quick Links</p>
             <ul className={styles.list}>
               <li><Link to="/" className={styles.link}>Home</Link></li>
-              <li><Link to="/about" className={styles.link}>About</Link></li>
-              <li><Link to="/teams" className={styles.link}>Teams</Link></li>
-              <li><Link to="/fixtures" className={styles.link}>Fixtures & Results</Link></li>
+              
+              
               <li><Link to="/awards" className={styles.link}>Awards Night</Link></li>
               <li><Link to="/sponsors" className={styles.link}>Sponsors</Link></li>
               <li><Link to="/contact" className={styles.link}>Contact</Link></li>
@@ -73,7 +72,7 @@ export default function Footer() {
             <div className={styles.socialRow}>
               <a
                 className={styles.social}
-                href="https://www.instagram.com/"
+                href="https://www.instagram.com/canterburyccottawa"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
@@ -91,16 +90,7 @@ export default function Footer() {
               >
                 FB
               </a>
-              <a
-                className={styles.social}
-                href="https://www.youtube.com/"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="YouTube"
-                title="YouTube"
-              >
-                YT
-              </a>
+              
             </div>
 
             <p className={styles.smallNote}>

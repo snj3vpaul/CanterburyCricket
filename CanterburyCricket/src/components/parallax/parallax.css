@@ -14,6 +14,9 @@ body {
   font-family: "Roboto", sans-serif;
   color: #f8f8f8;
   overflow-x: hidden;
+  padding-top: 72px; /* match your navbar height */
+  position: relative;
+  z-index: 0;
 }
 
 /* Global box sizing */
@@ -30,7 +33,8 @@ body {
 .parallax-banner {
   position: relative;
   width: 100%;
-
+z-index: 0;
+  isolation: isolate;
   /* Viewport height — fixed correctly */
   min-height: 100vh;
   min-height: 100dvh;
@@ -104,4 +108,10 @@ body {
   font-size: 1.1rem;
   line-height: 1.7;
   margin-bottom: 20px;
+}
+/* OPTIONAL but recommended: fixed bg can cause layering issues */
+@media (min-width: 1024px) {
+  .parallax-banner {
+    background-attachment: scroll; /* keep parallax via JS instead */
+  }
 }
