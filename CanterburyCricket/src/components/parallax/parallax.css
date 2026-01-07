@@ -1,54 +1,82 @@
-/* Page styles */
-.page.parallax-1-page {
-  background: #0e0d0e;
-  min-height: 100%;
-  font-family: 'Roboto', sans-serif; /* default body font */
-  color: #f8f8f8;
+/* =========================
+   Global / Page Wrapper
+   ========================= */
+
+html,
+body {
   margin: 0;
+  padding: 0;
+  background-color: #0e0d0e;
+}
+
+.page.parallax-1-page {
+  min-height: 100%;
+  font-family: "Roboto", sans-serif;
+  color: #f8f8f8;
+  overflow-x: hidden;
 }
 
 /* Global box sizing */
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-/* Parallax video/banner section */
+/* =========================
+   Parallax Hero Section
+   ========================= */
+
 .parallax-banner {
-  height: 100vh;
-  background-image: url('../parallax/bg.png'); /* fallback background */
-  background-size: cover;
+  position: relative;
+  width: 100%;
+
+  /* Viewport height — fixed correctly */
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background-image: url("../parallax/bg.png");
   background-repeat: no-repeat;
-  background-attachment: fixed; /* parallax effect */
+  background-size: cover;
+  background-position: center;
+
+  /* Disable fixed attachment to avoid browser bugs */
+  background-attachment: scroll;
+
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   text-align: center;
-  color: #ffffff;
 }
 
-/* Heading in parallax section */
+/* Enable parallax only on larger screens */
+@media (min-width: 1024px) {
+  .parallax-banner {
+    background-attachment: fixed;
+  }
+}
+
+/* Hero heading */
 .parallax-banner h2 {
-  font-family: 'Cinzel', serif; /* display font */
-  font-size: 3rem; /* 48px */
+  font-family: "Cinzel", serif;
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
   font-weight: 700;
-  margin: 0 0 20px 0;
-  padding-top: 60px; /* optional spacing from top */
+  margin: 0 0 24px;
   line-height: 1.2;
 }
 
-/* Button in parallax section */
+/* Hero button */
 .parallax-banner button {
   border: none;
   background-color: #ffffff;
   color: #222222;
-  padding: 12px 28px;
+  padding: 12px 32px;
   border-radius: 30px;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 600;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
 .parallax-banner button:hover {
@@ -56,22 +84,24 @@
   transform: translateY(-2px);
 }
 
-/* Content sections below parallax */
+/* =========================
+   Content Section
+   ========================= */
+
 .parallax-container {
-  padding: 80px 10%;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 80px clamp(16px, 5vw, 80px);
 }
 
 .parallax-container h2 {
-  font-family: 'Cinzel', serif;
-  font-size: 2.5rem;
-  margin-bottom: 20px;
+  font-family: "Cinzel", serif;
+  font-size: 2.25rem;
+  margin-bottom: 24px;
 }
 
 .parallax-container p {
-  font-family: 'Roboto', sans-serif;
   font-size: 1.1rem;
-  line-height: 1.6;
+  line-height: 1.7;
   margin-bottom: 20px;
 }

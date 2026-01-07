@@ -21,7 +21,7 @@ export const Parallax1 = () => {
           backgroundPositionY: `${scrollPosition * 0.5}px`, 
           //backgroundSize: `${(window.outerHeight - scrollPosition) / 3}%`,//
         }}
-        className="parallax-banner parallax-container"
+        className="parallax-banner"
       >
         <h2>Canterbury Cricket Club</h2>
         <button>Join the Journey</button>
