@@ -115,11 +115,7 @@ export default function Footer() {
             © {year} Canterbury Cricket Club Ottawa. All rights reserved.
           </p>
 
-          <div className={styles.bottomLinks}>
-            <Link to="/privacy" className={styles.bottomLink}>Privacy</Link>
-            <span className={styles.dot} aria-hidden="true">•</span>
-            <Link to="/terms" className={styles.bottomLink}>Terms</Link>
-          </div>
+          
         </div>
       </div>
     </footer>
