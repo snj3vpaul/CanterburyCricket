@@ -1,6 +1,6 @@
 import React from "react";
 import {Sponsors as SponsorsAccordion} from "../components/SponsorsAccordion/SponsorsAccordion";
-import "./Sponsors.css";
+import "./sponsors.css";
 import bgSvg from "../assets/CGPT.png"; // make sure the relative path is correct
 
 
