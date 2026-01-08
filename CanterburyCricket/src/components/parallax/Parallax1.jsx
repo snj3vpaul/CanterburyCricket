@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "./parallax.css";
 
 export const Parallax1 = () => {
   const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Dive animation state
+  // Dive animation state (KEEP)
   const [isDiving, setIsDiving] = useState(false);
   const lockRef = useRef(false);
 
-  // Target section ref (your paragraphs)
+  // Target section ref (KEEP - still useful if you want scroll behaviors later)
   const historyRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const handleScroll = () => setScrollPosition(window.scrollY);
 
@@ -18,21 +21,19 @@ export const Parallax1 = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleDiveClick = () => {
+  // ✅ Now navigates to /history, but still plays the dive animation first
+  const handleDiveToHistoryPage = () => {
     if (lockRef.current) return;
     lockRef.current = true;
 
     setIsDiving(true);
 
-    // Start scroll after the "dive" begins
+    // Start navigation after "dive" begins
     window.setTimeout(() => {
-      historyRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      navigate("/history");
     }, 260);
 
-    // Reset animation state
+    // Reset animation state (same timing you had)
     window.setTimeout(() => {
       setIsDiving(false);
       lockRef.current = false;
@@ -47,14 +48,13 @@ export const Parallax1 = () => {
         }}
         className="parallax-banner"
       >
-        {/* Wrap hero content so we animate ONLY the text/button, not the background */}
+        {/* KEEP your hero animation wrapper */}
         <div className={`parallax-heroContent ${isDiving ? "isDiving" : ""}`}>
           <h2>Canterbury Cricket Club</h2>
-          <button onClick={handleDiveClick}>Let&apos;s Dive into History</button>
+          {/* ✅ Button removed from hero (animations still exist) */}
         </div>
       </section>
 
-      {/* Add ref here so button can scroll into this section */}
       <section className="parallax-container" ref={historyRef} id="history">
         <h2>Canterbury Cricket Club — Where Passion Meet the Pitch</h2>
 
@@ -89,6 +89,13 @@ export const Parallax1 = () => {
           community, and keeping the spirit of cricket alive in Ottawa. Join us
           on the journey as we write the next chapter of Canterbury cricket. 🏏❤️
         </p>
+
+        {/* ✅ NEW: CTA below the paragraphs (keeps dive animation via same class) */}
+        <div className={`parallax-historyCta ${isDiving ? "isDiving" : ""}`}>
+          <button onClick={handleDiveToHistoryPage}>
+            Let&apos;s Dive into History
+          </button>
+        </div>
       </section>
     </div>
   );

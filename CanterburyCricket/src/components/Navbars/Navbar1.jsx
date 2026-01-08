@@ -68,7 +68,7 @@ export default function Navbar1() {
           {/* ===== Desktop Navigation ===== */}
           <nav className="navLinksDesktop">
             <NavLink to="/" className={linkClass}>Home</NavLink>
-            
+            <NavLink to="/history" className={linkClass}>Rich History</NavLink>
             <NavLink to="/squad" className={linkClass}>Our Squad</NavLink>
             <NavLink to="/season" className={linkClass}>Season</NavLink>
 

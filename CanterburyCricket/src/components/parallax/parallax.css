@@ -167,3 +167,22 @@ z-index: 0;
     background-attachment: scroll; /* keep parallax via JS instead */
   }
 }
+.parallax-historyCta {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center; /* center the button under paragraphs */
+}
+
+.parallax-historyCta button {
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  color: #0b0c10;
+  cursor: pointer;
+}
+
+.parallax-historyCta button:hover {
+  transform: translateY(-1px);
+}

@@ -11,7 +11,7 @@ import Season from "./pages/Season";
 import Contact from "./pages/Contact";
 import MemberLogin from "./pages/MemberLogin";
 import OurSquad from "./pages/OurSquad";
-
+import HistoryPage from "./pages/History/HistoryPage";
 export default function App() {
   return (
     <Router>
@@ -25,6 +25,7 @@ export default function App() {
       {/* Page routing */}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/history" element={<HistoryPage />} />
         <Route path="/squad" element={<OurSquad />} />
         <Route path="/season" element={<Season />} />
         <Route path="/awards" element={<Awards />} />
