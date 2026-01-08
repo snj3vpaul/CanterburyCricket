@@ -1,86 +1,121 @@
-/* =========================
-   Layout
-========================= */
+/* SeasonTable.module.css */
+
+/* ===== Wrapper ===== */
 .wrapper {
-  width: min(1280px, 95vw);
+  width: 100%;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 18px 0 34px;
-  color: rgba(255, 255, 255, 0.92);
+  padding: 28px 16px 44px;
 }
 
-/* =========================
-   Header
-========================= */
+/* ===== Header ===== */
 .header {
-  display: flex;
-  align-items: flex-start; /* FIX: keeps toggle aligned with title, not subtitle */
-  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+/* ✅ Years (left) + Division (true-centered) without overlap */
+.topRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
   gap: 16px;
-  margin-bottom: 14px;
+  width: 100%;
 }
 
-.headerText {
+.left,
+.center,
+.right {
+  min-width: 0; /* ✅ allows content to shrink instead of overlapping */
+}
+
+.left {
+  justify-self: start;
+}
+
+.center {
+  justify-self: center;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 260px;
+  justify-content: center;
 }
 
-.title {
-  margin: 0;
-  font-size: clamp(20px, 2.2vw, 28px);
+.right {
+  justify-self: end; /* spacer to keep center truly centered */
+}
+
+/* ===== Year Toggle (MUI group) ===== */
+.yearToggle {
+  border-radius: 16px !important;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 12, 20, 0.26);
+  padding: 4px;
+
+  display: inline-flex;
+  gap: 6px;
+
+  /* ✅ KEY: prevent collision with division control */
+  max-width: 100%;
+  flex-wrap: wrap; /* wraps years to next line if needed */
+}
+
+.yearBtn {
+  text-transform: none !important;
+  font-weight: 800 !important;
   letter-spacing: 0.2px;
-  line-height: 1.05;
+  border: 0 !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  color: rgba(255, 255, 255, 0.86) !important;
+  min-width: 66px;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease !important;
 }
 
-.subtitle {
-  margin: 0; /* FIX: no default push-down */
-  opacity: 0.8;
-  font-size: 14px;
-  max-width: 560px;
+.yearBtn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  transform: translateY(-1px);
 }
 
-.segmentedWrap {
-  display: flex;
-  justify-content: flex-end;
-  align-self: flex-start; /* pin to top */
+.yearBtn.Mui-selected {
+  color: #0b0c10 !important;
+  background: rgba(255, 215, 120, 0.95) !important;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
 }
 
-/* =========================
-   Division Segmented Control
-========================= */
+/* ===== Division Segmented ===== */
 .segmented {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
   padding: 6px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: rgba(10, 12, 20, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
   overflow: hidden;
+
+  /* ✅ KEY: no hard min-width (this caused overlap) */
+  min-width: 0;
+  width: min(560px, 100%);
 }
 
-/* Sliding active pill */
+/* sliding pill */
 .activePill {
   position: absolute;
   top: 6px;
   bottom: 6px;
-  width: calc(33.333% - 8px);
-  border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 215, 0, 0.33),
-    rgba(255, 215, 0, 0.14)
-  );
-  box-shadow: 0 0 18px rgba(255, 215, 0, 0.28);
-  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 0;
+  width: calc((100% - 12px) / 3);
+  left: 6px;
+  border-radius: 14px;
+  background: rgba(255, 215, 120, 0.22);
+  border: 1px solid rgba(255, 215, 120, 0.25);
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 120, 0.08);
+  transition: transform 240ms ease;
+  pointer-events: none;
 }
 
-.segmented[data-active="T20"] .activePill {
-  transform: translateX(0%);
-}
 .segmented[data-active="CTZ"] .activePill {
   transform: translateX(100%);
 }
@@ -91,193 +126,190 @@
 .segBtn {
   position: relative;
   z-index: 1;
-  border: none;
+  flex: 1;
+  border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.92);
-  padding: 12px 12px;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 800;
+  padding: 10px 14px;
   border-radius: 14px;
   cursor: pointer;
-  font-weight: 700;
-  display: inline-flex;
+
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: transform 0.15s ease, color 0.15s ease, opacity 0.15s ease;
-  user-select: none;
+
+  transition: color 160ms ease, transform 160ms ease, background 160ms ease;
 }
 
 .segBtn:hover {
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
-.segBtn:active {
-  transform: scale(0.98);
-}
-
 .segActive {
-  color: #ffd700;
+  color: rgba(255, 215, 120, 0.98);
 }
 
 .segText {
   white-space: nowrap;
 }
 
-/* Optional "Uploading Soon" pill if you use it */
 .uploadPill {
   font-size: 11px;
+  font-weight: 900;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(255, 215, 0, 0.16);
-  border: 1px solid rgba(255, 215, 0, 0.35);
-  color: #ffd700;
-  animation: glowPulse 1.6s infinite ease-in-out;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
 }
 
-@keyframes glowPulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 rgba(255, 215, 0, 0);
-    opacity: 0.85;
-  }
-  50% {
-    box-shadow: 0 0 14px rgba(255, 215, 0, 0.55);
-    opacity: 1;
-  }
+.segBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
 }
 
-/* =========================
-   Top Section Layout
-========================= */
+.segBtn:disabled:hover {
+  transform: none;
+}
+
+/* ===== MVP Banner ===== */
+.mvpBanner {
+  margin: 16px 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 215, 120, 0.18);
+  background: rgba(255, 215, 120, 0.06);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mvpGlow {
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle, rgba(255, 215, 120, 0.25), transparent 60%);
+  filter: blur(40px);
+}
+
+/* ===== Top Section ===== */
 .topSection {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 10px;
+  margin-top: 18px;
 }
 
-/* =========================
-   Leader Cards
-========================= */
 .leadersGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin: 10px 0 6px;
-  width: 100%;              /* ✅ ensures it spans full row */
-  justify-content: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
+/* ===== Leader Cards ===== */
 .leaderCard {
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.24);
-  overflow: hidden;
-  animation: fadeSlideIn 0.35s ease both;
+  padding: 18px;
+  background: rgba(10, 12, 20, 0.30);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
 }
 
 .leaderTop {
-  padding: 14px 14px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .leaderTitleRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
 }
 
 .leaderTitle {
   margin: 0;
-  font-size: 14px;
-  letter-spacing: 0.2px;
-  opacity: 0.9;
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .leaderBadge {
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 900;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 215, 0, 0.14);
-  border: 1px solid rgba(255, 215, 0, 0.28);
-  color: #ffd700;
+  border: 1px solid rgba(255, 215, 120, 0.25);
+  background: rgba(255, 215, 120, 0.10);
+  color: rgba(255, 215, 120, 0.95);
 }
 
 .leaderPrimary {
-  margin-top: 10px;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  text-align: right;
 }
 
 .leaderPrimaryValue {
-  font-size: 28px;
-  font-weight: 900;
-  color: #ffd700;
-  text-shadow: 0 0 18px rgba(255, 215, 0, 0.22);
+  font-size: 38px;
+  font-weight: 1000;
+  line-height: 1;
+  color: rgba(255, 215, 120, 0.95);
 }
 
 .leaderPrimaryLabel {
   font-size: 12px;
   opacity: 0.75;
+  margin-top: 4px;
 }
 
 .leaderBody {
-  padding: 12px 14px 14px;
+  margin-top: 6px;
 }
 
 .leaderName {
-  font-weight: 900;
+  font-size: 18px;
+  font-weight: 950;
+  margin-bottom: 2px;
 }
 
 .leaderTeam {
-  margin-top: 2px;
-  font-size: 12px;
-  opacity: 0.7;
+  font-size: 13px;
+  opacity: 0.75;
+  margin-bottom: 10px;
 }
 
 .leaderLines {
-  margin: 10px 0 0;
+  margin: 0;
   padding-left: 16px;
-  opacity: 0.9;
-}
-
-.leaderLines li {
-  margin: 6px 0;
+  opacity: 0.88;
   font-size: 13px;
+  line-height: 1.55;
 }
 
-/* =========================
-   Category Tabs (Bat/Bowl/Field)
-========================= */
+/* ===== Tabs ===== */
 .tabsRow {
-  width: 100%;
+  margin-top: 16px;
   display: flex;
   justify-content: center;
-  margin: 12px 0 14px;
 }
 
 .tabsWide {
-  width: 100%;
-  max-width: 860px;
   display: flex;
   gap: 12px;
-  justify-content: center;
+  width: min(720px, 100%);
 }
 
 .tabBtnWide {
   flex: 1;
-  max-width: 260px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.92);
-  padding: 18px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(10, 12, 20, 0.22);
+  color: rgba(255, 255, 255, 0.86);
   border-radius: 16px;
+  padding: 14px 12px;
+  font-weight: 900;
   cursor: pointer;
-  font-weight: 800;
-  transition: transform 0.14s ease, background 0.14s ease, opacity 0.14s ease;
+  backdrop-filter: blur(10px);
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease;
 }
 
 .tabBtnWide:hover {
@@ -285,168 +317,152 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.tabBtnWide:active {
-  transform: scale(0.985);
-}
-
-.tabBtnWide:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
 .tabActiveWide {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 215, 120, 0.16);
+  border-color: rgba(255, 215, 120, 0.22);
+  color: rgba(255, 215, 120, 0.95);
 }
 
-/* =========================
-   Table
-========================= */
+/* ===== Table ===== */
 .tableWrapFull {
-  width: 100%;
-  margin: 0 auto;
-  overflow: auto;
+  margin-top: 18px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.24);
-  animation: fadeSlideIn 0.35s ease both;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(10, 12, 20, 0.22);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
-}
-
-.table th,
-.table td {
-  padding: 12px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: left;
 }
 
 .table thead th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 950;
+  padding: 14px 14px;
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.95);
-  position: sticky;
-  top: 0;
-  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table tbody td {
+  padding: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  opacity: 0.92;
 }
 
 .table tbody tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.playerCell {
-  min-width: 220px;
-}
-
-.playerName {
-  font-weight: 800;
-}
-
-.playerTeam {
-  margin-top: 2px;
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-/* Sortable headers */
 .sortable {
   cursor: pointer;
   user-select: none;
-  transition: opacity 0.12s ease;
 }
 
-.sortable:hover {
-  opacity: 0.9;
+.playerCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* =========================
-   Pagination
-========================= */
+.playerName {
+  font-weight: 950;
+}
+
+.playerTeam {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+/* ===== Pagination ===== */
 .pagination {
+  margin-top: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  margin-top: 14px;
+  gap: 16px;
 }
 
 .pageBtn {
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.92);
-  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(10, 12, 20, 0.22);
+  color: rgba(255, 255, 255, 0.9);
   border-radius: 14px;
+  padding: 10px 14px;
+  font-weight: 900;
   cursor: pointer;
-  font-weight: 700;
-  transition: transform 0.14s ease, opacity 0.14s ease;
+  backdrop-filter: blur(10px);
+  transition: transform 160ms ease, background 160ms ease;
 }
 
 .pageBtn:hover {
   transform: translateY(-1px);
-}
-
-.pageBtn:active {
-  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .pageBtn:disabled {
-  opacity: 0.45;
+  opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
 }
 
 .pageInfo {
-  opacity: 0.9;
+  opacity: 0.85;
+  font-size: 13px;
 }
 
-/* =========================
-   Placeholder (Uploading / No data)
-========================= */
+/* ===== Placeholders ===== */
 .placeholderCard {
+  margin-top: 18px;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.24);
   padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(10, 12, 20, 0.24);
+  backdrop-filter: blur(12px);
 }
 
 .placeholderHeader {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .pulseDot {
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: rgba(255, 215, 0, 0.95);
-  box-shadow: 0 0 18px rgba(255, 215, 0, 0.55);
-  animation: pulse 1.3s infinite;
+  background: rgba(255, 215, 120, 0.95);
+  box-shadow: 0 0 0 0 rgba(255, 215, 120, 0.55);
+  animation: pulse 1.6s infinite;
 }
 
 @keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.75;
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 120, 0.55);
   }
-  50% {
-    transform: scale(1.35);
-    opacity: 1;
+  70% {
+    box-shadow: 0 0 0 14px rgba(255, 215, 120, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 120, 0);
   }
 }
 
 .placeholderTitle {
   margin: 0;
-  color: rgba(255, 255, 255, 0.95);
+  font-size: 16px;
+  font-weight: 950;
 }
 
 .placeholderText {
-  margin: 8px 0 14px;
-  opacity: 0.85;
+  margin: 0 0 12px;
+  opacity: 0.8;
 }
 
 .progressBar {
@@ -457,76 +473,62 @@
 }
 
 .progressFill {
+  width: 46%;
   height: 100%;
-  width: 42%;
-  background: rgba(255, 215, 0, 0.5);
-  animation: progressMove 1.2s infinite ease-in-out;
+  background: rgba(255, 215, 120, 0.35);
 }
 
-@keyframes progressMove {
-  0% {
-    transform: translateX(-40%);
+/* ===== Responsive ===== */
+@media (max-width: 1100px) {
+  /* ✅ stack earlier so year+division never overlap */
+  .topRow {
+    grid-template-columns: 1fr;
+    row-gap: 12px;
   }
-  50% {
-    transform: translateX(120%);
+
+  .left,
+  .center,
+  .right {
+    justify-self: center;
   }
-  100% {
-    transform: translateX(-40%);
+
+  .right {
+    display: none;
+  }
+
+  .yearToggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .segmented {
+    width: 100%;
   }
 }
 
-/* =========================
-   Animations
-========================= */
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* =========================
-   Responsive
-========================= */
 @media (max-width: 980px) {
   .leadersGrid {
     grid-template-columns: 1fr;
   }
-
-  .tabsWide {
-    flex-direction: column;
-    align-items: stretch;
-    max-width: 520px;
-  }
-
-  .tabBtnWide {
-    max-width: none;
-    padding: 14px 12px;
-  }
 }
 
 @media (max-width: 780px) {
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
+  .wrapper {
+    padding: 22px 12px 36px;
   }
 
-  .segmentedWrap {
-    width: 100%;
-    justify-content: flex-start;
+  .tabsWide {
+    flex-direction: column;
   }
 }
 
-@media (max-width: 560px) {
-  .segBtn {
-    padding: 12px 10px;
+@media (max-width: 420px) {
+  .yearBtn {
+    min-width: 58px;
+    padding: 10px 10px !important;
   }
 
-  .uploadPill {
-    display: none;
+  .leaderPrimaryValue {
+    font-size: 34px;
   }
 }
