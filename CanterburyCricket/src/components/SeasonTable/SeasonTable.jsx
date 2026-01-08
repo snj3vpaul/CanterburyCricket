@@ -249,7 +249,7 @@ export default function SeasonTable() {
                   title={divisionDisabled ? "Division selector is disabled for 2026" : undefined}
                 >
                   <span className={styles.segText}>{d} Division</span>
-                  {divisionDisabled && <span className={styles.uploadPill}>Uploading Soon</span>}
+                  {divisionDisabled}
                 </button>
               ))}
             </div>
