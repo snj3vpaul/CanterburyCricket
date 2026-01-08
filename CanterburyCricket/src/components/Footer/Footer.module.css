@@ -53,6 +53,14 @@
   align-items: flex-start;
 }
 
+.sectionAnchor {
+  scroll-margin-top: 90px; /* set to your navbar height */
+}
+
+/* smoother feel */
+html {
+  scroll-behavior: smooth;
+}
 .logo {
   width: 42px;
   height: 42px;
