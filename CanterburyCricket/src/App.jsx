@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import ScrollToTop from "./components/ScrollToTop";
 import ClubBackground from "./components/background/ClubBackground";
 import Navbar from "./components/Navbars/Navbar1";
 import Footer from "./components/Footer/Footer";
@@ -15,6 +15,7 @@ import OurSquad from "./pages/OurSquad";
 export default function App() {
   return (
     <Router>
+      <ScrollToTop/>
       {/* ✅ Global animated background for all pages */}
       <ClubBackground />
 
