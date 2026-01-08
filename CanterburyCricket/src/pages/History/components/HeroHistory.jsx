@@ -48,10 +48,10 @@ export default function HeroHistory({ totalTitles = 0, subtitle }) {
       <Box
         ref={bgRef}
         sx={{
-          position: "absolute",
+          position: "center",
           inset: 0,
           backgroundImage:
-            "linear-gradient(180deg, rgba(11,12,16,0.75), rgba(11,12,16,0.95)), url(/images/history/hero-history.jpg)",
+            "linear-gradient(180deg",
           backgroundSize: "cover",
           backgroundPosition: "center",
           transform: "translate3d(0,0,0)",

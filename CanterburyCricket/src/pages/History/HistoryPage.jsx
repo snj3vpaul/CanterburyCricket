@@ -35,7 +35,7 @@ export default function HistoryPage() {
   );
 
   return (
-    <Box sx={{ bgcolor: "#0b0c10", color: "#faf9f5", minHeight: "100vh" }}>
+    <Box sx={{  color: "#faf9f5", minHeight: "100vh" }}>
       <HeroHistory
         totalTitles={totalTitles}
         subtitle="Trophies, finals, and the legends who made it happen."
