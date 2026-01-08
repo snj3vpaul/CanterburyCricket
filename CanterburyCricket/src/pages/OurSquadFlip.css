@@ -1,3 +1,9 @@
+/* =========================
+   OurSquadFlip.css (modified)
+   Keeps your design, removes conflicts/duplication,
+   fixes mobile “blank / thin line” + Safari backface issues.
+   ========================= */
+
 /* Page */
 .squadPage {
   min-height: 100vh;
@@ -127,14 +133,30 @@
 /* Grid */
 .squadGrid {
   margin-top: 8px;
+  position: relative; /* keep visibility override */
+  z-index: 2;
 }
 
-/* Flip card */
+/* =========================================
+   FLIP CARD — CLEANED + CONSOLIDATED
+   (removed repeated conflicting blocks)
+   ========================================= */
+
+/* Grid cell wrapper: prevents collapse on mobile */
 .flipCardWrap {
+  width: 100%;
+  max-width: 340px;
+  min-width: 260px;          /* prevents thin-line collapse */
+  margin: 0 auto;
   perspective: 1200px;
+  -webkit-perspective: 1200px;
 }
 
+/* The card itself must have explicit size */
 .flipCard {
+  position: relative;        /* anchor absolute children */
+  width: 100%;
+  height: 440px;
   border-radius: 18px !important;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.10);
@@ -150,28 +172,53 @@
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.52);
 }
 
+/* CardActionArea must fill the card */
 .flipCardAction {
   height: 100%;
+  width: 100%;
+  display: block !important;
 }
 
+/* rotating shell */
 .flipInner {
   position: relative;
   width: 100%;
-  min-height: 420px;
+  height: 100%;
+  min-height: unset; /* avoid conflicting min-height rules */
   transform-style: preserve-3d;
-  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-transform-style: preserve-3d;
+  transition: transform 700ms cubic-bezier(.2, .8, .2, 1);
+  will-change: transform;
 }
 
+/* rotate the shell when flipped */
 .flipCard.isFlipped .flipInner {
   transform: rotateY(180deg);
 }
 
+/* both faces occupy same area */
 .flipFace {
   position: absolute;
   inset: 0;
-  backface-visibility: hidden;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden; /* safari */
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+/* ✅ important: also hide backfaces of nested text in Safari/Firefox */
+.flipFace * {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* front and back transforms */
+.flipFront {
+  transform: rotateY(0deg);
 }
 
 .flipBack {
@@ -347,139 +394,25 @@
     min-width: unset;
   }
 
-  .flipInner {
-    min-height: 400px;
+  /* ✅ a bit taller on mobile so back face content doesn't clip */
+  .flipCard {
+    height: 460px;
   }
 
   .cardMediaWrap {
     height: 240px;
   }
-}
-/* ===== SQUAD VISIBILITY OVERRIDE (fix blank grid) ===== */
-.squadGrid {
-  position: relative;
-  z-index: 2;
-}
 
-.flipCardWrap {
-  width: 100%;
-  height: 420px;              /* ✅ give the flip card a real height */
-  perspective: 1200px;
-}
-
-@media (max-width: 600px) {
+  /* Keep min width from breaking tiny screens */
   .flipCardWrap {
-    height: 460px;            /* ✅ a bit taller on mobile */
+    min-width: 0;
+    max-width: 100%;
   }
 }
 
-/* 3D camera */
-.flipCardWrap {
-  perspective: 1200px;
+/* Small phones */
+@media (max-width: 380px) {
+  .flipCard {
+    height: 480px;
+  }
 }
-
-/* stage */
-.flipCard {
-  position: relative;
-  width: 100%;
-  height: 440px;
-  overflow: hidden;
-  border-radius: 18px;
-}
-
-/* rotating shell */
-.flipInner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 700ms cubic-bezier(.2,.8,.2,1);
-  will-change: transform;
-}
-
-/* rotate the shell when flipped */
-.flipCard.isFlipped .flipInner {
-  transform: rotateY(180deg);
-}
-
-/* both faces occupy same area */
-.flipFace {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden; /* safari */
-}
-
-/* ✅ important: also hide backfaces of nested text in Firefox/Safari */
-.flipFace * {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-/* front is normal */
-.flipFront {
-  transform: rotateY(0deg);
-}
-
-
-
-
-.flipCardAction {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* --- Grid cell content wrapper: gives the card a real footprint --- */
-.flipCardWrap{
-  width: 100%;
-  max-width: 340px;     /* pick what you want */
-  min-width: 260px;     /* THIS prevents the thin line collapse */
-  margin: 0 auto;
-}
-
-/* --- The card itself must have explicit size --- */
-.flipCard{
-  width: 100%;
-  height: 440px;        /* set a consistent height */
-  border-radius: 18px;
-  overflow: hidden;
-  position: relative;   /* anchor absolute children */
-}
-
-/* CardActionArea must fill the card */
-.flipCardAction{
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* --- Flip mechanics --- */
-.flipInner{
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  transition: transform 700ms ease;
-}
-
-/* When flipped */
-.flipCard.isFlipped .flipInner{
-  transform: rotateY(180deg);
-}
-
-/* Faces: absolute, fill the card */
-.flipFace{
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  width: 100%;
-  height: 100%;
-}
-
-
-
