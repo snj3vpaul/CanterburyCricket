@@ -38,7 +38,7 @@ export default function Footer() {
               
               <li><Link to="/awards" className={styles.link}>Awards Night</Link></li>
               <li><Link to="/sponsors" className={styles.link}>Sponsors</Link></li>
-              <li><Link to="/contact" className={styles.link}>Contact</Link></li>
+              
             </ul>
           </nav>
 
