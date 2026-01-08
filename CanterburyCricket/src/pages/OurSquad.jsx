@@ -156,8 +156,28 @@ export default function OurSquad() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const res = await fetch(`/api/squad?_t=${Date.now()}`);
-const json = await res.json();
+  const fetchSquad = async () => {
+  setLoadError("");
+  setLoading(true);
+
+  try {
+    const res = await fetch(`/api/squad?_t=${Date.now()}`);
+    const json = await res.json();
+
+    if (!json?.ok) {
+      throw new Error(json?.error || "API error");
+    }
+
+    const mapped = (json.data || []).map(mapRowToPlayer);
+    mapped.sort((a, b) => a.name.localeCompare(b.name));
+
+    setPlayers(mapped);
+  } catch (e) {
+    setLoadError(e?.message || String(e));
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   useEffect(() => {
