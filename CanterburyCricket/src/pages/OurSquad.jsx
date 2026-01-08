@@ -156,40 +156,9 @@ export default function OurSquad() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const fetchSquad = async () => {
-    setLoadError("");
-    setLoading(true);
+  const res = await fetch(`/api/squad?_t=${Date.now()}`);
+const json = await res.json();
 
-    try {
-      const base = import.meta.env.VITE_SQUAD_API_URL;
-      const key = import.meta.env.VITE_SQUAD_API_KEY;
-
-      if (!base || !key) {
-        throw new Error("Missing VITE_SQUAD_API_URL or VITE_SQUAD_API_KEY in .env");
-      }
-
-      const url = new URL(base);
-      url.searchParams.set("key", key);
-      // cache-bust so newly submitted Form data shows up quickly
-      url.searchParams.set("_t", String(Date.now()));
-
-      const res = await fetch(url.toString());
-      const json = await res.json();
-
-      if (!json?.ok) throw new Error(json?.error || "API error");
-
-      const mapped = (json.data || []).map(mapRowToPlayer);
-
-      // Sort by name for stability
-      mapped.sort((a, b) => a.name.localeCompare(b.name));
-
-      setPlayers(mapped);
-    } catch (e) {
-      setLoadError(e?.message || String(e));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     fetchSquad();
