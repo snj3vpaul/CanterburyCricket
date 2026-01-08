@@ -3,8 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.jsx";
 
-// NextUI
-import { NextUIProvider } from "@nextui-org/react";
+
 
 // MUI
 import { ThemeProvider, createTheme } from "@mui/material/styles";
