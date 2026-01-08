@@ -24,6 +24,10 @@
   position: relative;
   z-index: 1;
   padding: 60px 10%;
+  /* Center children */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Footer / credit */
@@ -39,4 +43,10 @@
 .sponsors-footer a {
   color: #888;
   text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .sponsors-content {
+    padding: 40px 16px; /* ✅ consistent mobile gutters */
+  }
 }
