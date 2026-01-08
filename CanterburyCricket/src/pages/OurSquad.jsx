@@ -1,12 +1,28 @@
-// src/pages/OurSquad.jsx
 import React, { useMemo, useState } from "react";
-import { Card, CardBody, Chip, Avatar } from "@nextui-org/react";
+import {
+  Box,
+  Card,
+  CardActionArea,
+  Chip,
+  Container,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  Stack,
+  Avatar,
+  Divider,
+} from "@mui/material";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import "./OurSquadFlip.css";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DIV_OPTIONS = ["All", "T20", "CTZ", "CHG"];
 
-// Replace image with real imports later (e.g. import ameer from "../assets/players/ameer.jpg")
 const fallbackImage =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(`
@@ -14,280 +30,226 @@ const fallbackImage =
     <defs>
       <linearGradient id="g" x1="0" x2="1">
         <stop offset="0" stop-color="#0b1220"/>
-        <stop offset="1" stop-color="#101b33"/>
+        <stop offset="1" stop-color="#131a2a"/>
       </linearGradient>
     </defs>
     <rect width="100%" height="100%" fill="url(#g)"/>
-    <circle cx="450" cy="420" r="160" fill="#1f2a44"/>
-    <rect x="220" y="640" width="460" height="320" rx="160" fill="#1f2a44"/>
+    <circle cx="450" cy="420" r="160" fill="rgba(255,255,255,0.06)"/>
+    <text x="50%" y="73%" dominant-baseline="middle" text-anchor="middle"
+      fill="rgba(255,255,255,0.55)" font-family="Arial" font-size="44">
+      Player
+    </text>
   </svg>
 `);
 
-const SQUAD = [
-  {
-    id: "p1",
-    number: 13,
-    name: "Ameer Khan",
-    role: "Batter",
-    division: "T20",
-    batting: "Right-hand",
-    bowling: "—",
-    styles: ["Aggressive Opener", "Power-hitter"],
-    bio: "Explosive top-order batter who attacks the powerplay.",
-    image: fallbackImage,
-  },
-  {
-    id: "p2",
-    number: 5,
-    name: "Varun Singh",
-    role: "All-rounder",
-    division: "CTZ",
-    batting: "Right-hand",
-    bowling: "Medium",
-    styles: ["Utility", "Clutch"],
-    bio: "Reliable all-rounder who delivers under pressure.",
-    image: fallbackImage,
-  },
-  {
-    id: "p3",
-    number: 10,
-    name: "Akram Syed",
-    role: "Bowler",
-    division: "CHG",
-    batting: "Right-hand",
-    bowling: "Leg-spin",
-    styles: ["Wicket-taker", "Variations"],
-    bio: "Leg-spinner who breaks partnerships with flight and deception.",
-    image: fallbackImage,
-  },
-  {
-    id: "p4",
-    number: 20,
-    name: "Aoun Ali",
-    role: "Wicket-keeper",
-    division: "T20",
-    batting: "Left-hand",
-    bowling: "—",
-    styles: ["Safe hands", "Anchor"],
-    bio: "Calm wicket-keeper and reliable batter who stabilizes the innings.",
-    image: fallbackImage,
-  },
-];
-
-const norm = (v) => (v || "").toString().trim().toLowerCase();
-
-export default function OurSquad() {
+export default function OurSquad({ players = [] }) {
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
   const [division, setDivision] = useState("All");
+  const [flipped, setFlipped] = useState(() => new Set()); // store player ids/names
 
-  // Tap-to-flip (mobile); desktop flips on hover via CSS media query.
-  const [tappedId, setTappedId] = useState(null);
+  const normalized = (s) => (s ?? "").toString().trim().toLowerCase();
 
   const filtered = useMemo(() => {
-    const q = norm(query);
+    const q = normalized(query);
 
-    return SQUAD.filter((p) => {
-      if (role !== "All" && p.role !== role) return false;
-      if (division !== "All" && p.division !== division) return false;
-      if (!q) return true;
+    return players.filter((p) => {
+      const name = normalized(p.name);
+      const pRole = p.role ?? p.primaryRole ?? "All-rounder";
+      const pDiv = p.division ?? p.div ?? "All";
 
-      const hay = norm(
-        [p.name, p.role, p.division, p.batting, p.bowling, ...(p.styles || [])].join(" ")
-      );
-      return hay.includes(q);
+      const matchQuery =
+        !q ||
+        name.includes(q) ||
+        normalized(pRole).includes(q) ||
+        normalized(pDiv).includes(q);
+
+      const matchRole = role === "All" || normalized(pRole) === normalized(role);
+      const matchDiv = division === "All" || normalized(pDiv) === normalized(division);
+
+      return matchQuery && matchRole && matchDiv;
     });
-  }, [query, role, division]);
+  }, [players, query, role, division]);
 
-  const clearAll = () => {
-    setQuery("");
-    setRole("All");
-    setDivision("All");
+  const toggleFlip = (key) => {
+    setFlipped((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   };
 
   return (
-    <div className="squadPage">
-      <div className="squadContainer">
-        {/* Header */}
-        <div className="squadHeader">
-          <div className="squadHeaderText">
-            <h1 className="squadTitle">Our Squad</h1>
-            <p className="squadSub">
-              Hover a card to flip on desktop — tap to flip on mobile.
-            </p>
-          </div>
-
-          <div className="squadSearchRow">
-            <div className="squadSearch">
-              <span className="squadSearchIcon" aria-hidden="true">
-                ⌕
-              </span>
-
-              <input
-                className="squadSearchInput"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search: name, role, style…"
-                aria-label="Search players"
-              />
-
-              {query && (
-                <button
-                  className="squadClearBtn"
-                  onClick={() => setQuery("")}
-                  aria-label="Clear search"
-                  type="button"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+    <Box className="squadPage">
+      <Container maxWidth="lg" className="squadContainer">
+        <Box className="squadHeader">
+          <Box>
+            <Typography variant="h4" className="squadTitle">
+              Our Squad
+            </Typography>
+            <Typography className="squadSubtitle">
+              Meet the Canterbury crew — tap a card for details 🏏
+            </Typography>
+          </Box>
+        </Box>
 
         {/* Filters */}
-        <div className="squadFilters">
-          <div className="squadFilterCard">
-            <div className="squadFilterTop">
-              <div className="squadFilterTitle">Filters</div>
+        <Box className="filterBar">
+          <Box className="filterBarInner">
+            <Box className="filterLeft">
+              <Box className="filterIconWrap" aria-hidden="true">
+                <FilterAltRoundedIcon />
+              </Box>
 
-              {(query || role !== "All" || division !== "All") && (
-                <button className="squadResetBtn" onClick={clearAll} type="button">
-                  Reset
-                </button>
-              )}
-            </div>
+              <TextField
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search player…"
+                size="small"
+                className="searchField"
+                InputProps={{
+                  startAdornment: (
+                    <Box className="searchIcon">
+                      <SearchRoundedIcon fontSize="small" />
+                    </Box>
+                  ),
+                }}
+              />
+            </Box>
 
-            <div className="squadFilterGrid">
-              <label className="squadField">
-                <span className="squadFieldLabel">Division</span>
-                <select
-                  className="squadSelect"
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} className="filterRight">
+              <FormControl size="small" className="selectField">
+                <InputLabel>Role</InputLabel>
+                <Select value={role} label="Role" onChange={(e) => setRole(e.target.value)}>
+                  {ROLE_OPTIONS.map((opt) => (
+                    <MenuItem key={opt} value={opt}>
+                      {opt}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" className="selectField">
+                <InputLabel>Division</InputLabel>
+                <Select
                   value={division}
+                  label="Division"
                   onChange={(e) => setDivision(e.target.value)}
                 >
-                  {DIV_OPTIONS.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
+                  {DIV_OPTIONS.map((opt) => (
+                    <MenuItem key={opt} value={opt}>
+                      {opt}
+                    </MenuItem>
                   ))}
-                </select>
-              </label>
+                </Select>
+              </FormControl>
 
-              <label className="squadField">
-                <span className="squadFieldLabel">Role</span>
-                <select
-                  className="squadSelect"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  {ROLE_OPTIONS.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+              <Chip
+                label={`${filtered.length} player${filtered.length === 1 ? "" : "s"}`}
+                className="countChip"
+                variant="outlined"
+              />
+            </Stack>
+          </Box>
+        </Box>
 
-            <div className="squadResultsRow">
-              <span className="squadResultsLabel">Results</span>
-              <Chip size="sm" variant="flat" color="primary">
-                {filtered.length}
-              </Chip>
-            </div>
-          </div>
-        </div>
+        {/* Grid */}
+        <Grid container spacing={2.2} className="squadGrid">
+          {filtered.map((p, idx) => {
+            const key = p.id ?? p.name ?? idx;
+            const isFlipped = flipped.has(key);
 
-        {/* Cards Grid */}
-        <div className="squadGrid">
-          {filtered.map((p) => (
-            <div
-              key={p.id}
-              className={`flipCard ${tappedId === p.id ? "isFlipped" : ""}`}
-              onClick={() => setTappedId(tappedId === p.id ? null : p.id)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setTappedId(tappedId === p.id ? null : p.id);
-                }
-              }}
-              aria-label={`Flip card for ${p.name}`}
-            >
-              <div className="flipInner">
-                {/* FRONT */}
-                <Card className="flipFace flipFront" shadow="none">
-                  <CardBody className="p-0 h-full">
-                    <div className="frontTop">
-                      <img className="frontPhoto" src={p.image} alt={p.name} />
-                      <div className="numberBadge">#{p.number}</div>
-                      <div className="frontVignette" />
-                    </div>
+            const img = p.image || p.photo || fallbackImage;
+            const displayRole = p.role ?? p.primaryRole ?? "All-rounder";
+            const displayDiv = p.division ?? p.div ?? "T20";
 
-                    <div className="frontBottom">
-                      <div className="frontName">{p.name}</div>
-                      <div className="frontMeta">
-                        {p.role} • {p.division}
-                      </div>
+            return (
+              <Grid item xs={12} sm={6} md={4} key={key}>
+                <Box className="flipCardWrap">
+                  <Card className={`flipCard ${isFlipped ? "isFlipped" : ""}`} elevation={0}>
+                    <CardActionArea
+                      className="flipCardAction"
+                      onClick={() => toggleFlip(key)}
+                      aria-label={`Open details for ${p.name}`}
+                    >
+                      <Box className="flipInner">
+                        {/* FRONT */}
+                        <Box className="flipFace flipFront">
+                          <Box className="cardMediaWrap">
+                            <img className="cardMedia" src={img} alt={p.name} loading="lazy" />
+                            <Box className="cardOverlay">
+                              <Chip label={displayDiv} className="divChip" size="small" />
+                            </Box>
+                          </Box>
 
-                      <Chip size="sm" variant="bordered" className="hintChip">
-                        Hover / Tap to flip
-                      </Chip>
-                    </div>
-                  </CardBody>
-                </Card>
+                          <Box className="cardBody">
+                            <Typography variant="h6" className="playerName">
+                              {p.name}
+                            </Typography>
 
-                {/* BACK */}
-                <Card className="flipFace flipBack" shadow="none">
-                  <CardBody className="p-4 h-full">
-                    <div className="backHeader">
-                      <div>
-                        <div className="backName">{p.name}</div>
-                        <div className="backMeta">
-                          {p.role} • {p.division}
-                        </div>
-                      </div>
+                            <Stack direction="row" spacing={1} className="roleRow">
+                              <Chip label={displayRole} size="small" className="roleChip" />
+                              {p.isCaptain && <Chip label="Captain" size="small" className="badgeChip" />}
+                              {p.isWicketKeeper && (
+                                <Chip label="WK" size="small" className="badgeChip" />
+                              )}
+                            </Stack>
 
-                      <Avatar src={p.image} className="backAvatar" radius="lg" />
-                    </div>
+                            <Typography className="tapHint">Tap for details</Typography>
+                          </Box>
+                        </Box>
 
-                    <div className="backRow">
-                      <Chip size="sm" variant="bordered" className="backChip">
-                        Bat: {p.batting}
-                      </Chip>
-                      <Chip size="sm" variant="bordered" className="backChip">
-                        Bowl: {p.bowling}
-                      </Chip>
-                    </div>
+                        {/* BACK */}
+                        <Box className="flipFace flipBack">
+                          <Box className="backTop">
+                            <Stack direction="row" spacing={1.2} alignItems="center">
+                              <Avatar src={img} alt={p.name} />
+                              <Box>
+                                <Typography className="backName">{p.name}</Typography>
+                                <Typography className="backMeta">
+                                  {displayRole} • {displayDiv}
+                                </Typography>
+                              </Box>
+                            </Stack>
+                          </Box>
 
-                    <div className="backStyles">
-                      {(p.styles || []).map((s) => (
-                        <Chip key={s} size="sm" variant="flat" color="primary">
-                          {s}
-                        </Chip>
-                      ))}
-                    </div>
+                          <Divider className="backDivider" />
 
-                    <p className="backBio">{p.bio}</p>
-                  </CardBody>
-                </Card>
-              </div>
-            </div>
-          ))}
+                          <Box className="backBody">
+                            <Typography className="backLabel">About</Typography>
+                            <Typography className="backText">
+                              {p.bio ||
+                                "Solid contributor for the club — reliable, competitive, and always up for a big game."}
+                            </Typography>
 
-          {filtered.length === 0 && (
-            <div className="emptyState">
-              <div className="emptyTitle">No players match your filters.</div>
-              <div className="emptySub">
-                Try changing Role/Division or clearing search.
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+                            <Box className="backTags">
+                              {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
+                                <Chip key={t} label={t} size="small" className="tagChip" />
+                              ))}
+                            </Box>
+                          </Box>
+
+                          <Typography className="tapHintBack">Tap to go back</Typography>
+                        </Box>
+                      </Box>
+                    </CardActionArea>
+                  </Card>
+                </Box>
+              </Grid>
+            );
+          })}
+        </Grid>
+
+        {filtered.length === 0 && (
+          <Box className="emptyState">
+            <Typography variant="h6">No matches</Typography>
+            <Typography className="emptySub">
+              Try a different name, role, or division.
+            </Typography>
+          </Box>
+        )}
+      </Container>
+    </Box>
   );
 }
-// ===== End of OurSquad.jsx =====

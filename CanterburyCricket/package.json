@@ -17,7 +17,6 @@
     "@mui/material": "^7.3.6",
     "@mui/x-charts": "^8.23.0",
     "@mui/x-data-grid": "^8.23.0",
-    "@nextui-org/react": "^2.6.11",
     "@tabler/icons-react": "^3.36.1",
     "framer-motion": "^12.24.10",
     "nodemailer": "^7.0.12",
