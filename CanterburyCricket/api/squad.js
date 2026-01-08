@@ -14,7 +14,12 @@ export default async function handler(req, res) {
     const r = await fetch(url.toString());
     const text = await r.text();
 
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader( 
+      "Cache-Control",
+      "s-maxage=300, stale-while-revalidate",
+      "Content-Type",
+      "application/json; charset=utf-8"
+    );
     return res.status(r.status).send(text);
   } catch (e) {
     return res.status(500).json({ ok: false, error: e?.message || String(e) });
