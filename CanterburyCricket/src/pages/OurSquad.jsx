@@ -1,4 +1,4 @@
-// OurSquad.jsx
+// OurSquad.jsx Render
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
@@ -144,6 +144,14 @@ function mapRowToPlayer(row, idx) {
 
 export default function OurSquad() {
   // Filters
+  console.log("✅ OurSquad rendered");
+
+  return (
+    <div style={{ minHeight: "60vh", padding: "120px 16px", background: "#111", color: "#fff" }}>
+      <h1>Squad Page Test</h1>
+      <p>If you can see this, routing is OK and CSS is hiding your real layout.</p>
+    </div>
+  );
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
   const [division, setDivision] = useState("All");
