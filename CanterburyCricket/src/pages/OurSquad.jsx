@@ -1,11 +1,10 @@
 // src/pages/OurSquad/OurSquad.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import "./OurSquadFlip.css";
+import "./OurSquad.css";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DIV_OPTIONS = ["All", "T20", "CTZ", "CHG"];
 
-// same fallback idea you used earlier
 const fallbackImage =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(`
@@ -35,9 +34,22 @@ function normalizeRole(role = "") {
   if (r.includes("bat")) return "Batter";
   return role || "—";
 }
+const safe = (v) => (v === null || v === undefined ? "" : String(v));
 
-function safeText(v) {
-  return v === null || v === undefined ? "" : String(v);
+function extractArray(json) {
+  // supports: []  | {data: []} | {ok:true,data:[]} | {players:[]} | {result:[]} etc.
+  if (Array.isArray(json)) return json;
+
+  if (json && typeof json === "object") {
+    if (json.ok === false) {
+      // your API might send {ok:false,error:"..."}
+      throw new Error(json.error || "API returned ok:false");
+    }
+    const candidates = [json.data, json.players, json.result, json.items];
+    for (const c of candidates) if (Array.isArray(c)) return c;
+  }
+
+  throw new Error("Unexpected response shape from /api/squad");
 }
 
 export default function OurSquad() {
@@ -45,35 +57,36 @@ export default function OurSquad() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  // filters
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
   const [division, setDivision] = useState("All");
 
-  // flip-card state (track which card is flipped)
   const [flippedId, setFlippedId] = useState(null);
 
   const fetchSquad = useCallback(async () => {
     setLoading(true);
     setLoadError("");
+
     try {
       const res = await fetch(`/api/squad?_t=${Date.now()}`);
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
-      const json = await res.json();
+      const rawText = await res.text();
 
-      // Support either:
-      // - { ok: true, data: [...] }
-      // - [...]
-      const data = Array.isArray(json) ? json : json?.data;
-
-      if (!Array.isArray(data)) {
-        throw new Error("Unexpected response shape from /api/squad");
+      if (!res.ok) {
+        throw new Error(`API error ${res.status}: ${rawText.slice(0, 120)}`);
       }
 
+      let json;
+      try {
+        json = JSON.parse(rawText);
+      } catch {
+        throw new Error(`API did not return JSON: ${rawText.slice(0, 140)}`);
+      }
+
+      const data = extractArray(json);
       setPlayers(data);
     } catch (e) {
-      setLoadError(e?.message || "Failed to load squad");
       setPlayers([]);
+      setLoadError(e?.message || "Failed to load squad");
     } finally {
       setLoading(false);
     }
@@ -87,16 +100,16 @@ export default function OurSquad() {
     const q = query.trim().toLowerCase();
 
     return players.filter((p) => {
-      const name = safeText(p.name || p.player || p.fullName).toLowerCase();
-      const div = safeText(p.division || p.div || p.team).toUpperCase();
+      const name = safe(p.name || p.player || p.fullName).toLowerCase();
+      const div = safe(p.division || p.div || p.team).toUpperCase();
       const r = normalizeRole(p.role || p.type || "").toLowerCase();
 
       const matchQuery =
         !q ||
         name.includes(q) ||
-        safeText(p.nickname).toLowerCase().includes(q) ||
-        safeText(p.battingStyle).toLowerCase().includes(q) ||
-        safeText(p.bowlingStyle).toLowerCase().includes(q);
+        safe(p.nickname).toLowerCase().includes(q) ||
+        safe(p.battingStyle).toLowerCase().includes(q) ||
+        safe(p.bowlingStyle).toLowerCase().includes(q);
 
       const matchRole = role === "All" || r === role.toLowerCase();
       const matchDiv = division === "All" || div === division;
@@ -105,15 +118,22 @@ export default function OurSquad() {
     });
   }, [players, query, role, division]);
 
-  const onCardToggle = (id) => {
-    setFlippedId((prev) => (prev === id ? null : id));
-  };
-
   const clearFilters = () => {
     setQuery("");
     setRole("All");
     setDivision("All");
     setFlippedId(null);
+  };
+
+  const toggleFlip = (id) => {
+    setFlippedId((prev) => (prev === id ? null : id));
+  };
+
+  const onCardKeyDown = (e, id) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleFlip(id);
+    }
   };
 
   return (
@@ -123,7 +143,7 @@ export default function OurSquad() {
           <div>
             <h1 className="squadTitle">Our Squad</h1>
             <p className="squadSubtitle">
-              Search players, filter by role and division, and flip a card to see details.
+              Search players, filter by role/division, and click a card to flip.
             </p>
           </div>
 
@@ -137,9 +157,11 @@ export default function OurSquad() {
           </div>
         </header>
 
-        <section className="filterBar" aria-label="Squad filters">
+        <section className="filterBar">
           <div className="searchWrap">
-            <span className="searchIcon" aria-hidden="true">⌕</span>
+            <span className="searchIcon" aria-hidden="true">
+              ⌕
+            </span>
             <input
               className="searchInput"
               value={query}
@@ -152,11 +174,7 @@ export default function OurSquad() {
           <div className="selectRow">
             <label className="selectField">
               <span className="selectLabel">Role</span>
-              <select
-                className="select"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
+              <select className="select" value={role} onChange={(e) => setRole(e.target.value)}>
                 {ROLE_OPTIONS.map((x) => (
                   <option key={x} value={x}>
                     {x}
@@ -189,6 +207,9 @@ export default function OurSquad() {
         {loadError ? (
           <div className="alert error" role="alert">
             <strong>Squad data failed to load:</strong> {loadError}
+            <div className="smallHint">
+              Tip: open <code>/api/squad</code> in the browser and confirm it returns JSON.
+            </div>
           </div>
         ) : null}
 
@@ -198,26 +219,37 @@ export default function OurSquad() {
               <div className="skeletonCard" key={i} />
             ))}
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="emptyState">
+            <div className="emptyTitle">No players found</div>
+            <div className="emptySub">Try clearing filters or searching a different name.</div>
+            <button className="btn" onClick={clearFilters} type="button">
+              Clear filters
+            </button>
+          </div>
         ) : (
           <div className="grid">
             {filtered.map((p, idx) => {
               const id = p.id || p._id || p.email || `${p.name}-${idx}`;
-              const name = safeText(p.name || p.player || p.fullName || "Unknown Player");
-              const div = safeText(p.division || p.div || p.team || "—").toUpperCase();
+              const name = safe(p.name || p.player || p.fullName || "Unknown Player");
+              const div = safe(p.division || p.div || p.team || "—").toUpperCase();
               const roleLabel = normalizeRole(p.role || p.type || "");
               const imageUrl = p.image || p.photo || p.avatar || fallbackImage;
 
               const isFlipped = flippedId === id;
 
               return (
-                <div className="flipCard" key={id}>
-                  <button
-                    type="button"
-                    className={`flipInner ${isFlipped ? "isFlipped" : ""}`}
-                    onClick={() => onCardToggle(id)}
-                    aria-pressed={isFlipped}
-                    aria-label={`Open ${name} details`}
-                  >
+                <div
+                  className="flipCard"
+                  key={id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isFlipped}
+                  aria-label={`Flip card for ${name}`}
+                  onClick={() => toggleFlip(id)}
+                  onKeyDown={(e) => onCardKeyDown(e, id)}
+                >
+                  <div className={`flipInner ${isFlipped ? "isFlipped" : ""}`}>
                     {/* FRONT */}
                     <div className="cardFace cardFront">
                       <div className="cardMedia">
@@ -238,11 +270,9 @@ export default function OurSquad() {
                       <div className="cardBody">
                         <h3 className="playerName">{name}</h3>
                         <p className="playerMeta">
-                          {safeText(p.battingStyle || p.batStyle || "Batting: —")}
-                          {" • "}
-                          {safeText(p.bowlingStyle || p.bowlStyle || "Bowling: —")}
+                          {safe(p.battingStyle || p.batStyle || "Batting: —")} •{" "}
+                          {safe(p.bowlingStyle || p.bowlStyle || "Bowling: —")}
                         </p>
-
                         <div className="hint">Click to flip</div>
                       </div>
                     </div>
@@ -251,39 +281,39 @@ export default function OurSquad() {
                     <div className="cardFace cardBack">
                       <div className="backTop">
                         <h3 className="playerName">{name}</h3>
-                        <p className="playerMeta">{div} • {roleLabel}</p>
+                        <p className="playerMeta">
+                          {div} • {roleLabel}
+                        </p>
                       </div>
 
                       <div className="stats">
                         <div className="stat">
                           <span className="statLabel">Matches</span>
-                          <span className="statValue">{safeText(p.matches ?? p.mat ?? "—")}</span>
+                          <span className="statValue">{safe(p.matches ?? p.mat ?? "—")}</span>
                         </div>
                         <div className="stat">
                           <span className="statLabel">Runs</span>
-                          <span className="statValue">{safeText(p.runs ?? "—")}</span>
+                          <span className="statValue">{safe(p.runs ?? "—")}</span>
                         </div>
                         <div className="stat">
                           <span className="statLabel">Wickets</span>
-                          <span className="statValue">{safeText(p.wickets ?? "—")}</span>
+                          <span className="statValue">{safe(p.wickets ?? "—")}</span>
                         </div>
                         <div className="stat">
                           <span className="statLabel">SR / Econ</span>
                           <span className="statValue">
-                            {safeText(p.strikeRate ?? p.sr ?? "—")} / {safeText(p.econ ?? "—")}
+                            {safe(p.strikeRate ?? p.sr ?? "—")} / {safe(p.econ ?? "—")}
                           </span>
                         </div>
                       </div>
 
-                      {p.bio || p.about ? (
-                        <p className="bio">{safeText(p.bio || p.about)}</p>
-                      ) : (
-                        <p className="bio dim">Add a short bio for this player in your sheet later.</p>
-                      )}
+                      <p className={`bio ${p.bio || p.about ? "" : "dim"}`}>
+                        {safe(p.bio || p.about || "Add a short bio for this player in your sheet later.")}
+                      </p>
 
                       <div className="hint">Click to flip back</div>
                     </div>
-                  </button>
+                  </div>
                 </div>
               );
             })}
