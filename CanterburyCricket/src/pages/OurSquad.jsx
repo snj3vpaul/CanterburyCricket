@@ -307,7 +307,7 @@ export default function OurSquad() {
 
         const img = p.image || fallbackImage;
         const displayRole = p.role ?? "All-rounder";
-        const displayDiv = p.division ?? "T20";
+        const displayDiv = p.division ?? "All";
 
         return (
           <Box key={key} className="cardCell">
