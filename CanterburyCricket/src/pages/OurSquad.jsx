@@ -1,6 +1,6 @@
 // src/pages/OurSquad/OurSquad.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import "./OurSquad.css";
+import "./OurSquadFlip.css";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DIV_OPTIONS = ["All", "T20", "CTZ", "CHG"];
