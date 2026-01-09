@@ -36,11 +36,7 @@
 
   transform: translateY(0);
 
-  /* ✅ KEY: stop glow layers spilling onto the page */
-  overflow: hidden;
-
-  /* ✅ create predictable stacking */
-  isolation: isolate;
+  
 }
 
 /* ✅ Put nav content above the glow layers */
@@ -301,6 +297,7 @@
 
 .eventsDropdown {
   position: relative;
+  z-index: 100001;
 }
 
 
