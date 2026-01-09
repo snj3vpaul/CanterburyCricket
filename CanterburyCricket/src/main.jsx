@@ -20,6 +20,19 @@ const theme = createTheme({
     },
   },
   shape: { borderRadius: 16 },
+  // ✅ ADD THIS:
+  typography: {
+    fontFamily:
+      '"Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    h1: { fontFamily: '"Poppins", "Inter", system-ui, sans-serif' },
+    h2: { fontFamily: '"Poppins", "Inter", system-ui, sans-serif' },
+    h3: { fontFamily: '"Poppins", "Inter", system-ui, sans-serif' },
+    h4: { fontFamily: '"Poppins", "Inter", system-ui, sans-serif' },
+    h5: { fontFamily: '"Poppins", "Inter", system-ui, sans-serif' },
+    h6: { fontFamily: '"Poppins", "Inter", system-ui, sans-serif' },
+    button: { fontFamily: '"Poppins", "Inter", system-ui, sans-serif', fontWeight: 700 },
+  },
+
   components: {
     MuiCssBaseline: {
       styleOverrides: {
