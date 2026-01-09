@@ -187,7 +187,8 @@ export default function Navbar1() {
       </aside>
 
       {/* Spacer so content doesn't sit under fixed nav */}
-      <div className="navbarSpacer" />
+      <div className={`navbarSpacer ${isVisible ? "" : "navHidden"}`} />
+
     </>
   );
 }
