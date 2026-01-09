@@ -1,24 +1,24 @@
-// OurSquad.jsx Render
-import React, { useEffect, useMemo, useState } from "react";
+// OurSquad.jsx
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
+  Alert,
+  Avatar,
   Box,
+  Button,
   Card,
   CardActionArea,
   Chip,
   Container,
+  Divider,
   FormControl,
   Grid,
   InputLabel,
   MenuItem,
   Select,
+  Skeleton,
+  Stack,
   TextField,
   Typography,
-  Stack,
-  Avatar,
-  Divider,
-  Alert,
-  Button,
-  Skeleton,
 } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
@@ -47,7 +47,7 @@ const fallbackImage =
   </svg>
 `);
 
-// ✅ Robust Drive link -> direct image URL
+// Drive link -> direct image URL
 function normalizeDriveImageUrl(input) {
   if (!input) return "";
   const raw = String(input).trim();
@@ -60,7 +60,6 @@ function normalizeDriveImageUrl(input) {
 
   if (!firstUrl) return "";
 
-  // extract ID from common formats
   const fileMatch = firstUrl.match(/drive\.google\.com\/file\/d\/([^/]+)/);
   const openMatch = firstUrl.match(/drive\.google\.com\/open\?id=([^&]+)/);
   const ucMatch = firstUrl.match(/[?&]id=([^&]+)/);
@@ -70,8 +69,6 @@ function normalizeDriveImageUrl(input) {
 
   return firstUrl;
 }
-
-
 
 function normalizeRole(raw) {
   const s = (raw ?? "").toString().trim().toLowerCase();
@@ -96,8 +93,8 @@ function pick(row, keys) {
 }
 
 /**
- * Maps Apps Script JSON rows to the UI player model.
- * Uses your exact Sheet headers:
+ * Maps Apps Script JSON rows to UI model.
+ * Sheet headers:
  * Timestamp, Full Name, Playing Role, Playing Style, Bowling Style, Jersey Number, Photo for Squad Banner, Short Bio
  */
 function mapRowToPlayer(row, idx) {
@@ -106,19 +103,11 @@ function mapRowToPlayer(row, idx) {
   const batting = (row["Playing Style"] ?? "").toString().trim();
   const bowling = (row["Bowling Style"] ?? "").toString().trim();
   const jersey = (row["Jersey Number"] ?? "").toString().trim();
-  const bio = pick(row, [
-  "Short Bio",
-  "Short bio",
-  "Bio",
-  "About",
-  "Player Bio",
-  "Short Bio "
-]);
-
+  const bio = pick(row, ["Short Bio", "Short bio", "Bio", "About", "Player Bio", "Short Bio "]);
 
   const image = normalizeDriveImageUrl(row["Photo for Squad Banner"]) || fallbackImage;
 
-  // You don't have division in form yet; default for now
+  // no division in the form yet
   const division = "T20";
 
   const tags = [
@@ -136,7 +125,6 @@ function mapRowToPlayer(row, idx) {
     image,
     bio,
     tags,
-    // optional flags (keep false unless you add fields later)
     isCaptain: false,
     isWicketKeeper: role === "Wicket-keeper",
   };
@@ -144,7 +132,6 @@ function mapRowToPlayer(row, idx) {
 
 export default function OurSquad() {
   // Filters
-  
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
   const [division, setDivision] = useState("All");
@@ -157,34 +144,29 @@ export default function OurSquad() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const fetchSquad = async () => {
-  setLoadError("");
-  setLoading(true);
+  const fetchSquad = useCallback(async () => {
+    setLoadError("");
+    setLoading(true);
 
-  try {
-    const res = await fetch(`/api/squad?_t=${Date.now()}`);
-    const json = await res.json();
+    try {
+      const res = await fetch(`/api/squad?_t=${Date.now()}`);
+      const json = await res.json();
 
-    if (!json?.ok) {
-      throw new Error(json?.error || "API error");
+      if (!json?.ok) throw new Error(json?.error || "API error");
+
+      const mapped = (json.data || []).map(mapRowToPlayer);
+      mapped.sort((a, b) => a.name.localeCompare(b.name));
+      setPlayers(mapped);
+    } catch (e) {
+      setLoadError(e?.message || String(e));
+    } finally {
+      setLoading(false);
     }
-
-    const mapped = (json.data || []).map(mapRowToPlayer);
-    mapped.sort((a, b) => a.name.localeCompare(b.name));
-
-    setPlayers(mapped);
-  } catch (e) {
-    setLoadError(e?.message || String(e));
-  } finally {
-    setLoading(false);
-  }
-};
-
+  }, []);
 
   useEffect(() => {
     fetchSquad();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchSquad]);
 
   const filtered = useMemo(() => {
     const q = normalized(query);
@@ -200,8 +182,7 @@ export default function OurSquad() {
       const matchRole = role === "All" || normalized(p.role) === normalized(role);
 
       const divs = Array.isArray(p.divisions) && p.divisions.length ? p.divisions : [p.division];
-      const matchDiv =
-        division === "All" || divs.some((d) => normalized(d) === normalized(division));
+      const matchDiv = division === "All" || divs.some((d) => normalized(d) === normalized(division));
 
       return matchQuery && matchRole && matchDiv;
     });
@@ -287,11 +268,7 @@ export default function OurSquad() {
 
               <FormControl size="small" className="selectField">
                 <InputLabel>Division</InputLabel>
-                <Select
-                  value={division}
-                  label="Division"
-                  onChange={(e) => setDivision(e.target.value)}
-                >
+                <Select value={division} label="Division" onChange={(e) => setDivision(e.target.value)}>
                   {DIV_OPTIONS.map((opt) => (
                     <MenuItem key={opt} value={opt}>
                       {opt}
@@ -301,11 +278,7 @@ export default function OurSquad() {
               </FormControl>
 
               <Chip
-                label={
-                  loading
-                    ? "Loading…"
-                    : `${filtered.length} player${filtered.length === 1 ? "" : "s"}`
-                }
+                label={loading ? "Loading…" : `${filtered.length} player${filtered.length === 1 ? "" : "s"}`}
                 className="countChip"
                 variant="outlined"
               />
@@ -314,13 +287,17 @@ export default function OurSquad() {
         </Box>
 
         {/* Grid */}
-        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }} justifyContent="center"
-  alignItems="stretch" className="squadGrid">
-
+        <Grid
+          container
+          spacing={{ xs: 2, sm: 3, md: 4 }}
+          justifyContent="center"
+          alignItems="stretch"
+          className="squadGrid"
+        >
           {loading
             ? Array.from({ length: 9 }).map((_, i) => (
-                <Grid item xs={12} sm={6} md={4} key={`sk-${i}`}>
-                  <Card elevation={0} sx={{ borderRadius: 3, overflow: "hidden" }}>
+                <Grid item xs={12} sm={6} md={4} key={`sk-${i}`} sx={{ display: "flex" }}>
+                  <Card elevation={0} sx={{ width: "100%", maxWidth: 340, borderRadius: 3, overflow: "hidden" }}>
                     <Skeleton variant="rectangular" height={240} />
                     <Box sx={{ p: 2 }}>
                       <Skeleton height={28} width="70%" />
@@ -339,18 +316,38 @@ export default function OurSquad() {
                 const displayDiv = p.division ?? "T20";
 
                 return (
-                  <Grid item xs={12} sm={6} md={4} key={key} sx={{
-    display: "flex",          // ✅ make the grid cell a flex container
-  }}>
-                    <Box className="flipCardWrap">
-                      <Card className={`flipCard ${isFlipped ? "isFlipped" : ""}`} 
-                      elevation={0}>
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md={4}
+                    key={key}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "stretch",
+                      minWidth: 0,
+                    }}
+                  >
+                    {/* ✅ This wrapper is REQUIRED so your CSS has a real box to size */}
+                    <Box className="flipCardWrap" sx={{ width: "100%", maxWidth: 340 }}>
+                      {/* ✅ Force MUI card sizing too (prevents “thin line” on mobile) */}
+                      <Card
+                        className={`flipCard ${isFlipped ? "isFlipped" : ""}`}
+                        elevation={0}
+                        sx={{
+                          width: "100%",
+                          height: { xs: 460, sm: 440 },
+                          borderRadius: "18px",
+                          overflow: "hidden",
+                        }}
+                      >
                         <CardActionArea
-    className="flipCardAction"
-    onClick={() => toggleFlip(key)}
-    aria-label={`Open details for ${p.name}`}
-    sx={{ width: "100%", height: "100%", display: "block" }} // ✅ critical
-  >
+                          className="flipCardAction"
+                          onClick={() => toggleFlip(key)}
+                          aria-label={`Open details for ${p.name}`}
+                          sx={{ width: "100%", height: "100%", display: "block" }}
+                        >
                           <Box className="flipInner">
                             {/* FRONT */}
                             <Box className="flipFace flipFront">
@@ -362,7 +359,6 @@ export default function OurSquad() {
                                   loading="lazy"
                                   referrerPolicy="no-referrer"
                                   onError={(e) => {
-                                    console.log("Image failed:", img);
                                     e.currentTarget.onerror = null;
                                     e.currentTarget.src = fallbackImage;
                                   }}
@@ -379,12 +375,8 @@ export default function OurSquad() {
 
                                 <Stack direction="row" spacing={1} className="roleRow">
                                   <Chip label={displayRole} size="small" className="roleChip" />
-                                  {p.isCaptain && (
-                                    <Chip label="Captain" size="small" className="badgeChip" />
-                                  )}
-                                  {p.isWicketKeeper && (
-                                    <Chip label="WK" size="small" className="badgeChip" />
-                                  )}
+                                  {p.isCaptain && <Chip label="Captain" size="small" className="badgeChip" />}
+                                  {p.isWicketKeeper && <Chip label="WK" size="small" className="badgeChip" />}
                                 </Stack>
 
                                 <Typography className="tapHint">Tap for details</Typography>

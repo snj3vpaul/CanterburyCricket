@@ -448,3 +448,34 @@
     height: 480px;
   }
 }
+
+/* ===============================
+   MOBILE VISIBILITY GUARANTEE
+   (forces cards to have width/height)
+   =============================== */
+
+.squadGrid > .MuiGrid-item {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* Force the card itself to be a real rectangle even if your custom classes missed */
+.squadGrid .MuiCard-root {
+  width: 100%;
+  max-width: 340px;
+  height: 440px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Ensure CardActionArea fills the card */
+.squadGrid .MuiCardActionArea-root,
+.squadGrid .MuiButtonBase-root {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
