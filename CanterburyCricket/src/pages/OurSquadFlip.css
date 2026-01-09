@@ -22,14 +22,17 @@
   width: min(1200px, calc(100% - 36px));
   margin: 0 auto;
 
-  /* ✅ always start below navbar */
-  padding-top: calc(var(--nav-h) + 24px);
-  padding-bottom: 44px;
+  /* ✅ TEST: remove padding so it can't create a dim layer */
+  padding: 0;
 
-  /* ✅ ensure content is above background */
+  /* optional: give the grid a bit of breathing room */
+  margin-top: 24px;
+  margin-bottom: 44px;
+
   position: relative;
-  z-index: 5000;
+  z-index: 1;
 }
+
 
 /* Header (TEMP DISABLED in JSX, safe to keep CSS) */
 .squadHeader {
