@@ -156,7 +156,7 @@ export default function OurSquad() {
             </button>
           </div>
         </header>
-
+{/* ================= FILTER BAR (TEMP DISABLED) =================
         <section className="filterBar">
           <div className="searchWrap">
             <span className="searchIcon" aria-hidden="true">
@@ -204,6 +204,7 @@ export default function OurSquad() {
           </div>
         </section>
 <div className="filterSpacer" />
+============================================================== */}
         {loadError ? (
           <div className="alert error" role="alert">
             <strong>Squad data failed to load:</strong> {loadError}
