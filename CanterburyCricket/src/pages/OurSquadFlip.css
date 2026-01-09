@@ -15,6 +15,7 @@
   /* ✅ protect content from weird stacking/backdrop issues */
   position: relative;
   isolation: isolate;
+  z-index: 0;
 }
 
 .squadContainer {
@@ -27,7 +28,7 @@
 
   /* ✅ ensure content is above background */
   position: relative;
-  z-index: 2;
+  z-index: 5000;
 }
 
 /* Header (TEMP DISABLED in JSX, safe to keep CSS) */
@@ -215,7 +216,7 @@
 
   /* ✅ keep grid/cards above any blur/overlay layers */
   position: relative;
-  z-index: 3;
+  z-index: 5001;
 }
 
 @media (max-width: 1100px) {
@@ -264,7 +265,7 @@
 
   /* keep each card above local effects */
   position: relative;
-  z-index: 1;
+  z-index: 5002;
 }
 
 .flipCard:focus-visible {
