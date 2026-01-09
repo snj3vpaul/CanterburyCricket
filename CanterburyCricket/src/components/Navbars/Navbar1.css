@@ -19,38 +19,54 @@
   left: 0;
   height: var(--nav-h);
   width: 100%;
-  z-index: 9999;
+  z-index: 10000;
 
   background: rgba(10, 12, 18, 0.72);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255,255,255,0.08);
 
-  /* IMPORTANT: don't use `translate:` here; transform is more reliable */
   transform: translateY(0);
+
+  /* ✅ KEY: stop glow layers spilling onto the page */
+  overflow: hidden;
+
+  /* ✅ create predictable stacking */
+  isolation: isolate;
 }
-/* Blazing glow layer */
+
+/* ✅ Put nav content above the glow layers */
+.navInner {
+  position: relative;
+  z-index: 2;
+}
+
+/* Blazing glow layer (clipped to navbar now) */
 .navbar1::before {
   content: "";
   position: absolute;
-  inset: -40px -80px auto -80px;
-  height: 140px;
+
+  /* ✅ keep it inside navbar bounds instead of negative inset */
+  inset: -30px -60px -30px -60px;
+
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 
   background:
     radial-gradient(closest-side, rgba(255, 170, 0, 0.42), transparent 70%),
     radial-gradient(closest-side, rgba(255, 60, 0, 0.28), transparent 70%),
     radial-gradient(closest-side, rgba(255, 220, 120, 0.22), transparent 72%);
   filter: blur(18px);
-  opacity: 0.95;
-  transform: translateY(10px);
+  opacity: 0.85;
 }
 
-/* Subtle animated “heat” sweep */
+/* Subtle animated “heat” sweep (you were missing content/position/inset) */
 .navbar1::after {
-  
+  content: "";
+  position: absolute;
+  inset: 0;
+
   pointer-events: none;
-  z-index: -1;
+  z-index: 1;
 
   background: linear-gradient(
     90deg,
@@ -196,6 +212,20 @@
 .mobileMenu.open {
   transform: translateX(0%);
 }
+
+/* When mobile menu is closed, it must not tint the page */
+.mobileMenu[aria-hidden="true"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* If your mobileMenu itself has a background/backdrop, kill it when hidden */
+.mobileMenu[aria-hidden="true"] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
 
 .mobileHeader {
   display: flex;
