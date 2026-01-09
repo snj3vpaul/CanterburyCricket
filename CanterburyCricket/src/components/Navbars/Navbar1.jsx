@@ -8,17 +8,26 @@ import CburyLogo from "../../assets/CburyLogo.png";
 export default function Navbar1() {
   const [isVisible, setIsVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [eventsOpen, setEventsOpen] = useState(false); // desktop dropdown
+  const [eventsOpen, setEventsOpen] = useState(false);
 
   const lastScrollY = useRef(0);
   const prefersReducedMotion = useReducedMotion();
 
+  const closeAll = () => {
+    setMenuOpen(false);
+    setEventsOpen(false);
+  };
+
+  const linkClass = ({ isActive }) => (isActive ? "navLink active" : "navLink");
+
+  // Hide/reveal on scroll + close menus on scroll
   useEffect(() => {
     const threshold = 12;
 
     const onScroll = () => {
       const y = window.scrollY;
 
+      // Close any open menus while scrolling
       if (menuOpen) setMenuOpen(false);
       if (eventsOpen) setEventsOpen(false);
 
@@ -32,12 +41,15 @@ export default function Navbar1() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [menuOpen, eventsOpen]);
 
+  // Lock body scroll only while mobile menu is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => (document.body.style.overflow = "");
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [menuOpen]);
 
-  // close dropdown if user clicks outside
+  // Close desktop dropdown if clicking outside
   useEffect(() => {
     const onDocClick = (e) => {
       if (!e.target.closest(".eventsDropdown")) setEventsOpen(false);
@@ -45,8 +57,6 @@ export default function Navbar1() {
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
-
-  const linkClass = ({ isActive }) => (isActive ? "navLink active" : "navLink");
 
   return (
     <>
@@ -57,7 +67,8 @@ export default function Navbar1() {
         transition={{ duration: 0.22, ease: "easeOut" }}
       >
         <div className="navInner">
-          <NavLink to="/" className="brand" onClick={() => { setMenuOpen(false); setEventsOpen(false); }}>
+          {/* Brand */}
+          <NavLink to="/" className="brand" onClick={closeAll}>
             <img className="brandLogo" src={CburyLogo} alt="Canterbury Cricket Club" />
             <div className="brandText">
               <div className="brandTitle">Canterbury CC</div>
@@ -65,14 +76,22 @@ export default function Navbar1() {
             </div>
           </NavLink>
 
-          {/* ===== Desktop Navigation ===== */}
-          <nav className="navLinksDesktop">
-            <NavLink to="/" className={linkClass}>Home</NavLink>
-            <NavLink to="/history" className={linkClass}>Rich History</NavLink>
-            <NavLink to="/squad" className={linkClass}>Our Squad</NavLink>
-            <NavLink to="/season" className={linkClass}>Season</NavLink>
+          {/* Desktop Links */}
+          <nav className="navLinksDesktop" aria-label="Primary navigation">
+            <NavLink to="/" className={linkClass}>
+              Home
+            </NavLink>
+            <NavLink to="/history" className={linkClass}>
+              Rich History
+            </NavLink>
+            <NavLink to="/squad" className={linkClass}>
+              Our Squad
+            </NavLink>
+            <NavLink to="/season" className={linkClass}>
+              Season
+            </NavLink>
 
-            {/* Events dropdown */}
+            {/* Events dropdown (desktop) */}
             <div className="eventsDropdown">
               <button
                 type="button"
@@ -86,25 +105,25 @@ export default function Navbar1() {
 
               {eventsOpen && (
                 <div className="dropdownMenu" role="menu">
-                  <NavLink
-                    to="/awards"
-                    className="dropdownItem"
-                    onClick={() => setEventsOpen(false)}
-                  >
+                  <NavLink to="/awards" className="dropdownItem" onClick={() => setEventsOpen(false)}>
                     Awards Night
                   </NavLink>
                 </div>
               )}
             </div>
 
-            <NavLink to="/sponsors" className={linkClass}>Sponsors</NavLink>
-            <NavLink to="/contact" className={linkClass}>Contact</NavLink>
+            <NavLink to="/sponsors" className={linkClass}>
+              Sponsors
+            </NavLink>
+            <NavLink to="/contact" className={linkClass}>
+              Contact
+            </NavLink>
           </nav>
 
-          {/* ===== Mobile Burger ===== */}
+          {/* Mobile Burger */}
           <button
             className="burger"
-            aria-label="Open menu"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((v) => !v)}
           >
@@ -115,14 +134,17 @@ export default function Navbar1() {
         </div>
       </motion.header>
 
-      {/* ===== Mobile Overlay ===== */}
-      <div
-        className={`mobileOverlay ${menuOpen ? "open" : ""}`}
-        onClick={() => setMenuOpen(false)}
-      />
+      {/* Mobile overlay ONLY when menu is open (prevents blocking the page) */}
+      {menuOpen && (
+        <div className="mobileOverlay open" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+      )}
 
-      {/* ===== Mobile Menu ===== */}
-      <aside className={`mobileMenu ${menuOpen ? "open" : ""}`} aria-hidden={!menuOpen}>
+      {/* Mobile Menu */}
+      <aside
+        className={`mobileMenu ${menuOpen ? "open" : ""}`}
+        aria-hidden={!menuOpen}
+        aria-label="Mobile navigation"
+      >
         <div className="mobileHeader">
           <span className="mobileTitle">Menu</span>
           <button className="closeBtn" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
@@ -131,24 +153,40 @@ export default function Navbar1() {
         </div>
 
         <nav className="navLinksMobile">
-          <NavLink to="/" className={linkClass} onClick={() => setMenuOpen(false)}>Home</NavLink>
-          
-          <NavLink to="/oursquad" className={linkClass} onClick={() => setMenuOpen(false)}>Our Squad</NavLink>
-          <NavLink to="/season" className={linkClass} onClick={() => setMenuOpen(false)}>Season</NavLink>
+          <NavLink to="/" className={linkClass} onClick={closeAll}>
+            Home
+          </NavLink>
+
+          <NavLink to="/history" className={linkClass} onClick={closeAll}>
+            Rich History
+          </NavLink>
+
+          {/* ✅ fixed: must match desktop route */}
+          <NavLink to="/squad" className={linkClass} onClick={closeAll}>
+            Our Squad
+          </NavLink>
+
+          <NavLink to="/season" className={linkClass} onClick={closeAll}>
+            Season
+          </NavLink>
 
           {/* Mobile Events section */}
-          <div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>
-            Events
-          </div>
-          <NavLink to="/awards" className={linkClass} onClick={() => setMenuOpen(false)}>
+          <div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>Events</div>
+          <NavLink to="/awards" className={linkClass} onClick={closeAll}>
             Awards Night Soon
           </NavLink>
 
-          <NavLink to="/sponsors" className={linkClass} onClick={() => setMenuOpen(false)}>Sponsors</NavLink>
-          <NavLink to="/contact" className={linkClass} onClick={() => setMenuOpen(false)}>Contact</NavLink>
+          <NavLink to="/sponsors" className={linkClass} onClick={closeAll}>
+            Sponsors
+          </NavLink>
+
+          <NavLink to="/contact" className={linkClass} onClick={closeAll}>
+            Contact
+          </NavLink>
         </nav>
       </aside>
 
+      {/* Spacer so content doesn't sit under fixed nav */}
       <div className="navbarSpacer" />
     </>
   );
