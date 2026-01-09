@@ -11,9 +11,13 @@
     radial-gradient(900px 450px at 80% 10%, rgba(79, 82, 255, 0.16), transparent 55%),
     #09090b;
   color: #faf9f5;
+  overflow-y: visible;
+  overflow-x: hidden;
 }
 
 .squadContainer {
+  overflow: visible;
+  height: auto;
   padding-top: 26px;
   padding-bottom: 44px;
 }
@@ -132,9 +136,29 @@
 
 /* Grid */
 .squadGrid {
+  width: 100%;
+  margin: 0 auto !important;
+  padding-bottom: 80px; /* room for footer */
+  overflow: visible;
   margin-top: 8px;
   position: relative; /* keep visibility override */
   z-index: 2;
+   /* ✅ NEW: make sure grid content starts at top and doesn't collapse */
+  align-content: flex-start;
+}
+
+/* ✅ IMPORTANT: force MUI Grid items to actually lay out their children */
+.squadGrid.MuiGrid-container {
+  width: 100%;
+  margin-left: 0 !important;  /* avoid odd negative margin behavior */
+  margin-right: 0 !important;
+}
+
+.squadGrid > .MuiGrid-item {
+  display: flex;              /* ✅ makes the child card stretch */
+  justify-content: center;
+  align-items: stretch;
+  min-width: 0;
 }
 
 /* =========================================
@@ -150,6 +174,9 @@
   margin: 0 auto;
   perspective: 1200px;
   -webkit-perspective: 1200px;
+  display: flex;
+  align-items: stretch;
+
 }
 
 /* The card itself must have explicit size */
@@ -164,6 +191,8 @@
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.40);
   transform: translateY(0);
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .flipCard:hover {
@@ -189,6 +218,9 @@
   -webkit-transform-style: preserve-3d;
   transition: transform 700ms cubic-bezier(.2, .8, .2, 1);
   will-change: transform;
+  /* ✅ NEW: stabilize rendering */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* rotate the shell when flipped */
