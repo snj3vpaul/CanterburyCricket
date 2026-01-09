@@ -286,21 +286,12 @@ export default function OurSquad() {
           </Box>
         </Box>
 
-        {/* Grid */}
-        <Grid
-  container
-  spacing={{ xs: 2, sm: 3, md: 4 }}
-  justifyContent="center"
-  alignItems="stretch"
-  className="squadGrid"
->
+        {/* Cards Grid (CSS Grid – bulletproof on mobile) */}
+<Box className="cardsGrid">
   {loading
     ? Array.from({ length: 9 }).map((_, i) => (
-        <Grid xs={12} sm={6} md={4} key={`sk-${i}`} sx={{ display: "flex" }}>
-          <Card
-            elevation={0}
-            sx={{ width: "100%", maxWidth: 340, borderRadius: 3, overflow: "hidden" }}
-          >
+        <Box key={`sk-${i}`} className="cardCell">
+          <Card elevation={0} sx={{ borderRadius: 3, overflow: "hidden" }}>
             <Skeleton variant="rectangular" height={240} />
             <Box sx={{ p: 2 }}>
               <Skeleton height={28} width="70%" />
@@ -308,7 +299,7 @@ export default function OurSquad() {
               <Skeleton height={22} width="45%" />
             </Box>
           </Card>
-        </Grid>
+        </Box>
       ))
     : filtered.map((p, idx) => {
         const key = p.id ?? p.name ?? idx;
@@ -319,29 +310,9 @@ export default function OurSquad() {
         const displayDiv = p.division ?? "T20";
 
         return (
-          <Grid
-            xs={12}
-            sm={6}
-            md={4}
-            key={key}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "stretch",
-              minWidth: 0,
-            }}
-          >
-            <Box className="flipCardWrap" sx={{ width: "100%", maxWidth: 340 }}>
-              <Card
-                className={`flipCard ${isFlipped ? "isFlipped" : ""}`}
-                elevation={0}
-                sx={{
-                  width: "100%",
-                  height: { xs: 460, sm: 440 },
-                  borderRadius: "18px",
-                  overflow: "hidden",
-                }}
-              >
+          <Box key={key} className="cardCell">
+            <Box className="flipCardWrap">
+              <Card className={`flipCard ${isFlipped ? "isFlipped" : ""}`} elevation={0}>
                 <CardActionArea
                   className="flipCardAction"
                   onClick={() => toggleFlip(key)}
@@ -375,12 +346,8 @@ export default function OurSquad() {
 
                         <Stack direction="row" spacing={1} className="roleRow">
                           <Chip label={displayRole} size="small" className="roleChip" />
-                          {p.isCaptain && (
-                            <Chip label="Captain" size="small" className="badgeChip" />
-                          )}
-                          {p.isWicketKeeper && (
-                            <Chip label="WK" size="small" className="badgeChip" />
-                          )}
+                          {p.isCaptain && <Chip label="Captain" size="small" className="badgeChip" />}
+                          {p.isWicketKeeper && <Chip label="WK" size="small" className="badgeChip" />}
                         </Stack>
 
                         <Typography className="tapHint">Tap for details</Typography>
@@ -423,10 +390,11 @@ export default function OurSquad() {
                 </CardActionArea>
               </Card>
             </Box>
-          </Grid>
+          </Box>
         );
       })}
-</Grid>
+</Box>
+
 
 
         {!loading && filtered.length === 0 && (

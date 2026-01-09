@@ -487,3 +487,33 @@
   height: 100%;
   display: block;
 }
+
+
+/* =========================
+   CSS GRID for cards (replaces MUI Grid layout)
+   ========================= */
+
+.cardsGrid {
+  width: 100%;
+  margin-top: 8px;
+  padding-bottom: 80px;
+  display: grid;
+  gap: 18px;
+
+  /* responsive columns */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 340px));
+  justify-content: center;
+  align-content: start;
+}
+
+.cardCell {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* Safety: ensure card never collapses into thin lines */
+.cardCell .flipCard {
+  width: 100%;
+}
