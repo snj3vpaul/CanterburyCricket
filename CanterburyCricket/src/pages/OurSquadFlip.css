@@ -461,6 +461,14 @@
   min-width: 0;
 }
 
+
+/* Make sure the Card actually has width */
+.squadGrid .MuiCard-root {
+  width: 100%;
+  max-width: 340px;
+}
+
+
 /* Force the card itself to be a real rectangle even if your custom classes missed */
 .squadGrid .MuiCard-root {
   width: 100%;
