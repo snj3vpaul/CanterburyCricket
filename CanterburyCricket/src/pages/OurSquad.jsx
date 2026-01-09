@@ -1,33 +1,11 @@
-// OurSquad.jsx
+// src/pages/OurSquad/OurSquad.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  Card,
-  CardActionArea,
-  Chip,
-  Container,
-  Divider,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Skeleton,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import Grid from "@mui/material/Grid";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
-import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
-import "./OurSquadFlip.css";
+import "./OurSquad.css";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DIV_OPTIONS = ["All", "T20", "CTZ", "CHG"];
 
+// same fallback idea you used earlier
 const fallbackImage =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(`
@@ -35,130 +13,67 @@ const fallbackImage =
     <defs>
       <linearGradient id="g" x1="0" x2="1">
         <stop offset="0" stop-color="#0b1220"/>
-        <stop offset="1" stop-color="#131a2a"/>
+        <stop offset="1" stop-color="#141a2a"/>
       </linearGradient>
     </defs>
-    <rect width="100%" height="100%" fill="url(#g)"/>
-    <circle cx="450" cy="420" r="160" fill="rgba(255,255,255,0.06)"/>
-    <text x="50%" y="73%" dominant-baseline="middle" text-anchor="middle"
-      fill="rgba(255,255,255,0.55)" font-family="Arial" font-size="44">
-      Player
+    <rect width="900" height="1200" fill="url(#g)"/>
+    <circle cx="450" cy="420" r="180" fill="rgba(255,255,255,0.08)"/>
+    <rect x="250" y="670" width="400" height="54" rx="18" fill="rgba(255,255,255,0.08)"/>
+    <rect x="200" y="750" width="500" height="36" rx="14" fill="rgba(255,255,255,0.06)"/>
+    <text x="50%" y="92%" dominant-baseline="middle" text-anchor="middle"
+      font-family="Arial" font-size="34" fill="rgba(255,255,255,0.45)">
+      Canterbury CC
     </text>
   </svg>
 `);
 
-// Drive link -> direct image URL
-function normalizeDriveImageUrl(input) {
-  if (!input) return "";
-  const raw = String(input).trim();
-  if (!raw) return "";
-
-  const firstUrl = raw
-    .split(/[\n,]/)
-    .map((s) => s.trim())
-    .find((s) => /^https?:\/\//i.test(s));
-
-  if (!firstUrl) return "";
-
-  const fileMatch = firstUrl.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  const openMatch = firstUrl.match(/drive\.google\.com\/open\?id=([^&]+)/);
-  const ucMatch = firstUrl.match(/[?&]id=([^&]+)/);
-
-  const id = fileMatch?.[1] || openMatch?.[1] || ucMatch?.[1];
-  if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-
-  return firstUrl;
+function normalizeRole(role = "") {
+  const r = String(role).toLowerCase();
+  if (r.includes("wicket")) return "Wicket-keeper";
+  if (r.includes("all")) return "All-rounder";
+  if (r.includes("bowl")) return "Bowler";
+  if (r.includes("bat")) return "Batter";
+  return role || "—";
 }
 
-function normalizeRole(raw) {
-  const s = (raw ?? "").toString().trim().toLowerCase();
-  if (!s) return "All-rounder";
-  if (s.includes("wicket") || s === "wk" || s.includes("keeper")) return "Wicket-keeper";
-  if (s.includes("all")) return "All-rounder";
-  if (s.includes("bowl")) return "Bowler";
-  if (s.includes("bat")) return "Batter";
-  return "All-rounder";
-}
-
-function normalized(s) {
-  return (s ?? "").toString().trim().toLowerCase();
-}
-
-function pick(row, keys) {
-  for (const k of keys) {
-    const v = row?.[k];
-    if (v != null && String(v).trim()) return String(v).trim();
-  }
-  return "";
-}
-
-/**
- * Maps Apps Script JSON rows to UI model.
- * Sheet headers:
- * Timestamp, Full Name, Playing Role, Playing Style, Bowling Style, Jersey Number, Photo for Squad Banner, Short Bio
- */
-function mapRowToPlayer(row, idx) {
-  const name = (row["Full Name"] ?? "").toString().trim() || `Player ${idx + 1}`;
-  const role = normalizeRole(row["Playing Role"]);
-  const batting = (row["Playing Style"] ?? "").toString().trim();
-  const bowling = (row["Bowling Style"] ?? "").toString().trim();
-  const jersey = (row["Jersey Number"] ?? "").toString().trim();
-  const bio = pick(row, ["Short Bio", "Short bio", "Bio", "About", "Player Bio", "Short Bio "]);
-
-  const image = normalizeDriveImageUrl(row["Photo for Squad Banner"]) || fallbackImage;
-
-  // no division in the form yet
-  const division = "T20";
-
-  const tags = [
-    batting ? `Bat: ${batting}` : null,
-    bowling ? `Bowl: ${bowling}` : null,
-    jersey ? `#${jersey}` : null,
-  ].filter(Boolean);
-
-  return {
-    id: `${name}-${idx}`,
-    name,
-    role,
-    division,
-    divisions: [division],
-    image,
-    bio,
-    tags,
-    isCaptain: false,
-    isWicketKeeper: role === "Wicket-keeper",
-  };
+function safeText(v) {
+  return v === null || v === undefined ? "" : String(v);
 }
 
 export default function OurSquad() {
-  // Filters
-  const [query, setQuery] = useState("");
-  const [role, setRole] = useState("All");
-  const [division, setDivision] = useState("All");
-
-  // Flip state
-  const [flipped, setFlipped] = useState(() => new Set());
-
-  // Data state
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const fetchSquad = useCallback(async () => {
-    setLoadError("");
-    setLoading(true);
+  // filters
+  const [query, setQuery] = useState("");
+  const [role, setRole] = useState("All");
+  const [division, setDivision] = useState("All");
 
+  // flip-card state (track which card is flipped)
+  const [flippedId, setFlippedId] = useState(null);
+
+  const fetchSquad = useCallback(async () => {
+    setLoading(true);
+    setLoadError("");
     try {
       const res = await fetch(`/api/squad?_t=${Date.now()}`);
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
       const json = await res.json();
 
-      if (!json?.ok) throw new Error(json?.error || "API error");
+      // Support either:
+      // - { ok: true, data: [...] }
+      // - [...]
+      const data = Array.isArray(json) ? json : json?.data;
 
-      const mapped = (json.data || []).map(mapRowToPlayer);
-      mapped.sort((a, b) => a.name.localeCompare(b.name));
-      setPlayers(mapped);
+      if (!Array.isArray(data)) {
+        throw new Error("Unexpected response shape from /api/squad");
+      }
+
+      setPlayers(data);
     } catch (e) {
-      setLoadError(e?.message || String(e));
+      setLoadError(e?.message || "Failed to load squad");
+      setPlayers([]);
     } finally {
       setLoading(false);
     }
@@ -169,241 +84,212 @@ export default function OurSquad() {
   }, [fetchSquad]);
 
   const filtered = useMemo(() => {
-    const q = normalized(query);
+    const q = query.trim().toLowerCase();
 
     return players.filter((p) => {
+      const name = safeText(p.name || p.player || p.fullName).toLowerCase();
+      const div = safeText(p.division || p.div || p.team).toUpperCase();
+      const r = normalizeRole(p.role || p.type || "").toLowerCase();
+
       const matchQuery =
         !q ||
-        normalized(p.name).includes(q) ||
-        normalized(p.role).includes(q) ||
-        normalized(p.division).includes(q) ||
-        (p.tags || []).some((t) => normalized(t).includes(q));
+        name.includes(q) ||
+        safeText(p.nickname).toLowerCase().includes(q) ||
+        safeText(p.battingStyle).toLowerCase().includes(q) ||
+        safeText(p.bowlingStyle).toLowerCase().includes(q);
 
-      const matchRole = role === "All" || normalized(p.role) === normalized(role);
-
-      const divs = Array.isArray(p.divisions) && p.divisions.length ? p.divisions : [p.division];
-      const matchDiv = division === "All" || divs.some((d) => normalized(d) === normalized(division));
+      const matchRole = role === "All" || r === role.toLowerCase();
+      const matchDiv = division === "All" || div === division;
 
       return matchQuery && matchRole && matchDiv;
     });
   }, [players, query, role, division]);
 
-  const toggleFlip = (key) => {
-    setFlipped((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
+  const onCardToggle = (id) => {
+    setFlippedId((prev) => (prev === id ? null : id));
+  };
+
+  const clearFilters = () => {
+    setQuery("");
+    setRole("All");
+    setDivision("All");
+    setFlippedId(null);
   };
 
   return (
-    <Box className="squadPage">
-      <Container maxWidth="lg" className="squadContainer">
-        {/* Header */}
-        <Box className="squadHeader">
-          <Box>
-            <Typography variant="h4" className="squadTitle">
-              Our Squad
-            </Typography>
-            <Typography className="squadSubtitle">
-              Meet the Canterbury crew — tap a card for details 🏏
-            </Typography>
-          </Box>
+    <div className="squadPage">
+      <div className="squadContainer">
+        <header className="squadHeader">
+          <div>
+            <h1 className="squadTitle">Our Squad</h1>
+            <p className="squadSubtitle">
+              Search players, filter by role and division, and flip a card to see details.
+            </p>
+          </div>
 
-          <Box sx={{ mt: { xs: 2, sm: 0 } }}>
-            <Button
-              onClick={fetchSquad}
-              startIcon={<RefreshRoundedIcon />}
-              variant="outlined"
-              size="small"
-              sx={{ borderRadius: 999 }}
-            >
+          <div className="headerActions">
+            <button className="btn ghost" onClick={clearFilters} type="button">
+              Clear
+            </button>
+            <button className="btn" onClick={fetchSquad} type="button">
               Refresh
-            </Button>
-          </Box>
-        </Box>
+            </button>
+          </div>
+        </header>
 
-        {loadError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            Squad data failed to load: {loadError}
-          </Alert>
-        )}
+        <section className="filterBar" aria-label="Squad filters">
+          <div className="searchWrap">
+            <span className="searchIcon" aria-hidden="true">⌕</span>
+            <input
+              className="searchInput"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, style, nickname…"
+              type="search"
+            />
+          </div>
 
-        {/* Filters */}
-        <Box className="filterBar">
-          <Box className="filterBarInner">
-            <Box className="filterLeft">
-              <Box className="filterIconWrap" aria-hidden="true">
-                <FilterAltRoundedIcon />
-              </Box>
+          <div className="selectRow">
+            <label className="selectField">
+              <span className="selectLabel">Role</span>
+              <select
+                className="select"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                {ROLE_OPTIONS.map((x) => (
+                  <option key={x} value={x}>
+                    {x}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-              <TextField
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search player…"
-                size="small"
-                className="searchField"
-                InputProps={{
-                  startAdornment: (
-                    <Box className="searchIcon">
-                      <SearchRoundedIcon fontSize="small" />
-                    </Box>
-                  ),
-                }}
-              />
-            </Box>
+            <label className="selectField">
+              <span className="selectLabel">Division</span>
+              <select
+                className="select"
+                value={division}
+                onChange={(e) => setDivision(e.target.value)}
+              >
+                {DIV_OPTIONS.map((x) => (
+                  <option key={x} value={x}>
+                    {x}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1.2} className="filterRight">
-              <FormControl size="small" className="selectField">
-                <InputLabel>Role</InputLabel>
-                <Select value={role} label="Role" onChange={(e) => setRole(e.target.value)}>
-                  {ROLE_OPTIONS.map((opt) => (
-                    <MenuItem key={opt} value={opt}>
-                      {opt}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+          <div className="metaPill" aria-live="polite">
+            {loading ? "Loading…" : `${filtered.length} player${filtered.length === 1 ? "" : "s"}`}
+          </div>
+        </section>
 
-              <FormControl size="small" className="selectField">
-                <InputLabel>Division</InputLabel>
-                <Select value={division} label="Division" onChange={(e) => setDivision(e.target.value)}>
-                  {DIV_OPTIONS.map((opt) => (
-                    <MenuItem key={opt} value={opt}>
-                      {opt}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+        {loadError ? (
+          <div className="alert error" role="alert">
+            <strong>Squad data failed to load:</strong> {loadError}
+          </div>
+        ) : null}
 
-              <Chip
-                label={loading ? "Loading…" : `${filtered.length} player${filtered.length === 1 ? "" : "s"}`}
-                className="countChip"
-                variant="outlined"
-              />
-            </Stack>
-          </Box>
-        </Box>
+        {loading ? (
+          <div className="grid">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div className="skeletonCard" key={i} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid">
+            {filtered.map((p, idx) => {
+              const id = p.id || p._id || p.email || `${p.name}-${idx}`;
+              const name = safeText(p.name || p.player || p.fullName || "Unknown Player");
+              const div = safeText(p.division || p.div || p.team || "—").toUpperCase();
+              const roleLabel = normalizeRole(p.role || p.type || "");
+              const imageUrl = p.image || p.photo || p.avatar || fallbackImage;
 
-        {/* Cards Grid (CSS Grid – bulletproof on mobile) */}
-<Box className="cardsGrid">
-  {loading
-    ? Array.from({ length: 9 }).map((_, i) => (
-        <Box key={`sk-${i}`} className="cardCell">
-          <Card elevation={0} sx={{ borderRadius: 3, overflow: "hidden" }}>
-            <Skeleton variant="rectangular" height={240} />
-            <Box sx={{ p: 2 }}>
-              <Skeleton height={28} width="70%" />
-              <Skeleton height={22} width="55%" />
-              <Skeleton height={22} width="45%" />
-            </Box>
-          </Card>
-        </Box>
-      ))
-    : filtered.map((p, idx) => {
-        const key = p.id ?? p.name ?? idx;
-        const isFlipped = flipped.has(key);
+              const isFlipped = flippedId === id;
 
-        const img = p.image || fallbackImage;
-        const displayRole = p.role ?? "All-rounder";
-        const displayDiv = p.division ?? "All";
-
-        return (
-          <Box key={key} className="cardCell">
-            <Box className="flipCardWrap">
-              <Card className={`flipCard ${isFlipped ? "isFlipped" : ""}`} elevation={0}>
-                <CardActionArea
-                  className="flipCardAction"
-                  onClick={() => toggleFlip(key)}
-                  aria-label={`Open details for ${p.name}`}
-                  sx={{ width: "100%", height: "100%", display: "block" }}
-                >
-                  <Box className="flipInner">
+              return (
+                <div className="flipCard" key={id}>
+                  <button
+                    type="button"
+                    className={`flipInner ${isFlipped ? "isFlipped" : ""}`}
+                    onClick={() => onCardToggle(id)}
+                    aria-pressed={isFlipped}
+                    aria-label={`Open ${name} details`}
+                  >
                     {/* FRONT */}
-                    <Box className="flipFace flipFront">
-                      <Box className="cardMediaWrap">
+                    <div className="cardFace cardFront">
+                      <div className="cardMedia">
                         <img
-                          className="cardMedia"
-                          src={img}
-                          alt={p.name}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
+                          src={imageUrl}
+                          alt={name}
+                          className="playerImg"
                           onError={(e) => {
-                            e.currentTarget.onerror = null;
                             e.currentTarget.src = fallbackImage;
                           }}
                         />
-                        <Box className="cardOverlay">
-                          <Chip label={displayDiv} className="divChip" size="small" />
-                        </Box>
-                      </Box>
+                        <div className="badgeRow">
+                          <span className="badge">{div}</span>
+                          <span className="badge alt">{roleLabel}</span>
+                        </div>
+                      </div>
 
-                      <Box className="cardBody">
-                        <Typography variant="h6" className="playerName">
-                          {p.name}
-                        </Typography>
+                      <div className="cardBody">
+                        <h3 className="playerName">{name}</h3>
+                        <p className="playerMeta">
+                          {safeText(p.battingStyle || p.batStyle || "Batting: —")}
+                          {" • "}
+                          {safeText(p.bowlingStyle || p.bowlStyle || "Bowling: —")}
+                        </p>
 
-                        <Stack direction="row" spacing={1} className="roleRow">
-                          <Chip label={displayRole} size="small" className="roleChip" />
-                          {p.isCaptain && <Chip label="Captain" size="small" className="badgeChip" />}
-                          {p.isWicketKeeper && <Chip label="WK" size="small" className="badgeChip" />}
-                        </Stack>
-
-                        <Typography className="tapHint">Tap for details</Typography>
-                      </Box>
-                    </Box>
+                        <div className="hint">Click to flip</div>
+                      </div>
+                    </div>
 
                     {/* BACK */}
-                    <Box className="flipFace flipBack">
-                      <Box className="backTop">
-                        <Stack direction="row" spacing={1.2} alignItems="center">
-                          <Avatar src={img} alt={p.name} />
-                          <Box>
-                            <Typography className="backName">{p.name}</Typography>
-                            <Typography className="backMeta">
-                              {displayRole} • {displayDiv}
-                            </Typography>
-                          </Box>
-                        </Stack>
-                      </Box>
+                    <div className="cardFace cardBack">
+                      <div className="backTop">
+                        <h3 className="playerName">{name}</h3>
+                        <p className="playerMeta">{div} • {roleLabel}</p>
+                      </div>
 
-                      <Divider className="backDivider" />
+                      <div className="stats">
+                        <div className="stat">
+                          <span className="statLabel">Matches</span>
+                          <span className="statValue">{safeText(p.matches ?? p.mat ?? "—")}</span>
+                        </div>
+                        <div className="stat">
+                          <span className="statLabel">Runs</span>
+                          <span className="statValue">{safeText(p.runs ?? "—")}</span>
+                        </div>
+                        <div className="stat">
+                          <span className="statLabel">Wickets</span>
+                          <span className="statValue">{safeText(p.wickets ?? "—")}</span>
+                        </div>
+                        <div className="stat">
+                          <span className="statLabel">SR / Econ</span>
+                          <span className="statValue">
+                            {safeText(p.strikeRate ?? p.sr ?? "—")} / {safeText(p.econ ?? "—")}
+                          </span>
+                        </div>
+                      </div>
 
-                      <Box className="backBody">
-                        <Typography className="backLabel">About</Typography>
-                        <Typography className="backText">
-                          {p.bio ||
-                            "Solid contributor for the club — reliable, competitive, and always up for a big game."}
-                        </Typography>
+                      {p.bio || p.about ? (
+                        <p className="bio">{safeText(p.bio || p.about)}</p>
+                      ) : (
+                        <p className="bio dim">Add a short bio for this player in your sheet later.</p>
+                      )}
 
-                        <Box className="backTags">
-                          {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
-                            <Chip key={t} label={t} size="small" className="tagChip" />
-                          ))}
-                        </Box>
-                      </Box>
-
-                      <Typography className="tapHintBack">Tap to go back</Typography>
-                    </Box>
-                  </Box>
-                </CardActionArea>
-              </Card>
-            </Box>
-          </Box>
-        );
-      })}
-</Box>
-
-
-
-        {!loading && filtered.length === 0 && (
-          <Box className="emptyState">
-            <Typography variant="h6">No matches</Typography>
-            <Typography className="emptySub">Try a different name, role, or division.</Typography>
-          </Box>
+                      <div className="hint">Click to flip back</div>
+                    </div>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </Container>
-    </Box>
+      </div>
+    </div>
   );
 }
