@@ -10,6 +10,7 @@
 }
 
 .squadContainer {
+  padding-top: calc(var(--nav-h) + 24px);
   width: min(1200px, calc(100% - 36px));
   margin: 0 auto;
   padding: 26px 0 44px;
@@ -65,6 +66,7 @@
 }
 
 .filterBar {
+  top: calc(var(--nav-h) + 12px);
   position: sticky;
   top: 76px;
   z-index: 10;
