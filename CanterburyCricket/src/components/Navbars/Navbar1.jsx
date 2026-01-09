@@ -141,7 +141,7 @@ export default function Navbar1() {
             Events
           </div>
           <NavLink to="/awards" className={linkClass} onClick={() => setMenuOpen(false)}>
-            Awards Night
+            Awards Night Soon
           </NavLink>
 
           <NavLink to="/sponsors" className={linkClass} onClick={() => setMenuOpen(false)}>Sponsors</NavLink>
