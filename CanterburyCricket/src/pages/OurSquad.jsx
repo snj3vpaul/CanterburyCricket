@@ -26,6 +26,8 @@ const fallbackImage =
   </svg>
 `);
 
+const safe = (v) => (v === null || v === undefined ? "" : String(v));
+
 function normalizeRole(role = "") {
   const r = String(role).toLowerCase();
   if (r.includes("wicket")) return "Wicket-keeper";
@@ -34,22 +36,93 @@ function normalizeRole(role = "") {
   if (r.includes("bat")) return "Batter";
   return role || "—";
 }
-const safe = (v) => (v === null || v === undefined ? "" : String(v));
 
 function extractArray(json) {
   // supports: []  | {data: []} | {ok:true,data:[]} | {players:[]} | {result:[]} etc.
   if (Array.isArray(json)) return json;
 
   if (json && typeof json === "object") {
-    if (json.ok === false) {
-      // your API might send {ok:false,error:"..."}
-      throw new Error(json.error || "API returned ok:false");
-    }
+    if (json.ok === false) throw new Error(json.error || "API returned ok:false");
     const candidates = [json.data, json.players, json.result, json.items];
     for (const c of candidates) if (Array.isArray(c)) return c;
   }
 
   throw new Error("Unexpected response shape from /api/squad");
+}
+
+/** Prefer Google-Sheets style keys first, then fall back to normalized keys */
+function getName(p) {
+  return safe(
+    p?.["Player Name"] ||
+      p?.name ||
+      p?.player ||
+      p?.fullName ||
+      p?.["Name"] ||
+      "Unknown Player"
+  );
+}
+
+function getDivision(p) {
+  return safe(
+    p?.["Division"] ||
+      p?.division ||
+      p?.div ||
+      p?.team ||
+      p?.["Div"] ||
+      "—"
+  ).toUpperCase();
+}
+
+function getRoleLabel(p) {
+  const raw =
+    p?.["Role"] ||
+    p?.["Player Type"] ||
+    p?.role ||
+    p?.type ||
+    p?.["Type"] ||
+    "";
+  return normalizeRole(raw);
+}
+
+function getImage(p) {
+  return (
+    p?.["Image"] ||
+    p?.["Photo"] ||
+    p?.image ||
+    p?.photo ||
+    p?.avatar ||
+    fallbackImage
+  );
+}
+
+function getBattingStyle(p) {
+  return safe(
+    p?.["Batting Style"] ||
+      p?.battingStyle ||
+      p?.batStyle ||
+      "Batting: —"
+  );
+}
+
+function getBowlingStyle(p) {
+  return safe(
+    p?.["Bowling Style"] ||
+      p?.bowlingStyle ||
+      p?.bowlStyle ||
+      "Bowling: —"
+  );
+}
+
+function getNickname(p) {
+  return safe(p?.["Nickname"] || p?.nickname || "");
+}
+
+function getStat(p, keyList, fallback = "—") {
+  for (const k of keyList) {
+    const v = p?.[k];
+    if (v !== null && v !== undefined && String(v).trim() !== "") return safe(v);
+  }
+  return fallback;
 }
 
 export default function OurSquad() {
@@ -71,9 +144,7 @@ export default function OurSquad() {
       const res = await fetch(`/api/squad?_t=${Date.now()}`);
       const rawText = await res.text();
 
-      if (!res.ok) {
-        throw new Error(`API error ${res.status}: ${rawText.slice(0, 120)}`);
-      }
+      if (!res.ok) throw new Error(`API error ${res.status}: ${rawText.slice(0, 120)}`);
 
       let json;
       try {
@@ -100,18 +171,21 @@ export default function OurSquad() {
     const q = query.trim().toLowerCase();
 
     return players.filter((p) => {
-      const name = safe(p.name || p.player || p.fullName).toLowerCase();
-      const div = safe(p.division || p.div || p.team).toUpperCase();
-      const r = normalizeRole(p.role || p.type || "").toLowerCase();
+      const name = getName(p).toLowerCase();
+      const div = getDivision(p);
+      const roleLabel = getRoleLabel(p); // normalized label for display
+      const roleKey = roleLabel.toLowerCase();
 
-      const matchQuery =
-        !q ||
-        name.includes(q) ||
-        safe(p.nickname).toLowerCase().includes(q) ||
-        safe(p.battingStyle).toLowerCase().includes(q) ||
-        safe(p.bowlingStyle).toLowerCase().includes(q);
+      const nick = getNickname(p).toLowerCase();
+      const bat = getBattingStyle(p).toLowerCase();
+      const bowl = getBowlingStyle(p).toLowerCase();
 
-      const matchRole = role === "All" || r === role.toLowerCase();
+      const matchQuery = !q || name.includes(q) || nick.includes(q) || bat.includes(q) || bowl.includes(q);
+
+      // Role filter (uses display labels)
+      const matchRole = role === "All" || roleKey === role.toLowerCase();
+
+      // Division filter (expects T20/CTZ/CHG)
       const matchDiv = division === "All" || div === division;
 
       return matchQuery && matchRole && matchDiv;
@@ -125,9 +199,7 @@ export default function OurSquad() {
     setFlippedId(null);
   };
 
-  const toggleFlip = (id) => {
-    setFlippedId((prev) => (prev === id ? null : id));
-  };
+  const toggleFlip = (id) => setFlippedId((prev) => (prev === id ? null : id));
 
   const onCardKeyDown = (e, id) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -156,12 +228,11 @@ export default function OurSquad() {
             </button>
           </div>
         </header>
-{/* ================= FILTER BAR (TEMP DISABLED) =================
+
+        {/* ================= FILTER BAR (TEMP DISABLED) =================
         <section className="filterBar">
           <div className="searchWrap">
-            <span className="searchIcon" aria-hidden="true">
-              ⌕
-            </span>
+            <span className="searchIcon" aria-hidden="true">⌕</span>
             <input
               className="searchInput"
               value={query}
@@ -176,24 +247,16 @@ export default function OurSquad() {
               <span className="selectLabel">Role</span>
               <select className="select" value={role} onChange={(e) => setRole(e.target.value)}>
                 {ROLE_OPTIONS.map((x) => (
-                  <option key={x} value={x}>
-                    {x}
-                  </option>
+                  <option key={x} value={x}>{x}</option>
                 ))}
               </select>
             </label>
 
             <label className="selectField">
               <span className="selectLabel">Division</span>
-              <select
-                className="select"
-                value={division}
-                onChange={(e) => setDivision(e.target.value)}
-              >
+              <select className="select" value={division} onChange={(e) => setDivision(e.target.value)}>
                 {DIV_OPTIONS.map((x) => (
-                  <option key={x} value={x}>
-                    {x}
-                  </option>
+                  <option key={x} value={x}>{x}</option>
                 ))}
               </select>
             </label>
@@ -203,8 +266,9 @@ export default function OurSquad() {
             {loading ? "Loading…" : `${filtered.length} player${filtered.length === 1 ? "" : "s"}`}
           </div>
         </section>
-<div className="filterSpacer" />
-============================================================== */}
+        <div className="filterSpacer" />
+        ============================================================= */}
+
         {loadError ? (
           <div className="alert error" role="alert">
             <strong>Squad data failed to load:</strong> {loadError}
@@ -231,13 +295,30 @@ export default function OurSquad() {
         ) : (
           <div className="grid">
             {filtered.map((p, idx) => {
-              const id = p.id || p._id || p.email || `${p.name}-${idx}`;
-              const name = safe(p.name || p.player || p.fullName || "Unknown Player");
-              const div = safe(p.division || p.div || p.team || "—").toUpperCase();
-              const roleLabel = normalizeRole(p.role || p.type || "");
-              const imageUrl = p.image || p.photo || p.avatar || fallbackImage;
+              // ID: prefer stable sheet/player id keys if you have them
+              const id =
+                p?.id ||
+                p?._id ||
+                p?.email ||
+                p?.["Email"] ||
+                p?.["Player Name"] ||
+                p?.name ||
+                `${idx}`;
+
+              const name = getName(p);
+              const div = getDivision(p);
+              const roleLabel = getRoleLabel(p);
+              const imageUrl = getImage(p);
 
               const isFlipped = flippedId === id;
+
+              const matches = getStat(p, ["Matches", "matches", "mat"], "—");
+              const runs = getStat(p, ["Runs", "runs"], "—");
+              const wickets = getStat(p, ["Wickets", "wickets"], "—");
+              const sr = getStat(p, ["Strike Rate", "strikeRate", "sr"], "—");
+              const econ = getStat(p, ["Econ", "economy", "econ"], "—");
+
+              const bio = safe(p?.["Bio"] || p?.bio || p?.about || "");
 
               return (
                 <div
@@ -271,8 +352,7 @@ export default function OurSquad() {
                       <div className="cardBody">
                         <h3 className="playerName">{name}</h3>
                         <p className="playerMeta">
-                          {safe(p.battingStyle || p.batStyle || "Batting: —")} •{" "}
-                          {safe(p.bowlingStyle || p.bowlStyle || "Bowling: —")}
+                          {getBattingStyle(p)} • {getBowlingStyle(p)}
                         </p>
                         <div className="hint">Click to flip</div>
                       </div>
@@ -290,26 +370,26 @@ export default function OurSquad() {
                       <div className="stats">
                         <div className="stat">
                           <span className="statLabel">Matches</span>
-                          <span className="statValue">{safe(p.matches ?? p.mat ?? "—")}</span>
+                          <span className="statValue">{matches}</span>
                         </div>
                         <div className="stat">
                           <span className="statLabel">Runs</span>
-                          <span className="statValue">{safe(p.runs ?? "—")}</span>
+                          <span className="statValue">{runs}</span>
                         </div>
                         <div className="stat">
                           <span className="statLabel">Wickets</span>
-                          <span className="statValue">{safe(p.wickets ?? "—")}</span>
+                          <span className="statValue">{wickets}</span>
                         </div>
                         <div className="stat">
                           <span className="statLabel">SR / Econ</span>
                           <span className="statValue">
-                            {safe(p.strikeRate ?? p.sr ?? "—")} / {safe(p.econ ?? "—")}
+                            {sr} / {econ}
                           </span>
                         </div>
                       </div>
 
-                      <p className={`bio ${p.bio || p.about ? "" : "dim"}`}>
-                        {safe(p.bio || p.about || "Add a short bio for this player in your sheet later.")}
+                      <p className={`bio ${bio ? "" : "dim"}`}>
+                        {bio || "Add a short bio for this player in your sheet later."}
                       </p>
 
                       <div className="hint">Click to flip back</div>
