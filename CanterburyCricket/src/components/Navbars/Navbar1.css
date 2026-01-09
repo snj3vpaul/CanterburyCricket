@@ -48,9 +48,7 @@
 
 /* Subtle animated “heat” sweep */
 .navbar1::after {
-  content: "";
-  position: absolute;
-  inset: 0;
+  
   pointer-events: none;
   z-index: -1;
 
