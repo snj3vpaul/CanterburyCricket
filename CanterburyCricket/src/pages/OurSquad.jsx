@@ -12,152 +12,134 @@ const fallbackImage =
     <defs>
       <linearGradient id="g" x1="0" x2="1">
         <stop offset="0" stop-color="#0b1220"/>
-        <stop offset="1" stop-color="#141a2a"/>
+        <stop offset="1" stop-color="#131a2a"/>
       </linearGradient>
     </defs>
-    <rect width="900" height="1200" fill="url(#g)"/>
-    <circle cx="450" cy="420" r="180" fill="rgba(255,255,255,0.08)"/>
-    <rect x="250" y="670" width="400" height="54" rx="18" fill="rgba(255,255,255,0.08)"/>
-    <rect x="200" y="750" width="500" height="36" rx="14" fill="rgba(255,255,255,0.06)"/>
-    <text x="50%" y="92%" dominant-baseline="middle" text-anchor="middle"
-      font-family="Arial" font-size="34" fill="rgba(255,255,255,0.45)">
-      Canterbury CC
+    <rect width="100%" height="100%" fill="url(#g)"/>
+    <circle cx="450" cy="420" r="160" fill="rgba(255,255,255,0.06)"/>
+    <text x="50%" y="73%" dominant-baseline="middle" text-anchor="middle"
+      fill="rgba(255,255,255,0.55)" font-family="Arial" font-size="44">
+      Player
     </text>
   </svg>
 `);
 
-const safe = (v) => (v === null || v === undefined ? "" : String(v));
+// ===== Helpers (kept from the previously working MUI version) =====
 
-function normalizeRole(role = "") {
-  const r = String(role).toLowerCase();
-  if (r.includes("wicket")) return "Wicket-keeper";
-  if (r.includes("all")) return "All-rounder";
-  if (r.includes("bowl")) return "Bowler";
-  if (r.includes("bat")) return "Batter";
-  return role || "—";
+// Drive link -> direct image URL
+function normalizeDriveImageUrl(input) {
+  if (!input) return "";
+  const raw = String(input).trim();
+  if (!raw) return "";
+
+  const firstUrl = raw
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .find((s) => /^https?:\/\//i.test(s));
+
+  if (!firstUrl) return "";
+
+  const fileMatch = firstUrl.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  const openMatch = firstUrl.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  const ucMatch = firstUrl.match(/[?&]id=([^&]+)/);
+
+  const id = fileMatch?.[1] || openMatch?.[1] || ucMatch?.[1];
+  if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+
+  return firstUrl;
 }
 
-function extractArray(json) {
-  // supports: []  | {data: []} | {ok:true,data:[]} | {players:[]} | {result:[]} etc.
-  if (Array.isArray(json)) return json;
+function normalizeRole(raw) {
+  const s = (raw ?? "").toString().trim().toLowerCase();
+  if (!s) return "All-rounder";
+  if (s.includes("wicket") || s === "wk" || s.includes("keeper")) return "Wicket-keeper";
+  if (s.includes("all")) return "All-rounder";
+  if (s.includes("bowl")) return "Bowler";
+  if (s.includes("bat")) return "Batter";
+  return "All-rounder";
+}
 
-  if (json && typeof json === "object") {
-    if (json.ok === false) throw new Error(json.error || "API returned ok:false");
-    const candidates = [json.data, json.players, json.result, json.items];
-    for (const c of candidates) if (Array.isArray(c)) return c;
+function normalized(s) {
+  return (s ?? "").toString().trim().toLowerCase();
+}
+
+function pick(row, keys) {
+  for (const k of keys) {
+    const v = row?.[k];
+    if (v != null && String(v).trim()) return String(v).trim();
   }
-
-  throw new Error("Unexpected response shape from /api/squad");
+  return "";
 }
 
-/** Prefer Google-Sheets style keys first, then fall back to normalized keys */
-function getName(p) {
-  return safe(
-    p?.["Player Name"] ||
-      p?.name ||
-      p?.player ||
-      p?.fullName ||
-      p?.["Name"] ||
-      "Unknown Player"
-  );
-}
+/**
+ * Maps Apps Script JSON rows to UI model.
+ * Sheet headers:
+ * Timestamp, Full Name, Playing Role, Playing Style, Bowling Style, Jersey Number, Photo for Squad Banner, Short Bio
+ */
+function mapRowToPlayer(row, idx) {
+  const name = (row["Full Name"] ?? "").toString().trim() || `Player ${idx + 1}`;
+  const role = normalizeRole(row["Playing Role"]);
+  const batting = (row["Playing Style"] ?? "").toString().trim();
+  const bowling = (row["Bowling Style"] ?? "").toString().trim();
+  const jersey = (row["Jersey Number"] ?? "").toString().trim();
+  const bio = pick(row, ["Short Bio", "Short bio", "Bio", "About", "Player Bio", "Short Bio "]);
 
-function getDivision(p) {
-  return safe(
-    p?.["Division"] ||
-      p?.division ||
-      p?.div ||
-      p?.team ||
-      p?.["Div"] ||
-      "—"
-  ).toUpperCase();
-}
+  const image = normalizeDriveImageUrl(row["Photo for Squad Banner"]) || fallbackImage;
 
-function getRoleLabel(p) {
-  const raw =
-    p?.["Role"] ||
-    p?.["Player Type"] ||
-    p?.role ||
-    p?.type ||
-    p?.["Type"] ||
-    "";
-  return normalizeRole(raw);
-}
+  // no division in the form yet
+  const division = "T20";
 
-function getImage(p) {
-  return (
-    p?.["Image"] ||
-    p?.["Photo"] ||
-    p?.image ||
-    p?.photo ||
-    p?.avatar ||
-    fallbackImage
-  );
-}
+  const tags = [
+    batting ? `Bat: ${batting}` : null,
+    bowling ? `Bowl: ${bowling}` : null,
+    jersey ? `#${jersey}` : null,
+  ].filter(Boolean);
 
-function getBattingStyle(p) {
-  return safe(
-    p?.["Batting Style"] ||
-      p?.battingStyle ||
-      p?.batStyle ||
-      "Batting: —"
-  );
-}
-
-function getBowlingStyle(p) {
-  return safe(
-    p?.["Bowling Style"] ||
-      p?.bowlingStyle ||
-      p?.bowlStyle ||
-      "Bowling: —"
-  );
-}
-
-function getNickname(p) {
-  return safe(p?.["Nickname"] || p?.nickname || "");
-}
-
-function getStat(p, keyList, fallback = "—") {
-  for (const k of keyList) {
-    const v = p?.[k];
-    if (v !== null && v !== undefined && String(v).trim() !== "") return safe(v);
-  }
-  return fallback;
+  return {
+    id: `${name}-${idx}`,
+    name,
+    role,
+    division,
+    divisions: [division],
+    image,
+    bio,
+    tags,
+    isCaptain: false,
+    isWicketKeeper: role === "Wicket-keeper",
+  };
 }
 
 export default function OurSquad() {
-  const [players, setPlayers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
-
+  // Filters (kept even if UI is temporarily disabled)
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
   const [division, setDivision] = useState("All");
 
+  // Flip state
   const [flippedId, setFlippedId] = useState(null);
 
+  // Data state
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
   const fetchSquad = useCallback(async () => {
-    setLoading(true);
     setLoadError("");
+    setLoading(true);
 
     try {
       const res = await fetch(`/api/squad?_t=${Date.now()}`);
-      const rawText = await res.text();
+      const json = await res.json();
 
-      if (!res.ok) throw new Error(`API error ${res.status}: ${rawText.slice(0, 120)}`);
+      // match the previously working contract exactly
+      if (!json?.ok) throw new Error(json?.error || "API error");
 
-      let json;
-      try {
-        json = JSON.parse(rawText);
-      } catch {
-        throw new Error(`API did not return JSON: ${rawText.slice(0, 140)}`);
-      }
-
-      const data = extractArray(json);
-      setPlayers(data);
+      const mapped = (json.data || []).map(mapRowToPlayer);
+      mapped.sort((a, b) => a.name.localeCompare(b.name));
+      setPlayers(mapped);
     } catch (e) {
       setPlayers([]);
-      setLoadError(e?.message || "Failed to load squad");
+      setLoadError(e?.message || String(e));
     } finally {
       setLoading(false);
     }
@@ -168,25 +150,20 @@ export default function OurSquad() {
   }, [fetchSquad]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalized(query);
 
     return players.filter((p) => {
-      const name = getName(p).toLowerCase();
-      const div = getDivision(p);
-      const roleLabel = getRoleLabel(p); // normalized label for display
-      const roleKey = roleLabel.toLowerCase();
+      const matchQuery =
+        !q ||
+        normalized(p.name).includes(q) ||
+        normalized(p.role).includes(q) ||
+        normalized(p.division).includes(q) ||
+        (p.tags || []).some((t) => normalized(t).includes(q));
 
-      const nick = getNickname(p).toLowerCase();
-      const bat = getBattingStyle(p).toLowerCase();
-      const bowl = getBowlingStyle(p).toLowerCase();
+      const matchRole = role === "All" || normalized(p.role) === normalized(role);
 
-      const matchQuery = !q || name.includes(q) || nick.includes(q) || bat.includes(q) || bowl.includes(q);
-
-      // Role filter (uses display labels)
-      const matchRole = role === "All" || roleKey === role.toLowerCase();
-
-      // Division filter (expects T20/CTZ/CHG)
-      const matchDiv = division === "All" || div === division;
+      const divs = Array.isArray(p.divisions) && p.divisions.length ? p.divisions : [p.division];
+      const matchDiv = division === "All" || divs.some((d) => normalized(d) === normalized(division));
 
       return matchQuery && matchRole && matchDiv;
     });
@@ -211,11 +188,12 @@ export default function OurSquad() {
   return (
     <div className="squadPage">
       <div className="squadContainer">
+        {/* ================= HEADER (TEMP DISABLED) =================
         <header className="squadHeader">
           <div>
             <h1 className="squadTitle">Our Squad</h1>
             <p className="squadSubtitle">
-              Search players, filter by role/division, and click a card to flip.
+              Meet the Canterbury crew — tap a card for details 🏏
             </p>
           </div>
 
@@ -228,6 +206,7 @@ export default function OurSquad() {
             </button>
           </div>
         </header>
+        ========================================================== */}
 
         {/* ================= FILTER BAR (TEMP DISABLED) =================
         <section className="filterBar">
@@ -237,7 +216,7 @@ export default function OurSquad() {
               className="searchInput"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, style, nickname…"
+              placeholder="Search player…"
               type="search"
             />
           </div>
@@ -272,127 +251,126 @@ export default function OurSquad() {
         {loadError ? (
           <div className="alert error" role="alert">
             <strong>Squad data failed to load:</strong> {loadError}
-            <div className="smallHint">
-              Tip: open <code>/api/squad</code> in the browser and confirm it returns JSON.
-            </div>
           </div>
         ) : null}
 
         {loading ? (
           <div className="grid">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div className="skeletonCard" key={i} />
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div className="skeletonCard" key={`sk-${i}`} />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="emptyState">
-            <div className="emptyTitle">No players found</div>
-            <div className="emptySub">Try clearing filters or searching a different name.</div>
-            <button className="btn" onClick={clearFilters} type="button">
-              Clear filters
-            </button>
+            <div className="emptyTitle">No matches</div>
+            <div className="emptySub">Try a different name, role, or division.</div>
           </div>
         ) : (
           <div className="grid">
             {filtered.map((p, idx) => {
-              // ID: prefer stable sheet/player id keys if you have them
-              const id =
-                p?.id ||
-                p?._id ||
-                p?.email ||
-                p?.["Email"] ||
-                p?.["Player Name"] ||
-                p?.name ||
-                `${idx}`;
+              const key = p.id ?? p.name ?? idx;
+              const isFlipped = flippedId === key;
 
-              const name = getName(p);
-              const div = getDivision(p);
-              const roleLabel = getRoleLabel(p);
-              const imageUrl = getImage(p);
-
-              const isFlipped = flippedId === id;
-
-              const matches = getStat(p, ["Matches", "matches", "mat"], "—");
-              const runs = getStat(p, ["Runs", "runs"], "—");
-              const wickets = getStat(p, ["Wickets", "wickets"], "—");
-              const sr = getStat(p, ["Strike Rate", "strikeRate", "sr"], "—");
-              const econ = getStat(p, ["Econ", "economy", "econ"], "—");
-
-              const bio = safe(p?.["Bio"] || p?.bio || p?.about || "");
+              const img = p.image || fallbackImage;
+              const displayRole = p.role ?? "All-rounder";
+              const displayDiv = p.division ?? "T20";
 
               return (
                 <div
                   className="flipCard"
-                  key={id}
+                  key={key}
                   role="button"
                   tabIndex={0}
                   aria-pressed={isFlipped}
-                  aria-label={`Flip card for ${name}`}
-                  onClick={() => toggleFlip(id)}
-                  onKeyDown={(e) => onCardKeyDown(e, id)}
+                  aria-label={`Open details for ${p.name}`}
+                  onClick={() => toggleFlip(key)}
+                  onKeyDown={(e) => onCardKeyDown(e, key)}
                 >
                   <div className={`flipInner ${isFlipped ? "isFlipped" : ""}`}>
                     {/* FRONT */}
                     <div className="cardFace cardFront">
                       <div className="cardMedia">
                         <img
-                          src={imageUrl}
-                          alt={name}
                           className="playerImg"
+                          src={img}
+                          alt={p.name}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
                           onError={(e) => {
+                            e.currentTarget.onerror = null;
                             e.currentTarget.src = fallbackImage;
                           }}
                         />
+
                         <div className="badgeRow">
-                          <span className="badge">{div}</span>
-                          <span className="badge alt">{roleLabel}</span>
+                          <span className="badge">{displayDiv}</span>
+                          <span className="badge alt">{displayRole}</span>
+                          {p.isCaptain ? <span className="badge alt">Captain</span> : null}
+                          {p.isWicketKeeper ? <span className="badge alt">WK</span> : null}
                         </div>
                       </div>
 
                       <div className="cardBody">
-                        <h3 className="playerName">{name}</h3>
-                        <p className="playerMeta">
-                          {getBattingStyle(p)} • {getBowlingStyle(p)}
-                        </p>
-                        <div className="hint">Click to flip</div>
+                        <h3 className="playerName">{p.name}</h3>
+
+                        <div className="backTags" style={{ marginTop: 10 }}>
+                          {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
+                            <span key={t} className="badge" style={{ background: "rgba(12,14,20,0.62)" }}>
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="hint">Tap for details</div>
                       </div>
                     </div>
 
                     {/* BACK */}
                     <div className="cardFace cardBack">
                       <div className="backTop">
-                        <h3 className="playerName">{name}</h3>
-                        <p className="playerMeta">
-                          {div} • {roleLabel}
-                        </p>
+                        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                          <img
+                            src={img}
+                            alt={p.name}
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: "999px",
+                              objectFit: "cover",
+                              border: "1px solid rgba(255,255,255,0.14)",
+                            }}
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = fallbackImage;
+                            }}
+                          />
+                          <div>
+                            <div className="backName">{p.name}</div>
+                            <div className="backMeta">
+                              {displayRole} • {displayDiv}
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="stats">
-                        <div className="stat">
-                          <span className="statLabel">Matches</span>
-                          <span className="statValue">{matches}</span>
+                      <div className="backBody">
+                        <div className="backLabel">About</div>
+                        <div className="backText">
+                          {p.bio ||
+                            "Solid contributor for the club — reliable, competitive, and always up for a big game."}
                         </div>
-                        <div className="stat">
-                          <span className="statLabel">Runs</span>
-                          <span className="statValue">{runs}</span>
-                        </div>
-                        <div className="stat">
-                          <span className="statLabel">Wickets</span>
-                          <span className="statValue">{wickets}</span>
-                        </div>
-                        <div className="stat">
-                          <span className="statLabel">SR / Econ</span>
-                          <span className="statValue">
-                            {sr} / {econ}
-                          </span>
+
+                        <div className="backTags" style={{ marginTop: 12 }}>
+                          {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
+                            <span key={t} className="badge" style={{ background: "rgba(255,255,255,0.06)" }}>
+                              {t}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      <p className={`bio ${bio ? "" : "dim"}`}>
-                        {bio || "Add a short bio for this player in your sheet later."}
-                      </p>
-
-                      <div className="hint">Click to flip back</div>
+                      <div className="hint">Tap to go back</div>
                     </div>
                   </div>
                 </div>
