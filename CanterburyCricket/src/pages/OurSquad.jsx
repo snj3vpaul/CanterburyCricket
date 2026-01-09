@@ -203,7 +203,7 @@ export default function OurSquad() {
             {loading ? "Loading…" : `${filtered.length} player${filtered.length === 1 ? "" : "s"}`}
           </div>
         </section>
-
+<div className="filterSpacer" />
         {loadError ? (
           <div className="alert error" role="alert">
             <strong>Squad data failed to load:</strong> {loadError}

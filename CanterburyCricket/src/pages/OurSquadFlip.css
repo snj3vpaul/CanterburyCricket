@@ -76,8 +76,12 @@
   background: rgba(12, 14, 20, 0.72);
   border: 1px solid rgba(255,255,255,0.12);
   backdrop-filter: blur(12px);
-  margin-bottom: 16px;
+  margin-bottom: 0;
   pointer-events: auto;
+}
+/* Reserve vertical space so cards never slide behind sticky bar */
+.filterSpacer {
+  height: 108px;          /* adjust once to match your filterBar height */
 }
 
 .searchWrap {
@@ -181,6 +185,12 @@
 
 @media (max-width: 520px) {
   .grid { grid-template-columns: 1fr; }
+}
+/* Mobile filter bar becomes taller (stacked), so spacer must grow */
+@media (max-width: 820px) {
+  .filterSpacer {
+    height: 172px;        /* match your mobile filterBar height */
+  }
 }
 
 /* Skeleton */
