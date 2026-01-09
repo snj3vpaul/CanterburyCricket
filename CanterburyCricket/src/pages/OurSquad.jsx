@@ -19,7 +19,6 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import FilterAltRoundedIcon from "@mui/icons-material/FilterAltRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
@@ -188,14 +187,24 @@ export default function OurSquad() {
     });
   }, [players, query, role, division]);
 
-  const toggleFlip = (key) => {
+  const toggleFlip = useCallback((key) => {
     setFlipped((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
-  };
+  }, []);
+
+  const onCardKeyDown = useCallback(
+    (e, key) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleFlip(key);
+      }
+    },
+    [toggleFlip]
+  );
 
   return (
     <Box className="squadPage">
@@ -287,115 +296,117 @@ export default function OurSquad() {
         </Box>
 
         {/* Cards Grid (CSS Grid – bulletproof on mobile) */}
-<Box className="cardsGrid">
-  {loading
-    ? Array.from({ length: 9 }).map((_, i) => (
-        <Box key={`sk-${i}`} className="cardCell">
-          <Card elevation={0} sx={{ borderRadius: 3, overflow: "hidden" }}>
-            <Skeleton variant="rectangular" height={240} />
-            <Box sx={{ p: 2 }}>
-              <Skeleton height={28} width="70%" />
-              <Skeleton height={22} width="55%" />
-              <Skeleton height={22} width="45%" />
-            </Box>
-          </Card>
-        </Box>
-      ))
-    : filtered.map((p, idx) => {
-        const key = p.id ?? p.name ?? idx;
-        const isFlipped = flipped.has(key);
-
-        const img = p.image || fallbackImage;
-        const displayRole = p.role ?? "All-rounder";
-        const displayDiv = p.division ?? "All";
-
-        return (
-          <Box key={key} className="cardCell">
-            <Box className="flipCardWrap">
-              <Card className={`flipCard ${isFlipped ? "isFlipped" : ""}`} elevation={0}>
-                <CardActionArea
-                  className="flipCardAction"
-                  onClick={() => toggleFlip(key)}
-                  aria-label={`Open details for ${p.name}`}
-                  sx={{ width: "100%", height: "100%", display: "block" }}
-                >
-                  <Box className="flipInner">
-                    {/* FRONT */}
-                    <Box className="flipFace flipFront">
-                      <Box className="cardMediaWrap">
-                        <img
-                          className="cardMedia"
-                          src={img}
-                          alt={p.name}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = fallbackImage;
-                          }}
-                        />
-                        <Box className="cardOverlay">
-                          <Chip label={displayDiv} className="divChip" size="small" />
-                        </Box>
-                      </Box>
-
-                      <Box className="cardBody">
-                        <Typography variant="h6" className="playerName">
-                          {p.name}
-                        </Typography>
-
-                        <Stack direction="row" spacing={1} className="roleRow">
-                          <Chip label={displayRole} size="small" className="roleChip" />
-                          {p.isCaptain && <Chip label="Captain" size="small" className="badgeChip" />}
-                          {p.isWicketKeeper && <Chip label="WK" size="small" className="badgeChip" />}
-                        </Stack>
-
-                        <Typography className="tapHint">Tap for details</Typography>
-                      </Box>
+        <Box className="cardsGrid">
+          {loading
+            ? Array.from({ length: 9 }).map((_, i) => (
+                <Box key={`sk-${i}`} className="cardCell">
+                  <Card elevation={0} sx={{ borderRadius: 3, overflow: "hidden" }}>
+                    <Skeleton variant="rectangular" height={240} />
+                    <Box sx={{ p: 2 }}>
+                      <Skeleton height={28} width="70%" />
+                      <Skeleton height={22} width="55%" />
+                      <Skeleton height={22} width="45%" />
                     </Box>
+                  </Card>
+                </Box>
+              ))
+            : filtered.map((p, idx) => {
+                const key = p.id ?? p.name ?? idx;
+                const isFlipped = flipped.has(key);
 
-                    {/* BACK */}
-                    <Box className="flipFace flipBack">
-                      <Box className="backTop">
-                        <Stack direction="row" spacing={1.2} alignItems="center">
-                          <Avatar src={img} alt={p.name} />
-                          <Box>
-                            <Typography className="backName">{p.name}</Typography>
-                            <Typography className="backMeta">
-                              {displayRole} • {displayDiv}
-                            </Typography>
+                const img = p.image || fallbackImage;
+                const displayRole = p.role ?? "All-rounder";
+                const displayDiv = p.division ?? "All";
+
+                return (
+                  <Box key={key} className="cardCell">
+                    <Box className="flipCardWrap">
+                      <Card className={`flipCard ${isFlipped ? "isFlipped" : ""}`} elevation={0}>
+                        <CardActionArea
+                          className="flipCardAction"
+                          onClick={() => toggleFlip(key)}
+                          onKeyDown={(e) => onCardKeyDown(e, key)}
+                          aria-label={`Open details for ${p.name}`}
+                          sx={{ width: "100%", height: "100%", display: "block" }}
+                        >
+                          <Box className="flipInner">
+                            {/* FRONT */}
+                            <Box className="flipFace flipFront">
+                              <Box className="cardMediaWrap">
+                                <img
+                                  className="cardMedia"
+                                  src={img}
+                                  alt={p.name}
+                                  loading="lazy"
+                                  referrerPolicy="no-referrer"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = fallbackImage;
+                                  }}
+                                />
+                                <Box className="cardOverlay">
+                                  <Chip label={displayDiv} className="divChip" size="small" />
+                                </Box>
+                              </Box>
+
+                              <Box className="cardBody">
+                                <Typography variant="h6" className="playerName">
+                                  {p.name}
+                                </Typography>
+
+                                <Stack direction="row" spacing={1} className="roleRow">
+                                  <Chip label={displayRole} size="small" className="roleChip" />
+                                  {p.isCaptain && <Chip label="Captain" size="small" className="badgeChip" />}
+                                  {p.isWicketKeeper && <Chip label="WK" size="small" className="badgeChip" />}
+                                </Stack>
+
+                                <Typography className="tapHint">Tap for details</Typography>
+                              </Box>
+                            </Box>
+
+                            {/* BACK */}
+                            <Box className="flipFace flipBack">
+                              {/* ✅ Safari: prevent mirrored text by counter-rotating content */}
+                              <Box className="flipBackContent">
+                                <Box className="backTop">
+                                  <Stack direction="row" spacing={1.2} alignItems="center">
+                                    <Avatar src={img} alt={p.name} />
+                                    <Box>
+                                      <Typography className="backName">{p.name}</Typography>
+                                      <Typography className="backMeta">
+                                        {displayRole} • {displayDiv}
+                                      </Typography>
+                                    </Box>
+                                  </Stack>
+                                </Box>
+
+                                <Divider className="backDivider" />
+
+                                <Box className="backBody">
+                                  <Typography className="backLabel">About</Typography>
+                                  <Typography className="backText">
+                                    {p.bio ||
+                                      "Solid contributor for the club — reliable, competitive, and always up for a big game."}
+                                  </Typography>
+
+                                  <Box className="backTags">
+                                    {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
+                                      <Chip key={t} label={t} size="small" className="tagChip" />
+                                    ))}
+                                  </Box>
+                                </Box>
+
+                                <Typography className="tapHintBack">Tap to go back</Typography>
+                              </Box>
+                            </Box>
                           </Box>
-                        </Stack>
-                      </Box>
-
-                      <Divider className="backDivider" />
-
-                      <Box className="backBody">
-                        <Typography className="backLabel">About</Typography>
-                        <Typography className="backText">
-                          {p.bio ||
-                            "Solid contributor for the club — reliable, competitive, and always up for a big game."}
-                        </Typography>
-
-                        <Box className="backTags">
-                          {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
-                            <Chip key={t} label={t} size="small" className="tagChip" />
-                          ))}
-                        </Box>
-                      </Box>
-
-                      <Typography className="tapHintBack">Tap to go back</Typography>
+                        </CardActionArea>
+                      </Card>
                     </Box>
                   </Box>
-                </CardActionArea>
-              </Card>
-            </Box>
-          </Box>
-        );
-      })}
-</Box>
-
-
+                );
+              })}
+        </Box>
 
         {!loading && filtered.length === 0 && (
           <Box className="emptyState">
