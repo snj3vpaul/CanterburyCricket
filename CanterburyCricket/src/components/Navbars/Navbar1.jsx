@@ -184,7 +184,7 @@ export default function Navbar1() {
           </NavLink>
 
           <NavLink to="/contact" className={linkClass} onClick={closeAll}>
-            Contact
+            Contact Us
           </NavLink>
         </nav>
       </aside>
