@@ -95,6 +95,177 @@
   font-weight: 650;
 }
 
+/* Ensure glow never blocks clicks */
+.awardGlow { pointer-events: none; }
+
+/* Stage */
+.awardsSwapStage {
+  position: relative;
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+}
+
+/* Modal */
+.awardModal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(920px, calc(100% - 28px));
+  transform: translate(-50%, -50%);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 12, 24, 0.88);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+  padding: 18px 18px 16px;
+  outline: none;
+}
+
+.awardModalClose {
+  position: absolute !important;
+  top: 10px;
+  right: 10px;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.awardModalTop {
+  margin-bottom: 10px;
+}
+
+.chipSeason {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+}
+
+.chipDiv {
+  background: rgba(79, 82, 255, 0.14) !important;
+  border: 1px solid rgba(79, 82, 255, 0.22) !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+}
+
+.chipClub {
+  background: rgba(247, 181, 0, 0.14) !important;
+  border: 1px solid rgba(247, 181, 0, 0.22) !important;
+  color: #fff !important;
+  font-weight: 900 !important;
+}
+
+.awardModalTitle {
+  font-weight: 1000 !important;
+  letter-spacing: -0.03em;
+  margin-top: 6px !important;
+}
+
+.awardModalSubtitle {
+  opacity: 0.78;
+  margin-top: 4px !important;
+}
+
+.awardDivider {
+  margin: 14px 0 !important;
+  border-color: rgba(255,255,255,0.10) !important;
+}
+
+.awardModalBody {
+  margin-top: 4px;
+}
+
+.awardWinnerPhoto {
+  width: 160px;
+  height: 160px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+}
+
+.awardWinnerPhoto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.awardPhotoPlaceholder {
+  font-size: 48px;
+  opacity: 0.9;
+}
+
+.awardWinnerName {
+  font-size: 24px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.awardWinnerRole {
+  opacity: 0.75;
+  margin-top: 4px !important;
+}
+
+.awardStatChips {
+  margin-top: 10px;
+}
+
+.chipStat {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+.awardHighlight {
+  margin-top: 12px !important;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.awardModalActions {
+  margin-top: 14px;
+}
+
+/* Sections */
+.awardsSections {
+  margin-top: 26px;
+  display: grid;
+  gap: 18px;
+}
+
+.awardsSectionTitle {
+  margin: 0 0 10px;
+  font-weight: 1000;
+  letter-spacing: -0.02em;
+}
+
+.awardsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.awardMiniCard {
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(10, 12, 24, 0.55);
+  padding: 12px 12px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.miniEmoji { font-size: 18px; display: block; }
+.miniTitle { font-weight: 950; display: block; margin-top: 6px; }
+.miniMeta { opacity: 0.75; display: block; margin-top: 4px; font-size: 12px; }
+
+@media (max-width: 900px) {
+  .awardsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 .awardFooter {
   position: absolute;
   left: 18px;
