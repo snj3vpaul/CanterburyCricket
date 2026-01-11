@@ -210,15 +210,25 @@
    Grid
    ========================================================= */
 
+/* ✅ Make the grid readable on top of the global background */
 .grid {
-  mix-blend-mode: normal;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-
-  /* ✅ keep grid/cards above any blur/overlay layers */
   position: relative;
-  z-index: 5001;
+  z-index: 1;
+
+  /* panel */
+  background: rgba(10, 12, 20, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 22px;
+
+  /* spacing so the panel isn't edge-to-edge */
+  padding: 18px;
+
+  /* glass effect */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  /* depth */
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.40);
 }
 
 @media (max-width: 1100px) {
