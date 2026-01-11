@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { z } from "zod";
+import dns from "dns/promises";
 
 export const config = {
   api: {
@@ -8,7 +9,7 @@ export const config = {
 };
 
 /* =========================
-   Email validation (same logic as client)
+   Email validation (syntax + common typos)
 ========================= */
 function isValidEmailStrict(input) {
   const email = String(input || "").trim();
@@ -38,6 +39,7 @@ function isValidEmailStrict(input) {
     /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
   if (!re.test(email)) return false;
 
+  // Provider typo blocking (high impact, low false positives)
   const providerAllowlist = [
     { base: "gmail", allowed: ["gmail.com"] },
     { base: "yahoo", allowed: ["yahoo.com", "yahoo.ca"] },
@@ -52,10 +54,85 @@ function isValidEmailStrict(input) {
     }
   }
 
+  // Optional: block ultra-common typo TLDs
   const blockedTlds = new Set(["con", "cmo", "comm", "cim", "vom", "chh"]);
   if (blockedTlds.has(tld)) return false;
 
   return true;
+}
+
+/* =========================
+   Domain checks (DNS)
+========================= */
+const DOMAIN_CHECK_CACHE = new Map(); // domain -> { ok, exp }
+const DOMAIN_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function getDomainFromEmail(email) {
+  const at = email.lastIndexOf("@");
+  return at > 0 ? email.slice(at + 1).trim().toLowerCase() : "";
+}
+
+function isValidDomainShape(domain) {
+  if (!domain || domain.length > 253) return false;
+  if (!domain.includes(".")) return false;
+  if (domain.startsWith(".") || domain.endsWith(".")) return false;
+  if (!/^[a-z0-9.-]+$/.test(domain)) return false;
+
+  const labels = domain.split(".");
+  if (labels.some((l) => !l.length || l.length > 63)) return false;
+  if (labels.some((l) => l.startsWith("-") || l.endsWith("-"))) return false;
+
+  const tld = labels[labels.length - 1];
+  if (!/^[a-z]{2,24}$/.test(tld)) return false;
+
+  return true;
+}
+
+async function withTimeout(promise, ms) {
+  return await Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms)),
+  ]);
+}
+
+async function domainAcceptsMail(domain) {
+  const now = Date.now();
+  const cached = DOMAIN_CHECK_CACHE.get(domain);
+  if (cached && cached.exp > now) return cached.ok;
+
+  let ok = false;
+
+  // 1) Prefer MX
+  try {
+    const mx = await withTimeout(dns.resolveMx(domain), 1500);
+    ok = Array.isArray(mx) && mx.length > 0;
+  } catch {
+    ok = false;
+  }
+
+  // 2) Fallback: A/AAAA (some setups)
+  if (!ok) {
+    try {
+      const [a, aaaa] = await withTimeout(
+        Promise.allSettled([dns.resolve4(domain), dns.resolve6(domain)]),
+        1500
+      );
+
+      const hasA =
+        a.status === "fulfilled" && Array.isArray(a.value) && a.value.length > 0;
+      const hasAAAA =
+        aaaa.status === "fulfilled" &&
+        Array.isArray(aaaa.value) &&
+        aaaa.value.length > 0;
+
+      ok = hasA || hasAAAA;
+    } catch {
+      ok = false;
+    }
+  }
+
+  DOMAIN_CHECK_CACHE.set(domain, { ok, exp: now + DOMAIN_CACHE_TTL_MS });
+  return ok;
 }
 
 /* =========================
@@ -64,13 +141,11 @@ function isValidEmailStrict(input) {
 const ContactSchema = z
   .object({
     name: z.string().trim().min(2, "Name is too short").max(80, "Name is too long"),
-
     email: z
       .string()
       .trim()
       .max(120, "Email is too long")
       .refine(isValidEmailStrict, { message: "Invalid email address" }),
-
     profile: z
       .string()
       .trim()
@@ -81,23 +156,16 @@ const ContactSchema = z
         if (!v) return true;
         try {
           const u = new URL(v);
-          return /^https?:$/.test(u.protocol);
+          return u.protocol === "http:" || u.protocol === "https:";
         } catch {
           return false;
         }
       }, { message: "Invalid profile URL" }),
-
-    message: z
-      .string()
-      .trim()
-      .min(5, "Message is too short")
-      .max(2000, "Message is too long"),
-
+    message: z.string().trim().min(5, "Message is too short").max(2000, "Message is too long"),
     website: z.string().trim().optional().or(z.literal("")), // honeypot
-
     startedAt: z.number().int().optional(), // bot-signal
   })
-  .strict(); // reject unknown keys
+  .strict();
 
 /* =========================
    Rate Limiting (simple)
@@ -157,18 +225,16 @@ function isAllowedOrigin(req) {
     .map((o) => o.trim())
     .filter(Boolean);
 
-  // If no allowlist is configured, allow (common for same-origin deployments).
   if (!allowedOrigins.length) return true;
 
   const origin = req.headers.origin || "";
   const referer = req.headers.referer || "";
 
-  // Prefer Origin when present
   if (origin) return allowedOrigins.includes(origin);
 
-  // If Origin missing (some clients), fall back to Referer (best-effort)
-  // Only allow if referer starts with an allowed origin.
-  if (referer) return allowedOrigins.some((o) => referer.startsWith(o + "/") || referer === o);
+  if (referer) {
+    return allowedOrigins.some((o) => referer.startsWith(o + "/") || referer === o);
+  }
 
   return false;
 }
@@ -181,31 +247,26 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Content-Type guard (security + predictability)
   const ct = String(req.headers["content-type"] || "").toLowerCase();
   if (!ct.includes("application/json")) {
     return res.status(415).json({ error: "Content-Type must be application/json" });
   }
 
-  /* ---------- Origin Protection ---------- */
   if (!isAllowedOrigin(req)) {
     console.warn("Blocked request. origin=", req.headers.origin, "referer=", req.headers.referer);
     return res.status(403).json({ error: "Forbidden origin" });
   }
 
-  /* ---------- Rate Limit ---------- */
   const ip = getClientIp(req);
   if (isRateLimited(ip)) {
     return res.status(429).json({ error: "Too many requests. Try again later." });
   }
 
-  /* ---------- Parse Body ---------- */
   const body = parseBody(req);
   if (!body || typeof body !== "object") {
     return res.status(400).json({ error: "Invalid JSON body" });
   }
 
-  /* ---------- Validate ---------- */
   const parsed = ContactSchema.safeParse(body);
   if (!parsed.success) {
     const msg = parsed.error.issues?.[0]?.message || "Invalid form data";
@@ -214,23 +275,30 @@ export default async function handler(req, res) {
 
   const { name, email, profile, message, website, startedAt } = parsed.data;
 
-  /* ---------- Honeypot ---------- */
+  // Honeypot -> pretend success
   if (website) {
-    // Bot submission — pretend success
     return res.status(200).json({ ok: true });
   }
 
-  /* ---------- Timing Bot Check ---------- */
-  // Reject submissions that happen "instantly" after page load (bots)
-  // Keep this gentle to avoid blocking real fast users.
+  // Bot-speed -> pretend success
   if (typeof startedAt === "number") {
     const dt = Date.now() - startedAt;
     if (dt >= 0 && dt < 1200) {
-      return res.status(200).json({ ok: true }); // pretend success
+      return res.status(200).json({ ok: true });
     }
   }
 
-  /* ---------- Ensure SMTP is configured ---------- */
+  // DNS domain check (reject random domains)
+  const domain = getDomainFromEmail(email);
+  if (!isValidDomainShape(domain)) {
+    return res.status(400).json({ error: "Email domain looks invalid." });
+  }
+
+  const domainOk = await domainAcceptsMail(domain);
+  if (!domainOk) {
+    return res.status(400).json({ error: "Email domain does not appear to exist." });
+  }
+
   const requiredEnv = ["SMTP_HOST", "SMTP_USER", "SMTP_PASS", "MAIL_FROM", "MAIL_TO"];
   const missing = requiredEnv.filter((k) => !process.env[k]);
   if (missing.length) {
@@ -238,7 +306,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server email is not configured" });
   }
 
-  /* ---------- Mail Transport ---------- */
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT || 465),
@@ -264,8 +331,7 @@ ${safeText(message)}
     await transporter.sendMail({
       from: process.env.MAIL_FROM,
       to: process.env.MAIL_TO,
-      // Use the *validated* email (no header injection, no “safeText” guesswork)
-      replyTo: email,
+      replyTo: email, // already validated
       subject: `New Contact Form Message — ${safeText(name)}`,
       text: emailText,
     });

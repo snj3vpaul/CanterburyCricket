@@ -3,7 +3,9 @@ import "./GetInTouch.css";
 
 /* =========================
    Email validation (practical + strict)
-   - blocks obvious provider typos like gmail.chh, gmail.con, etc.
+   - Syntax validation
+   - Blocks common provider typos (gmail.??)
+   - Still not "deliverability" (DNS) — server should do that.
 ========================= */
 function isValidEmailStrict(input) {
   const email = String(input || "").trim();
@@ -29,7 +31,6 @@ function isValidEmailStrict(input) {
   const tld = labels[labels.length - 1];
   if (!/^[a-z]{2,24}$/.test(tld)) return false;
 
-  // overall character sanity (not full RFC, but solid for web forms)
   const re =
     /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
   if (!re.test(email)) return false;
@@ -43,92 +44,107 @@ function isValidEmailStrict(input) {
     { base: "live", allowed: ["live.com"] },
     { base: "icloud", allowed: ["icloud.com"] },
   ];
+
   for (const p of providerAllowlist) {
     if (domain === p.base || domain.startsWith(p.base + ".")) {
       return p.allowed.includes(domain);
     }
   }
 
-  // Optional: block ultra-common typo TLDs globally
+  // Optional: block ultra-common typo TLDs
   const blockedTlds = new Set(["con", "cmo", "comm", "cim", "vom", "chh"]);
   if (blockedTlds.has(tld)) return false;
 
   return true;
 }
 
+function isHttpUrl(value) {
+  const v = String(value || "").trim();
+  if (!v) return true; // optional
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default function GetInTouch() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
-  // timestamp used as a bot-signal (server will check too)
+  // Bot-signal: when the form was first rendered
   const startedAt = useMemo(() => Date.now(), []);
 
-  const validateField = (name, value) => {
-    const v = String(value ?? "");
-    if (name === "name") {
-      if (!v.trim()) return "Full name is required.";
-      if (v.trim().length < 2) return "Full name is too short.";
-      if (v.trim().length > 80) return "Full name is too long.";
-      return "";
-    }
-
-    if (name === "email") {
-      if (!v.trim()) return "Email address is required.";
-      if (!isValidEmailStrict(v)) return "Please enter a valid email address.";
-      if (v.trim().length > 120) return "Email is too long.";
-      return "";
-    }
-
-    if (name === "message") {
-      if (v.trim().length < 5) return "Message must be at least 5 characters long.";
-      if (v.trim().length > 2000) return "Message is too long.";
-      return "";
-    }
-
-    if (name === "profile") {
-      const trimmed = v.trim();
-      if (!trimmed) return "";
-      if (trimmed.length > 300) return "Profile link is too long.";
-      try {
-        const u = new URL(trimmed);
-        if (!/^https?:$/.test(u.protocol)) return "Profile must be http(s).";
-      } catch {
-        return "Please enter a valid URL.";
-      }
-      return "";
-    }
-
-    return "";
+  const setFieldError = (field, message) => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (message) next[field] = message;
+      else delete next[field];
+      return next;
+    });
   };
 
-  const validateForm = (form) => {
-    const newErrors = {};
+  const validateField = (name, value) => {
+    const v = String(value ?? "").trim();
 
-    const nameErr = validateField("name", form.name.value);
-    if (nameErr) newErrors.name = nameErr;
+    switch (name) {
+      case "name":
+        if (!v) return "Full name is required.";
+        if (v.length < 2) return "Name is too short.";
+        if (v.length > 80) return "Name is too long.";
+        return "";
 
-    const emailErr = validateField("email", form.email.value);
-    if (emailErr) newErrors.email = emailErr;
+      case "email":
+        if (!v) return "Email address is required.";
+        if (v.length > 120) return "Email is too long.";
+        if (!isValidEmailStrict(v)) return "Please enter a valid email address.";
+        return "";
 
-    const msgErr = validateField("message", form.message.value);
-    if (msgErr) newErrors.message = msgErr;
+      case "profile":
+        if (v.length > 300) return "Profile link is too long.";
+        if (!isHttpUrl(v)) return "Please enter a valid http(s) URL.";
+        return "";
 
-    const profileErr = validateField("profile", form.profile.value);
-    if (profileErr) newErrors.profile = profileErr;
+      case "message":
+        if (v.length < 5) return "Message must be at least 5 characters long.";
+        if (v.length > 2000) return "Message is too long.";
+        return "";
 
-    return newErrors;
+      default:
+        return "";
+    }
+  };
+
+  const validateForm = (formEl) => {
+    const next = {};
+    const fields = ["name", "email", "profile", "message"];
+
+    for (const field of fields) {
+      const err = validateField(field, formEl[field]?.value);
+      if (err) next[field] = err;
+    }
+
+    return next;
   };
 
   const handleBlur = (e) => {
     const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
     const err = validateField(name, value);
-    setErrors((prev) => {
-      const next = { ...prev };
-      if (err) next[name] = err;
-      else delete next[name];
-      return next;
-    });
+    setFieldError(name, err);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // If user already touched the field, re-validate while typing
+    if (touched[name]) {
+      const err = validateField(name, value);
+      setFieldError(name, err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -136,6 +152,10 @@ export default function GetInTouch() {
     setStatus({ type: "", message: "" });
 
     const form = e.currentTarget;
+
+    // Mark all as touched so errors show
+    setTouched({ name: true, email: true, profile: true, message: true });
+
     const validationErrors = validateForm(form);
     setErrors(validationErrors);
 
@@ -149,14 +169,13 @@ export default function GetInTouch() {
 
     setLoading(true);
 
-    // Only send what the server expects (tight payload)
     const payload = {
       name: form.name.value.trim(),
       email: form.email.value.trim(),
       profile: form.profile.value.trim(),
       message: form.message.value.trim(),
       website: form.website.value.trim(), // honeypot
-      startedAt, // bot-signal
+      startedAt, // bot signal
     };
 
     try {
@@ -164,7 +183,7 @@ export default function GetInTouch() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(payload),
       });
@@ -177,95 +196,174 @@ export default function GetInTouch() {
         message: "Message sent successfully! We’ll get back to you soon 🙌",
       });
       setErrors({});
+      setTouched({});
       form.reset();
     } catch (err) {
-      setStatus({
-        type: "error",
-        message:
-          err.message ||
-          "Something went wrong while sending your message. Please try again.",
-      });
+      const msg =
+        err?.message ||
+        "Something went wrong while sending your message. Please try again.";
+
+      // Pin certain server errors to fields (better UX)
+      if (/email/i.test(msg) && /domain|address|invalid/i.test(msg)) {
+        setFieldError("email", msg);
+      }
+
+      setStatus({ type: "error", message: msg });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <section className="get-in-touch">
-      <div className="get-in-touch-inner">
-        <h2>Get in Touch</h2>
-        <p>Drop us a message and we’ll get back to you ✍🏼</p>
+  const hasAnyError = Object.keys(errors).length > 0;
 
-        <form onSubmit={handleSubmit} className="contact-form" noValidate>
+  return (
+    <section className="git">
+      <div className="git__inner">
+        <header className="git__header">
+          <h2 className="git__title">Get in Touch</h2>
+          <p className="git__subtitle">Drop us a message and we’ll get back to you ✍🏼</p>
+        </header>
+
+        <form className="git__form" onSubmit={handleSubmit} noValidate>
           {/* Full Name */}
-          <div className="form-group">
-            <label htmlFor="name">Full Name</label>
-            <input id="name" name="name" type="text" onBlur={handleBlur} />
-            {errors.name && <span className="field-error">⚠️ {errors.name}</span>}
+          <div className={`git__field ${errors.name ? "is-error" : ""}`}>
+            <label className="git__label" htmlFor="name">
+              Full Name <span className="git__req">*</span>
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              className="git__input"
+              placeholder="Your full name"
+              autoComplete="name"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? "name-error" : undefined}
+            />
+            {errors.name && (
+              <div id="name-error" className="git__error">
+                ⚠️ {errors.name}
+              </div>
+            )}
           </div>
 
           {/* Email */}
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+          <div className={`git__field ${errors.email ? "is-error" : ""}`}>
+            <label className="git__label" htmlFor="email">
+              Email Address <span className="git__req">*</span>
+            </label>
             <input
               id="email"
               name="email"
               type="email"
               inputMode="email"
+              className="git__input"
+              placeholder="you@example.com"
               autoComplete="email"
               spellCheck={false}
               onBlur={handleBlur}
+              onChange={handleChange}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
             />
-            {errors.email && <span className="field-error">⚠️ {errors.email}</span>}
+            {errors.email && (
+              <div id="email-error" className="git__error">
+                ⚠️ {errors.email}
+              </div>
+            )}
           </div>
 
           {/* Profile */}
-          <div className="form-group">
-            <label htmlFor="profile">Cricheroes / CricClub Profile</label>
+          <div className={`git__field ${errors.profile ? "is-error" : ""}`}>
+            <label className="git__label" htmlFor="profile">
+              Cricheroes / CricClub Profile <span className="git__hint">(optional)</span>
+            </label>
             <input
               id="profile"
               name="profile"
               type="url"
               inputMode="url"
+              className="git__input"
               placeholder="https://cricheroes.com/player/..."
               onBlur={handleBlur}
+              onChange={handleChange}
+              aria-invalid={!!errors.profile}
+              aria-describedby={errors.profile ? "profile-error" : undefined}
             />
             {errors.profile && (
-              <span className="field-error">⚠️ {errors.profile}</span>
+              <div id="profile-error" className="git__error">
+                ⚠️ {errors.profile}
+              </div>
             )}
           </div>
 
           {/* Message */}
-          <div className="form-group">
-            <label htmlFor="message">Message</label>
-            <textarea id="message" name="message" rows="4" onBlur={handleBlur} />
+          <div className={`git__field ${errors.message ? "is-error" : ""}`}>
+            <label className="git__label" htmlFor="message">
+              Message <span className="git__req">*</span>
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              rows={5}
+              className="git__textarea"
+              placeholder="Write your message…"
+              onBlur={handleBlur}
+              onChange={handleChange}
+              aria-invalid={!!errors.message}
+              aria-describedby={errors.message ? "message-error" : undefined}
+            />
+            <div className="git__meta">
+              <span className="git__hint">Minimum 5 characters</span>
+            </div>
             {errors.message && (
-              <span className="field-error">⚠️ {errors.message}</span>
+              <div id="message-error" className="git__error">
+                ⚠️ {errors.message}
+              </div>
             )}
           </div>
 
-          {/* Honeypot */}
+          {/* Honeypot (bots) */}
           <input
             type="text"
             name="website"
             tabIndex="-1"
             autoComplete="off"
             aria-hidden="true"
-            style={{ position: "absolute", left: "-9999px" }}
+            className="git__honeypot"
           />
 
-          <button type="submit" className="submit-btn" disabled={loading}>
+          <button
+            type="submit"
+            className="git__btn"
+            disabled={loading}
+            aria-busy={loading}
+          >
             {loading ? "Sending..." : "Submit Message"}
           </button>
 
           {/* Global Status */}
           {status.message && (
             <div
-              className={`form-status ${
-                status.type === "success" ? "success" : "error"
+              className={`git__status ${
+                status.type === "success" ? "is-success" : "is-error"
               }`}
+              role="status"
             >
-              {status.type === "success" ? "✅" : "⚠️"} {status.message}
+              <span className="git__statusIcon">
+                {status.type === "success" ? "✅" : "⚠️"}
+              </span>
+              <span>{status.message}</span>
+            </div>
+          )}
+
+          {/* Optional small hint when errors exist */}
+          {hasAnyError && !status.message && (
+            <div className="git__status is-error" role="status">
+              <span className="git__statusIcon">⚠️</span>
+              <span>Please review the highlighted fields.</span>
             </div>
           )}
         </form>
