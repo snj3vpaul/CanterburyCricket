@@ -18,9 +18,7 @@
   transition: height 200ms ease;
 }
 
-.navbarSpacer.navHidden {
-  height: 0px;
-}
+
 
 .navbar1 {
   position: fixed;

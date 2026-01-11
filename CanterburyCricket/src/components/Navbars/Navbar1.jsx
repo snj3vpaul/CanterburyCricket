@@ -1,5 +1,5 @@
 // Navbar1.jsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { NavLink } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import "./Navbar1.css";
@@ -10,36 +10,20 @@ export default function Navbar1() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
 
-  const lastScrollY = useRef(0);
   const prefersReducedMotion = useReducedMotion();
 
-  const closeAll = () => {
+  const lastYRef = useRef(0);
+  const rafRef = useRef(0);
+
+  const closeAll = useCallback(() => {
     setMenuOpen(false);
     setEventsOpen(false);
-  };
+  }, []);
 
-  const linkClass = ({ isActive }) => (isActive ? "navLink active" : "navLink");
-
-  // Hide/reveal on scroll + close menus on scroll
-  useEffect(() => {
-    const threshold = 12;
-
-    const onScroll = () => {
-      const y = window.scrollY;
-
-      // Close any open menus while scrolling
-      if (menuOpen) setMenuOpen(false);
-      if (eventsOpen) setEventsOpen(false);
-
-      if (y > lastScrollY.current + threshold) setIsVisible(false);
-      else if (y < lastScrollY.current - threshold) setIsVisible(true);
-
-      lastScrollY.current = y <= 0 ? 0 : y;
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [menuOpen, eventsOpen]);
+  const linkClass = useCallback(
+    ({ isActive }) => (isActive ? "navLink active" : "navLink"),
+    []
+  );
 
   // Lock body scroll only while mobile menu is open
   useEffect(() => {
@@ -58,13 +42,70 @@ export default function Navbar1() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  // Hide/reveal on scroll (NO layout shifts)
+  useEffect(() => {
+    const threshold = 14; // ignore tiny scroll jitter
+    let last = window.scrollY || 0;
+    lastYRef.current = last;
+
+    const onScroll = () => {
+      // avoid setState spam
+      if (rafRef.current) return;
+
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = 0;
+
+        const y = window.scrollY || 0;
+        const delta = y - last;
+
+        // close menus while scrolling (only if open)
+        if (menuOpen) setMenuOpen(false);
+        if (eventsOpen) setEventsOpen(false);
+
+        // if near top, always show
+        if (y < 6) {
+          if (!isVisible) setIsVisible(true);
+          last = y;
+          return;
+        }
+
+        // ignore tiny movements
+        if (Math.abs(delta) < threshold) {
+          last = y;
+          return;
+        }
+
+        // scroll down -> hide, scroll up -> show
+        if (delta > 0) {
+          if (isVisible) setIsVisible(false);
+        } else {
+          if (!isVisible) setIsVisible(true);
+        }
+
+        last = y;
+        lastYRef.current = y;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+    };
+  }, [eventsOpen, menuOpen, isVisible]);
+
   return (
     <>
       <motion.header
         className={`navbar1 ${isVisible ? "show" : "hide"}`}
         initial={false}
-        animate={prefersReducedMotion ? {} : { y: isVisible ? 0 : -80 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
+        // Hide using transform only (no spacer height changes)
+        animate={
+          prefersReducedMotion
+            ? {}
+            : { y: isVisible ? 0 : "calc(-1 * var(--nav-h))" }
+        }
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
       >
         <div className="navInner">
           {/* Brand */}
@@ -105,7 +146,11 @@ export default function Navbar1() {
 
               {eventsOpen && (
                 <div className="dropdownMenu" role="menu">
-                  <NavLink to="/awards" className="dropdownItem" onClick={() => setEventsOpen(false)}>
+                  <NavLink
+                    to="/awards"
+                    className="dropdownItem"
+                    onClick={() => setEventsOpen(false)}
+                  >
                     Awards Night
                   </NavLink>
                 </div>
@@ -118,7 +163,7 @@ export default function Navbar1() {
             <NavLink to="/contact" className={linkClass}>
               Contact Us!
             </NavLink>
-            <NavLink to="member-login" className={linkClass}>
+            <NavLink to="/member-login" className={linkClass}>
               Member Only
             </NavLink>
           </nav>
@@ -137,9 +182,13 @@ export default function Navbar1() {
         </div>
       </motion.header>
 
-      {/* Mobile overlay ONLY when menu is open (prevents blocking the page) */}
+      {/* Mobile overlay ONLY when menu is open */}
       {menuOpen && (
-        <div className="mobileOverlay open" onClick={() => setMenuOpen(false)} aria-hidden="true" />
+        <div
+          className="mobileOverlay open"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
       )}
 
       {/* Mobile Menu */}
@@ -164,7 +213,6 @@ export default function Navbar1() {
             Rich History
           </NavLink>
 
-          {/* ✅ fixed: must match desktop route */}
           <NavLink to="/squad" className={linkClass} onClick={closeAll}>
             Our Squad
           </NavLink>
@@ -173,7 +221,6 @@ export default function Navbar1() {
             Season
           </NavLink>
 
-          {/* Mobile Events section */}
           <div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>Events</div>
           <NavLink to="/awards" className={linkClass} onClick={closeAll}>
             Awards Night Soon
@@ -189,9 +236,8 @@ export default function Navbar1() {
         </nav>
       </aside>
 
-      {/* Spacer so content doesn't sit under fixed nav */}
-      <div className={`navbarSpacer ${isVisible ? "" : "navHidden"}`} />
-
+      {/* ✅ Spacer ALWAYS present (prevents flicker) */}
+      <div className="navbarSpacer" />
     </>
   );
 }
