@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { forwardRef, useMemo } from "react";
 import CardSwap, { Card } from "../CardSwap/CardSwap"; // adjust path
 import "./AwardsCarousel.css";
 
@@ -10,9 +10,21 @@ const AWARDS = [
   { title: "Spirit Award", subtitle: "Club Award", meta: "2025", emoji: "✨" },
 ];
 
-function AwardCard({ item }) {
+// ✅ MUST forward ref so CardSwap/GSAP can target the real DOM node
+const AwardCard = forwardRef(function AwardCard(
+  { item, style, onClick, className },
+  ref
+) {
   return (
-    <Card className="awardCard" role="button" aria-label={item.title} tabIndex={0}>
+    <Card
+      ref={ref}
+      style={style}
+      onClick={onClick}
+      className={`awardCard ${className ?? ""}`.trim()}
+      role="button"
+      aria-label={item.title}
+      tabIndex={0}
+    >
       <div className="awardGlow" aria-hidden="true" />
       <div className="awardTop">
         <div className="awardEmoji" aria-hidden="true">
@@ -30,7 +42,7 @@ function AwardCard({ item }) {
       </div>
     </Card>
   );
-}
+});
 
 export default function AwardsCarousel() {
   const cards = useMemo(() => AWARDS, []);
@@ -39,7 +51,9 @@ export default function AwardsCarousel() {
     <section className="awardsSwapWrap">
       <div className="awardsSwapHeader">
         <h2 className="awardsSwapTitle">Awards Night</h2>
-        <p className="awardsSwapSub">A rotating stack of highlights — tap any card.</p>
+        <p className="awardsSwapSub">
+          A rotating stack of highlights — tap any card.
+        </p>
       </div>
 
       <div className="awardsSwapStage">
