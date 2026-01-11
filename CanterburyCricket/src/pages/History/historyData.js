@@ -57,6 +57,69 @@ export const championships = [
     highlights: ["Fierce playoff run", "Clutch spells under pressure"],
     keyPerformers: ["Akram", "Haris", "Jitesh"],
   },
+  {
+    id: "chg-2017-final",
+    year: 2017,
+    division: "CHG",
+    placement: "champion",
+  
+    title: "Challenge Division Champions",
+    subtitle: "2017 Final — Canterbury vs Cathedral",
+    // ✅ ADD scorecard link
+    scoreboardUrl:
+      "https://cricheroes.com/scorecard/5779683/2017-challenge/canterbury-(chl)-vs-cathedral-(chl)/summary",
+    result: "Won by 24 runs",
+  
+    match: {
+      opponent: "Cathedral (CHL)",
+      canterbury: "243/10 (45.4 ov)",
+      cathedral: "219/10 (45.3 ov)",
+      date: "23-Sep-2017",
+    },
+  
+    highlights: [
+      "A Hussain 82 (42 balls) — 11 sixes",
+      "Hassan Hamid 66",
+      "J Karamchandani 57",
+      "Vikram Arora 4/37",
+      "Deepak Pabla 3/28",
+      
+    ],
+  
+    
+  },
+  
+  
+        
+        {
+          id: "chg-2006-final",
+          year: 2006,
+          division: "CHG",
+          placement: "champion",
+  
+          // Common display fields (timeline components usually use these)
+          title: "Challenge Division Champions",
+          subtitle: "2006 Final — Canterbury vs Cathedral",
+          result: "Won by 8 wickets",
+  
+          // Screenshot-derived match details (safe to ignore if your UI doesn’t use them)
+          match: {
+            opponent: "Cathedral",
+            cathedralInnings: "59 all out (36.2 ov)",
+            canterburyChase: "60/2 (14.3 ov)",
+          },
+          highlights: [
+            "Cathedral 59 all out (36.2 ov)",
+            "Canterbury 60/2 (14.3 ov) — won by 8 wickets",
+            "Vikram Arora 30* (59m, 32b)",
+            "Kamran Raza 9 (run out)",
+            
+          ],
+  
+          
+            scoreboardUrl: "http://ottawacricket.org/en/2006_scorecards/chg/2006.09.17-ChgPO-CCC-CCCCC.htm",
+          
+        },
 ];
 
 export const leagueLegends = [

@@ -16,8 +16,23 @@ export default function HistoryPage() {
   const [division, setDivision] = useState("All");
   const [placement, setPlacement] = useState("All");
 
+  // ✅ ADD: 2006 CHG Final (from your screenshot)
+  const extraChampionships = useMemo(
+    () => [
+      
+    ],
+    []
+  );
+
+  // ✅ ADD: merge base + extra
+  const allChampionships = useMemo(
+    () => [...(championships ?? []), ...extraChampionships],
+    [extraChampionships]
+  );
+
+  // ✅ CHANGE: filter from merged list (was championships)
   const filteredChamps = useMemo(() => {
-    return (championships ?? []).filter((c) => {
+    return (allChampionships ?? []).filter((c) => {
       if (division !== "All" && c.division !== division) return false;
 
       if (placement !== "All") {
@@ -27,17 +42,23 @@ export default function HistoryPage() {
 
       return true;
     });
-  }, [division, placement]);
+  }, [allChampionships, division, placement]);
 
+  // ✅ CHANGE: count titles from merged list (was championships)
   const totalTitles = useMemo(
-    () => (championships ?? []).filter((c) => c.placement === "champion").length,
-    []
+    () => (allChampionships ?? []).filter((c) => c.placement === "champion").length,
+    [allChampionships]
   );
+  const totalRunnerUps = useMemo(
+  () => (championships ?? []).filter((c) => c.placement === "runner-up").length,
+  []
+);
 
   return (
-    <Box sx={{  color: "#faf9f5", minHeight: "100vh" }}>
+    <Box sx={{ color: "#faf9f5", minHeight: "100vh" }}>
       <HeroHistory
         totalTitles={totalTitles}
+        totalRunnerUps={totalRunnerUps} 
         subtitle="Trophies, finals, and the legends who made it happen."
       />
 
@@ -64,8 +85,7 @@ export default function HistoryPage() {
                   color={division === d ? "primary" : "default"}
                   sx={{
                     fontWeight: 850,
-                    bgcolor:
-                      division === d ? "primary.main" : "rgba(255,255,255,0.08)",
+                    bgcolor: division === d ? "primary.main" : "rgba(255,255,255,0.08)",
                     color: "#faf9f5",
                     border: "1px solid rgba(255,255,255,0.14)",
                   }}
@@ -84,8 +104,7 @@ export default function HistoryPage() {
                   color={placement === p ? "primary" : "default"}
                   sx={{
                     fontWeight: 850,
-                    bgcolor:
-                      placement === p ? "primary.main" : "rgba(255,255,255,0.08)",
+                    bgcolor: placement === p ? "primary.main" : "rgba(255,255,255,0.08)",
                     color: "#faf9f5",
                     border: "1px solid rgba(255,255,255,0.14)",
                   }}

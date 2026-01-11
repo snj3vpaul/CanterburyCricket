@@ -6,11 +6,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function HeroHistory({ totalTitles = 0, subtitle }) {
+export default function HeroHistory({ totalTitles = 0, totalRunnerUps=0, subtitle }) {
   const rootRef = useRef(null);
   const bgRef = useRef(null);
   const titleRef = useRef(null);
   const statsRef = useRef(null);
+  
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -78,15 +79,17 @@ export default function HeroHistory({ totalTitles = 0, subtitle }) {
           </Typography>
 
           <Stack
-            ref={statsRef}
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            sx={{ pt: 2 }}
-          >
-            <StatPill label="Championships" value={totalTitles} />
-            <StatPill label="Moments" value="Countless" />
-            <StatPill label="Vibe" value="Elite 😄" />
-          </Stack>
+  ref={statsRef}
+  direction={{ xs: "column", sm: "row" }}
+  spacing={2}
+  sx={{ pt: 2 }}
+>
+  <StatPill label="Championships" value={totalTitles} />
+  <StatPill label="Runner-Ups" value={totalRunnerUps} />   {/* ✅ NEW */}
+  <StatPill label="Moments" value="Countless" />
+  <StatPill label="Vibe" value="Elite 😄" />
+</Stack>
+
         </Stack>
       </Container>
     </Box>
