@@ -116,7 +116,7 @@ export default function Navbar1() {
               Sponsors
             </NavLink>
             <NavLink to="/contact" className={linkClass}>
-              Contact
+              Contact Us!
             </NavLink>
             <NavLink to="member-login" className={linkClass}>
               Member Only

@@ -3,18 +3,21 @@
 ========================= */
 
 .git {
-  min-height: 100vh;
+  /* respect the navbarSpacer above this page */
+  min-height: 100%;
   padding: clamp(18px, 3vw, 32px) 16px;
-  display: grid;
-  place-items: center;
 
-  /* dark, subtle gradient background */
+  display: grid;
+  place-items: start center;
+
   background:
     radial-gradient(900px 420px at 20% 0%, rgba(79, 82, 255, 0.18), transparent 60%),
     radial-gradient(900px 420px at 85% 10%, rgba(255, 215, 0, 0.12), transparent 60%),
     #070912;
   color: #faf9f5;
 }
+
+
 
 .git__inner {
   width: min(860px, 100%);
