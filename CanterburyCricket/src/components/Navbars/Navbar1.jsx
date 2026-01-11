@@ -118,6 +118,9 @@ export default function Navbar1() {
             <NavLink to="/contact" className={linkClass}>
               Contact
             </NavLink>
+            <NavLink to="member-login" className={linkClass}>
+              Member Only
+            </NavLink>
           </nav>
 
           {/* Mobile Burger */}
