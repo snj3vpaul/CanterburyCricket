@@ -6,11 +6,9 @@
 
 .squadPage {
   min-height: 100vh;
-  background:
-    radial-gradient(1200px 500px at 20% 0%, rgba(255, 215, 0, 0.10), transparent 55%),
-    radial-gradient(900px 450px at 80% 10%, rgba(79, 82, 255, 0.16), transparent 55%),
-    #09090b;
-  color: #faf9f5;
+  background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
 
   /* ✅ protect content from weird stacking/backdrop issues */
   position: relative;
