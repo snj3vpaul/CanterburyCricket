@@ -33,8 +33,6 @@ function AwardCard({ item }) {
 }
 
 export default function AwardsCarousel() {
-  // Responsive sizing without needing a hook: use CSS vars + clamp in CSS
-  // but we still pass a reasonable base size here.
   const cards = useMemo(() => AWARDS, []);
 
   return (
@@ -55,8 +53,7 @@ export default function AwardsCarousel() {
           easing="elastic"
           skewAmount={6}
           onCardClick={(i) => {
-            // optional: open modal, route, etc.
-            // console.log("clicked index", i, cards[i]);
+            console.log("clicked index", i, cards[i]);
           }}
         >
           {cards.map((item, idx) => (
