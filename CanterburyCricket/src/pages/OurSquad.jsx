@@ -4,6 +4,28 @@ import "./OurSquadFlip.css";
 import ChromaGrid from "../components/ChromaGrid/ChromaGrid";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
+const DEFAULT_BIOS = [
+  "Always ready to give their best for the team.",
+  "Plays with heart and team spirit.",
+  "A proud part of our Canterbury family.",
+  "Committed, competitive, and team-first.",
+  "Brings energy and passion to every match.",
+  "Always up for the challenge.",
+  "A valued member of the Canterbury squad.",
+  "Proud to wear Canterbury colours.",
+  "Plays for the love of the game and the team.",
+  "Heart on the sleeve, bat in hand."
+];
+
+// deterministic hash so it doesn't change on every render
+function stableIndexFromString(str, max) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h << 5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h) % max;
+}
 
 const fallbackImage =
   "data:image/svg+xml;utf8," +
@@ -132,7 +154,6 @@ function roleTheme(role) {
   };
 }
 
-/** Convert internal player model -> ChromaGrid item */
 function playerToChromaItem(p) {
   const theme = roleTheme(p.role);
 
@@ -146,21 +167,27 @@ function playerToChromaItem(p) {
     p.bowling ? `Bowl: ${p.bowling}` : null,
   ].filter(Boolean);
 
+  // pick a stable “random” fallback bio per player
+  const fallbackBio =
+    DEFAULT_BIOS[stableIndexFromString(p.id || p.name, DEFAULT_BIOS.length)];
+
+  const bio =
+    p.bio?.trim() ||
+    fallbackBio;
+
   return {
     id: p.id,
     image: p.image || fallbackImage,
     title: p.name,
     subtitle: subtitleParts.join(" "),
     handle: handleParts.join(" • "),
-    location:
-      p.bio?.trim()
-        ? p.bio.trim().slice(0, 90) + (p.bio.trim().length > 90 ? "…" : "")
-        : "Solid contributor for the club — competitive, reliable, and always up for a big game.",
+    location: bio.slice(0, 90) + (bio.length > 90 ? "…" : ""),
     borderColor: theme.borderColor,
     gradient: theme.gradient,
-    url: "", // empty = non-clickable
+    url: "",
   };
 }
+
 
 export default function OurSquad() {
   // Filters (even if UI is disabled)
