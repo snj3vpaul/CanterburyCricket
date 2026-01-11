@@ -2,9 +2,65 @@ import { useMemo, useState } from "react";
 import "./GetInTouch.css";
 
 /* =========================
+   Provider typo-squat detection
+   - Blocks near-miss domains like ggmail.com / gmaill.com / gmial.com
+   - Low false positives by only applying to common providers
+========================= */
+const COMMON_PROVIDER_DOMAINS = [
+  "gmail.com",
+  "outlook.com",
+  "hotmail.com",
+  "live.com",
+  "yahoo.com",
+  "yahoo.ca",
+  "icloud.com",
+];
+
+function levenshtein(a, b) {
+  a = String(a || "");
+  b = String(b || "");
+  const m = a.length;
+  const n = b.length;
+
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1, // delete
+        dp[i][j - 1] + 1, // insert
+        dp[i - 1][j - 1] + cost // replace
+      );
+    }
+  }
+  return dp[m][n];
+}
+
+function detectProviderTypo(domain) {
+  const d = String(domain || "").toLowerCase();
+
+  // Only run near-match checks for typical provider TLDs to avoid false positives
+  if (!/\.(com|ca)$/.test(d)) return null;
+
+  for (const good of COMMON_PROVIDER_DOMAINS) {
+    if (d === good) continue;
+
+    // distance <= 2 catches ggmail.com (extra g), gmial.com (swap), gmaill.com (extra l)
+    const dist = levenshtein(d, good);
+    if (dist <= 2) return good;
+  }
+
+  return null;
+}
+
+/* =========================
    Email validation (practical + strict)
    - Syntax validation
    - Blocks common provider typos (gmail.??)
+   - Blocks typo-squat near-misses (ggmail.com)
    - Still not "deliverability" (DNS) — server should do that.
 ========================= */
 function isValidEmailStrict(input) {
@@ -35,7 +91,7 @@ function isValidEmailStrict(input) {
     /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
   if (!re.test(email)) return false;
 
-  // Provider typo blocking (high impact)
+  // Provider "base" blocking (gmail.* -> must be gmail.com)
   const providerAllowlist = [
     { base: "gmail", allowed: ["gmail.com"] },
     { base: "yahoo", allowed: ["yahoo.com", "yahoo.ca"] },
@@ -50,6 +106,10 @@ function isValidEmailStrict(input) {
       return p.allowed.includes(domain);
     }
   }
+
+  // Typo-squat near matches (ggmail.com etc.)
+  const suggestion = detectProviderTypo(domain);
+  if (suggestion) return false;
 
   // Optional: block ultra-common typo TLDs
   const blockedTlds = new Set(["con", "cmo", "comm", "cim", "vom", "chh"]);
@@ -97,11 +157,18 @@ export default function GetInTouch() {
         if (v.length > 80) return "Name is too long.";
         return "";
 
-      case "email":
+      case "email": {
         if (!v) return "Email address is required.";
         if (v.length > 120) return "Email is too long.";
-        if (!isValidEmailStrict(v)) return "Please enter a valid email address.";
+
+        const domain = v.includes("@") ? v.split("@").pop()?.toLowerCase() : "";
+        const suggestion = detectProviderTypo(domain);
+
+        if (!isValidEmailStrict(v)) {
+          return suggestion ? `Did you mean ${suggestion}?` : "Please enter a valid email address.";
+        }
         return "";
+      }
 
       case "profile":
         if (v.length > 300) return "Profile link is too long.";
@@ -139,8 +206,6 @@ export default function GetInTouch() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    // If user already touched the field, re-validate while typing
     if (touched[name]) {
       const err = validateField(name, value);
       setFieldError(name, err);
@@ -153,7 +218,6 @@ export default function GetInTouch() {
 
     const form = e.currentTarget;
 
-    // Mark all as touched so errors show
     setTouched({ name: true, email: true, profile: true, message: true });
 
     const validationErrors = validateForm(form);
@@ -204,7 +268,7 @@ export default function GetInTouch() {
         "Something went wrong while sending your message. Please try again.";
 
       // Pin certain server errors to fields (better UX)
-      if (/email/i.test(msg) && /domain|address|invalid/i.test(msg)) {
+      if (/email/i.test(msg) && /domain|address|invalid|mean/i.test(msg)) {
         setFieldError("email", msg);
       }
 
@@ -335,12 +399,7 @@ export default function GetInTouch() {
             className="git__honeypot"
           />
 
-          <button
-            type="submit"
-            className="git__btn"
-            disabled={loading}
-            aria-busy={loading}
-          >
+          <button type="submit" className="git__btn" disabled={loading} aria-busy={loading}>
             {loading ? "Sending..." : "Submit Message"}
           </button>
 
@@ -359,7 +418,6 @@ export default function GetInTouch() {
             </div>
           )}
 
-          {/* Optional small hint when errors exist */}
           {hasAnyError && !status.message && (
             <div className="git__status is-error" role="status">
               <span className="git__statusIcon">⚠️</span>
