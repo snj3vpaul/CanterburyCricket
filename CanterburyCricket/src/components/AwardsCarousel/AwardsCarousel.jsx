@@ -32,28 +32,50 @@ const CLUB_AWARDS = [
   { key: "best_spell", label: "Best Bowling Spell of the Year", emoji: "🎯" },
 ];
 
+/**
+ * ✅ Known winners map
+ * key format: `${division}:${awardKey}`
+ * division is one of: T20 | CTZ | CHG
+ * awardKey is one of: best_batter | best_bowler | best_fielder | mvp
+ */
+const WINNERS = {
+  "CHG:mvp": "Sanjeev K Paul",
+  "CHG:best_batter": "Ameer Khan",
+  "CHG:best_bowler": "Zain Mahmood",
+
+  "T20:mvp": "Sanjeev K Paul",
+  "T20:best_batter": "Sanjeev K Paul",
+  "T20:best_bowler": "Ghous Bilal",
+
+  "CTZ:best_batter": "Sanjeev K Paul",
+  "CTZ:best_bowler": "Zaki",
+};
+
 // ✅ Build the awards list
 function buildAwards(season = "2025") {
   const divisionAwards = DIVISIONS.flatMap((div) =>
-    DIVISION_AWARDS.map((a) => ({
-      id: `${season}-${div}-${a.key}`,
-      season,
-      division: div,
-      type: "division",
-      title: a.label,
-      emoji: a.emoji,
-      subtitle: `${div} Division`,
-      meta: `${season} • ${div}`,
-      // winner details (fill later)
-      winner: {
-        name: "TBD",
-        role: "",
-        photoUrl: "",
-        stats: [], // e.g. [{ label:"Runs", value:"412" }, ...]
-        highlight: "",
-      },
-      link: "", // optional: scorecard/album
-    }))
+    DIVISION_AWARDS.map((a) => {
+      const winnerName = WINNERS[`${div}:${a.key}`] ?? "TBD";
+
+      return {
+        id: `${season}-${div}-${a.key}`,
+        season,
+        division: div,
+        type: "division",
+        title: a.label,
+        emoji: a.emoji,
+        subtitle: `${div} Division`,
+        meta: `${season} • ${div}`,
+        winner: {
+          name: winnerName,
+          role: "",
+          photoUrl: "",
+          stats: [],
+          highlight: "",
+        },
+        link: "",
+      };
+    })
   );
 
   const clubAwards = CLUB_AWARDS.map((a) => ({
@@ -94,12 +116,20 @@ const AwardCard = forwardRef(function AwardCard({ item, style, onClick }, ref) {
       <div className="awardGlow" aria-hidden="true" />
 
       <div className="awardTop">
-        <div className="awardEmoji" aria-hidden="true">{item.emoji}</div>
+        <div className="awardEmoji" aria-hidden="true">
+          {item.emoji}
+        </div>
         <div className="awardMeta">{item.meta}</div>
       </div>
 
       <div className="awardTitle">{item.title}</div>
       <div className="awardSubtitle">{item.subtitle}</div>
+
+      {/* ✅ show winner (or TBD) right on the card */}
+      <div className="awardWinnerLine">
+        <span className="awardWinnerLabel">Winner</span>
+        <span className="awardWinnerName">{item.winner?.name ?? "TBD"}</span>
+      </div>
 
       <div className="awardFooter">
         <span className="awardTag">Awards Night</span>
@@ -129,11 +159,20 @@ function AwardModal({ open, award, onClose, onNext }) {
     >
       <Fade in={open} timeout={240}>
         <Box className="awardModal">
-          <IconButton className="awardModalClose" onClick={onClose} aria-label="Close">
+          <IconButton
+            className="awardModalClose"
+            onClick={onClose}
+            aria-label="Close"
+          >
             <CloseRoundedIcon />
           </IconButton>
 
-          <Stack direction="row" spacing={1} alignItems="center" className="awardModalTop">
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            className="awardModalTop"
+          >
             <Chip label={award.season} className="chipSeason" />
             <Chip label={divChip.label} className={divChip.className} />
           </Stack>
@@ -145,7 +184,11 @@ function AwardModal({ open, award, onClose, onNext }) {
 
           <Divider className="awardDivider" />
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} className="awardModalBody">
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            className="awardModalBody"
+          >
             <div className="awardWinnerPhoto" aria-hidden="true">
               {award.winner.photoUrl ? (
                 <img src={award.winner.photoUrl} alt={award.winner.name} />
@@ -158,20 +201,35 @@ function AwardModal({ open, award, onClose, onNext }) {
               <Typography className="awardWinnerName">
                 {award.winner.name || "TBD"}
               </Typography>
+
               {!!award.winner.role && (
-                <Typography className="awardWinnerRole">{award.winner.role}</Typography>
+                <Typography className="awardWinnerRole">
+                  {award.winner.role}
+                </Typography>
               )}
 
-              {Array.isArray(award.winner.stats) && award.winner.stats.length > 0 && (
-                <Stack direction="row" spacing={1} flexWrap="wrap" className="awardStatChips">
-                  {award.winner.stats.map((s, i) => (
-                    <Chip key={i} label={`${s.label}: ${s.value}`} className="chipStat" />
-                  ))}
-                </Stack>
-              )}
+              {Array.isArray(award.winner.stats) &&
+                award.winner.stats.length > 0 && (
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    flexWrap="wrap"
+                    className="awardStatChips"
+                  >
+                    {award.winner.stats.map((s, i) => (
+                      <Chip
+                        key={i}
+                        label={`${s.label}: ${s.value}`}
+                        className="chipStat"
+                      />
+                    ))}
+                  </Stack>
+                )}
 
               {!!award.winner.highlight && (
-                <Typography className="awardHighlight">“{award.winner.highlight}”</Typography>
+                <Typography className="awardHighlight">
+                  “{award.winner.highlight}”
+                </Typography>
               )}
 
               <Stack direction="row" spacing={1} className="awardModalActions">
@@ -181,7 +239,9 @@ function AwardModal({ open, award, onClose, onNext }) {
                 {award.link ? (
                   <Button
                     variant="outlined"
-                    onClick={() => window.open(award.link, "_blank", "noopener,noreferrer")}
+                    onClick={() =>
+                      window.open(award.link, "_blank", "noopener,noreferrer")
+                    }
                   >
                     View Link
                   </Button>
@@ -220,7 +280,8 @@ export default function AwardsCarousel() {
       <div className="awardsSwapHeader">
         <h2 className="awardsSwapTitle">Awards Night</h2>
         <p className="awardsSwapSub">
-          Tap a card to reveal the winner — swipe-worthy highlights for the season.
+          Tap a card to reveal the winner — swipe-worthy highlights for the
+          season.
         </p>
       </div>
 
@@ -235,8 +296,6 @@ export default function AwardsCarousel() {
           easing="elastic"
           skewAmount={6}
           onCardClick={(stackIndex) => {
-            // stackIndex refers to the current rendered order index,
-            // we’ll map it to the award in heroCards for now:
             openAward(stackIndex);
           }}
         >
@@ -265,6 +324,7 @@ export default function AwardsCarousel() {
                   <span className="miniEmoji">{a.emoji}</span>
                   <span className="miniTitle">{a.title}</span>
                   <span className="miniMeta">{a.meta}</span>
+                  <span className="miniWinner">{a.winner?.name ?? "TBD"}</span>
                 </button>
               ))}
           </div>
@@ -288,6 +348,7 @@ export default function AwardsCarousel() {
                     <span className="miniEmoji">{a.emoji}</span>
                     <span className="miniTitle">{a.title}</span>
                     <span className="miniMeta">{a.meta}</span>
+                    <span className="miniWinner">{a.winner?.name ?? "TBD"}</span>
                   </button>
                 ))}
             </div>
@@ -295,7 +356,12 @@ export default function AwardsCarousel() {
         ))}
       </div>
 
-      <AwardModal open={open} award={activeAward} onClose={closeAward} onNext={nextAward} />
+      <AwardModal
+        open={open}
+        award={activeAward}
+        onClose={closeAward}
+        onNext={nextAward}
+      />
     </section>
   );
 }
