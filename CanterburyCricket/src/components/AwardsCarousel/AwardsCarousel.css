@@ -2,14 +2,17 @@
   width: min(1100px, calc(100% - 36px));
   margin: 0 auto;
   padding: 24px 0 40px;
+  position: relative;
+  isolation: isolate;
 }
-
 .awardsSwapHeader {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
+  position: relative;
+  z-index: 5;
 }
 
 .awardsSwapTitle {
