@@ -1,59 +1,69 @@
-import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { EffectCoverflow, Pagination, Mousewheel } from "swiper/modules";
-
-// Swiper CSS
-import "swiper/css";
-import "swiper/css/effect-coverflow";
-import "swiper/css/pagination";
-
-// Custom CSS
+import React, { useMemo } from "react";
+import CardSwap, { Card } from "../CardSwap/CardSwap"; // adjust path
 import "./AwardsCarousel.css";
 
-const AwardsCarousel = () => {
-  return (
-    <Swiper
-      effect="coverflow"
-      grabCursor={true}
-      centeredSlides={true}
-      slidesPerView={3}
-      coverflowEffect={{
-        rotate: 50,
-        stretch: 0,
-        depth: 100,
-        modifier: 1,
-        slideShadows: true,
-      }}
-      pagination={{ clickable: true }}
-      mousewheel={{
-        forceToAxis: true,  // vertical scroll won't interfere
-        invert: false,
-        sensitivity: 1,
-      }}
-      modules={[EffectCoverflow, Pagination, Mousewheel]}
-      className="awardsSwiper"
-      breakpoints={{
-        0: {
-          slidesPerView: 1,
-          spaceBetween: 20,
-        },
-        640: {
-          slidesPerView: 2,
-          spaceBetween: 30,
-        },
-        1024: {
-          slidesPerView: 3,
-          spaceBetween: 40,
-        },
-      }}
-    >
-      <SwiperSlide>Slide 1</SwiperSlide>
-      <SwiperSlide>Slide 2</SwiperSlide>
-      <SwiperSlide>Slide 3</SwiperSlide>
-      <SwiperSlide>Slide 4</SwiperSlide>
-      <SwiperSlide>Slide 5</SwiperSlide>
-    </Swiper>
-  );
-};
+const AWARDS = [
+  { title: "Best Batter", subtitle: "Season Award", meta: "2025 • T20", emoji: "🏏" },
+  { title: "Best Bowler", subtitle: "Season Award", meta: "2025 • CTZ", emoji: "🔥" },
+  { title: "MVP", subtitle: "Club Award", meta: "2025", emoji: "🏆" },
+  { title: "Best Fielder", subtitle: "Season Award", meta: "2025 • CHG", emoji: "🧤" },
+  { title: "Spirit Award", subtitle: "Club Award", meta: "2025", emoji: "✨" },
+];
 
-export default AwardsCarousel;
+function AwardCard({ item }) {
+  return (
+    <Card className="awardCard" role="button" aria-label={item.title} tabIndex={0}>
+      <div className="awardGlow" aria-hidden="true" />
+      <div className="awardTop">
+        <div className="awardEmoji" aria-hidden="true">
+          {item.emoji}
+        </div>
+        <div className="awardMeta">{item.meta}</div>
+      </div>
+
+      <div className="awardTitle">{item.title}</div>
+      <div className="awardSubtitle">{item.subtitle}</div>
+
+      <div className="awardFooter">
+        <span className="awardTag">Awards Night</span>
+        <span className="awardHint">Tap</span>
+      </div>
+    </Card>
+  );
+}
+
+export default function AwardsCarousel() {
+  // Responsive sizing without needing a hook: use CSS vars + clamp in CSS
+  // but we still pass a reasonable base size here.
+  const cards = useMemo(() => AWARDS, []);
+
+  return (
+    <section className="awardsSwapWrap">
+      <div className="awardsSwapHeader">
+        <h2 className="awardsSwapTitle">Awards Night</h2>
+        <p className="awardsSwapSub">A rotating stack of highlights — tap any card.</p>
+      </div>
+
+      <div className="awardsSwapStage">
+        <CardSwap
+          width={560}
+          height={380}
+          cardDistance={58}
+          verticalDistance={68}
+          delay={4500}
+          pauseOnHover={true}
+          easing="elastic"
+          skewAmount={6}
+          onCardClick={(i) => {
+            // optional: open modal, route, etc.
+            // console.log("clicked index", i, cards[i]);
+          }}
+        >
+          {cards.map((item, idx) => (
+            <AwardCard key={idx} item={item} />
+          ))}
+        </CardSwap>
+      </div>
+    </section>
+  );
+}
