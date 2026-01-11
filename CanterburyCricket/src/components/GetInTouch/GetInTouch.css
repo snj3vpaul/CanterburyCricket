@@ -1,121 +1,217 @@
-/* src/components/contact/GetInTouch.css */
+/* =========================
+   GetInTouch (security-first + mobile-first)
+========================= */
 
-.get-in-touch {
-  padding: 80px 20px;
-  background: linear-gradient(
-    180deg,
-    #0b0f1a,
-    #09090b
-  );
+.git {
+  min-height: 100vh;
+  padding: clamp(18px, 3vw, 32px) 16px;
+  display: grid;
+  place-items: center;
+
+  /* dark, subtle gradient background */
+  background:
+    radial-gradient(900px 420px at 20% 0%, rgba(79, 82, 255, 0.18), transparent 60%),
+    radial-gradient(900px 420px at 85% 10%, rgba(255, 215, 0, 0.12), transparent 60%),
+    #070912;
   color: #faf9f5;
 }
 
-.get-in-touch-inner {
-  max-width: 680px;
-  margin: 0 auto;
-  text-align: center;
+.git__inner {
+  width: min(860px, 100%);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(10, 12, 24, 0.70);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
 }
 
-.get-in-touch h2 {
-  font-size: 2rem;
-  margin-bottom: 12px;
-  color: #f5c77a; /* subtle gold */
+.git__header {
+  padding: 22px 18px 12px;
 }
 
-.get-in-touch p {
-  font-size: 0.95rem;
-  opacity: 0.85;
-  margin-bottom: 32px;
+.git__title {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 900;
 }
 
-.contact-form {
+.git__subtitle {
+  margin: 8px 0 0;
+  opacity: 0.82;
+  max-width: 62ch;
+}
+
+.git__form {
+  padding: 18px;
   display: grid;
-  gap: 18px;
-  text-align: left;
+  gap: 14px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.git__field {
+  display: grid;
+  gap: 8px;
 }
 
-.form-group label {
-  font-size: 0.8rem;
-  opacity: 0.85;
+.git__label {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.01em;
 }
 
-.form-group input,
-.form-group textarea {
-  padding: 12px 14px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: #fff;
-  font-size: 0.9rem;
-  outline: none;
+.git__req {
+  opacity: 0.9;
 }
 
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  border-color: #f5c77a;
-  box-shadow: 0 0 0 2px rgba(245, 199, 122, 0.15);
-}
-
-.submit-btn {
-  margin-top: 10px;
-  padding: 14px;
-  border-radius: 999px;
-  border: none;
-  font-size: 0.95rem;
+.git__hint {
+  opacity: 0.75;
   font-weight: 600;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+.git__input,
+.git__textarea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #faf9f5;
+  padding: 12px 12px;
+  outline: none;
+
+  /* mobile zoom prevention (iOS) */
+  font-size: 16px;
+
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.git__textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.git__input::placeholder,
+.git__textarea::placeholder {
+  color: rgba(250, 249, 245, 0.55);
+}
+
+.git__input:focus,
+.git__textarea:focus {
+  border-color: rgba(79, 82, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(79, 82, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.git__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Error state */
+.git__field.is-error .git__input,
+.git__field.is-error .git__textarea {
+  border-color: rgba(255, 88, 88, 0.70);
+  box-shadow: 0 0 0 3px rgba(255, 88, 88, 0.12);
+}
+
+.git__error {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 185, 185, 0.95);
+}
+
+/* Honeypot should never be visible */
+.git__honeypot {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+/* Submit button */
+.git__btn {
+  margin-top: 6px;
+  border: 0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  background: linear-gradient(
-    135deg,
-    #f5c77a,
-    #d4a24c
-  );
-  color: #09090b;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  background: linear-gradient(135deg, rgba(79, 82, 255, 0.95), rgba(79, 82, 255, 0.65));
+  color: #0b0c10;
+  box-shadow: 0 10px 26px rgba(79, 82, 255, 0.25);
+
+  transition: transform 120ms ease, filter 120ms ease, opacity 120ms ease;
 }
 
-.field-error {
-  color: #ffb4b4;
-  font-size: 0.8rem;
-  margin-top: 4px;
-  display: block;
+.git__btn:hover {
+  filter: brightness(1.05);
 }
 
-.form-status {
-  margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 0.9rem;
+.git__btn:active {
+  transform: translateY(1px);
 }
 
-.form-status.error {
-  background: rgba(255, 80, 80, 0.15);
-  color: #ffb4b4;
+.git__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.form-status.success {
-  background: rgba(80, 200, 120, 0.15);
-  color: #9ef0c1;
+/* Status banner */
+.git__status {
+  margin-top: 6px;
+  border-radius: 16px;
+  padding: 12px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-weight: 800;
+
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.06);
 }
 
-.submit-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(245, 199, 122, 0.35);
+.git__status.is-success {
+  border-color: rgba(96, 255, 182, 0.28);
+  background: rgba(96, 255, 182, 0.08);
 }
 
-/* Mobile tweaks */
-@media (max-width: 600px) {
-  .get-in-touch {
-    padding: 60px 16px;
+.git__status.is-error {
+  border-color: rgba(255, 88, 88, 0.25);
+  background: rgba(255, 88, 88, 0.08);
+}
+
+.git__statusIcon {
+  line-height: 1.1;
+  margin-top: 1px;
+}
+
+/* Desktop spacing upgrade */
+@media (min-width: 720px) {
+  .git__header {
+    padding: 26px 26px 12px;
+  }
+
+  .git__form {
+    padding: 20px 26px 26px;
+    gap: 16px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .git__btn,
+  .git__input,
+  .git__textarea {
+    transition: none;
   }
 }
