@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo, useState, useCallback } from "react";
+import React, { forwardRef, useMemo, useState, useCallback, useEffect } from "react";
 import CardSwap, { Card } from "../CardSwap/CardSwap"; // adjust path
 import {
   Box,
@@ -32,12 +32,7 @@ const CLUB_AWARDS = [
   { key: "best_spell", label: "Best Bowling Spell of the Year", emoji: "🎯" },
 ];
 
-/**
- * ✅ Known winners map
- * key format: `${division}:${awardKey}`
- * division is one of: T20 | CTZ | CHG
- * awardKey is one of: best_batter | best_bowler | best_fielder | mvp
- */
+// ✅ Known winners map (division awards you provided)
 const WINNERS = {
   "CHG:mvp": "Sanjeev K Paul",
   "CHG:best_batter": "Ameer Khan",
@@ -51,12 +46,26 @@ const WINNERS = {
   "CTZ:best_bowler": "Zaki",
 };
 
-// ✅ Build the awards list
+// ✅ small hook: mobile sizing so you DON'T have to zoom out
+function useIsMobile(breakpoint = 520) {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= breakpoint : false
+  );
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= breakpoint);
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
+// ✅ Build the awards list with winners
 function buildAwards(season = "2025") {
   const divisionAwards = DIVISIONS.flatMap((div) =>
     DIVISION_AWARDS.map((a) => {
       const winnerName = WINNERS[`${div}:${a.key}`] ?? "TBD";
-
       return {
         id: `${season}-${div}-${a.key}`,
         season,
@@ -125,7 +134,6 @@ const AwardCard = forwardRef(function AwardCard({ item, style, onClick }, ref) {
       <div className="awardTitle">{item.title}</div>
       <div className="awardSubtitle">{item.subtitle}</div>
 
-      {/* ✅ show winner (or TBD) right on the card */}
       <div className="awardWinnerLine">
         <span className="awardWinnerLabel">Winner</span>
         <span className="awardWinnerName">{item.winner?.name ?? "TBD"}</span>
@@ -153,26 +161,15 @@ function AwardModal({ open, award, onClose, onNext }) {
       onClose={onClose}
       closeAfterTransition
       slots={{ backdrop: Backdrop }}
-      slotProps={{
-        backdrop: { timeout: 220 },
-      }}
+      slotProps={{ backdrop: { timeout: 220 } }}
     >
       <Fade in={open} timeout={240}>
         <Box className="awardModal">
-          <IconButton
-            className="awardModalClose"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <IconButton className="awardModalClose" onClick={onClose} aria-label="Close">
             <CloseRoundedIcon />
           </IconButton>
 
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            className="awardModalTop"
-          >
+          <Stack direction="row" spacing={1} alignItems="center" className="awardModalTop">
             <Chip label={award.season} className="chipSeason" />
             <Chip label={divChip.label} className={divChip.className} />
           </Stack>
@@ -184,11 +181,7 @@ function AwardModal({ open, award, onClose, onNext }) {
 
           <Divider className="awardDivider" />
 
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            className="awardModalBody"
-          >
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} className="awardModalBody">
             <div className="awardWinnerPhoto" aria-hidden="true">
               {award.winner.photoUrl ? (
                 <img src={award.winner.photoUrl} alt={award.winner.name} />
@@ -198,38 +191,22 @@ function AwardModal({ open, award, onClose, onNext }) {
             </div>
 
             <div className="awardWinnerInfo">
-              <Typography className="awardWinnerName">
-                {award.winner.name || "TBD"}
-              </Typography>
+              <Typography className="awardWinnerName">{award.winner.name || "TBD"}</Typography>
 
               {!!award.winner.role && (
-                <Typography className="awardWinnerRole">
-                  {award.winner.role}
-                </Typography>
+                <Typography className="awardWinnerRole">{award.winner.role}</Typography>
               )}
 
-              {Array.isArray(award.winner.stats) &&
-                award.winner.stats.length > 0 && (
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    flexWrap="wrap"
-                    className="awardStatChips"
-                  >
-                    {award.winner.stats.map((s, i) => (
-                      <Chip
-                        key={i}
-                        label={`${s.label}: ${s.value}`}
-                        className="chipStat"
-                      />
-                    ))}
-                  </Stack>
-                )}
+              {Array.isArray(award.winner.stats) && award.winner.stats.length > 0 && (
+                <Stack direction="row" spacing={1} flexWrap="wrap" className="awardStatChips">
+                  {award.winner.stats.map((s, i) => (
+                    <Chip key={i} label={`${s.label}: ${s.value}`} className="chipStat" />
+                  ))}
+                </Stack>
+              )}
 
               {!!award.winner.highlight && (
-                <Typography className="awardHighlight">
-                  “{award.winner.highlight}”
-                </Typography>
+                <Typography className="awardHighlight">“{award.winner.highlight}”</Typography>
               )}
 
               <Stack direction="row" spacing={1} className="awardModalActions">
@@ -239,9 +216,7 @@ function AwardModal({ open, award, onClose, onNext }) {
                 {award.link ? (
                   <Button
                     variant="outlined"
-                    onClick={() =>
-                      window.open(award.link, "_blank", "noopener,noreferrer")
-                    }
+                    onClick={() => window.open(award.link, "_blank", "noopener,noreferrer")}
                   >
                     View Link
                   </Button>
@@ -256,8 +231,11 @@ function AwardModal({ open, award, onClose, onNext }) {
 }
 
 export default function AwardsCarousel() {
+  const isMobile = useIsMobile(520);
+
   const awards = useMemo(() => buildAwards("2025"), []);
-  const heroCards = useMemo(() => awards.slice(0, 6), [awards]); // top 6 in CardSwap stack
+  // ✅ fewer hero cards on mobile so it fits + looks cleaner
+  const heroCards = useMemo(() => (isMobile ? awards.slice(0, 4) : awards.slice(0, 6)), [awards, isMobile]);
 
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -275,27 +253,31 @@ export default function AwardsCarousel() {
 
   const activeAward = awards[activeIndex];
 
+  const swapSize = isMobile
+    ? { width: 320, height: 360, cardDistance: 34, verticalDistance: 52, skewAmount: 4, delay: 4200 }
+    : { width: 560, height: 380, cardDistance: 58, verticalDistance: 68, skewAmount: 6, delay: 4500 };
+
   return (
     <section className="awardsSwapWrap">
       <div className="awardsSwapHeader">
         <h2 className="awardsSwapTitle">Awards Night</h2>
         <p className="awardsSwapSub">
-          Tap a card to reveal the winner — swipe-worthy highlights for the
-          season.
+          Tap a card to reveal the winner — swipe-worthy highlights for the season.
         </p>
       </div>
 
       <div className="awardsSwapStage">
         <CardSwap
-          width={560}
-          height={380}
-          cardDistance={58}
-          verticalDistance={68}
-          delay={4500}
-          pauseOnHover={true}
+          width={swapSize.width}
+          height={swapSize.height}
+          cardDistance={swapSize.cardDistance}
+          verticalDistance={swapSize.verticalDistance}
+          delay={swapSize.delay}
+          pauseOnHover={!isMobile}
           easing="elastic"
-          skewAmount={6}
+          skewAmount={swapSize.skewAmount}
           onCardClick={(stackIndex) => {
+            // stackIndex maps to heroCards
             openAward(stackIndex);
           }}
         >
@@ -316,10 +298,7 @@ export default function AwardsCarousel() {
                 <button
                   key={a.id}
                   className="awardMiniCard"
-                  onClick={() => {
-                    const idx = awards.findIndex((x) => x.id === a.id);
-                    openAward(idx);
-                  }}
+                  onClick={() => openAward(awards.findIndex((x) => x.id === a.id))}
                 >
                   <span className="miniEmoji">{a.emoji}</span>
                   <span className="miniTitle">{a.title}</span>
@@ -340,10 +319,7 @@ export default function AwardsCarousel() {
                   <button
                     key={a.id}
                     className="awardMiniCard"
-                    onClick={() => {
-                      const idx = awards.findIndex((x) => x.id === a.id);
-                      openAward(idx);
-                    }}
+                    onClick={() => openAward(awards.findIndex((x) => x.id === a.id))}
                   >
                     <span className="miniEmoji">{a.emoji}</span>
                     <span className="miniTitle">{a.title}</span>
@@ -356,12 +332,7 @@ export default function AwardsCarousel() {
         ))}
       </div>
 
-      <AwardModal
-        open={open}
-        award={activeAward}
-        onClose={closeAward}
-        onNext={nextAward}
-      />
+      <AwardModal open={open} award={activeAward} onClose={closeAward} onNext={nextAward} />
     </section>
   );
 }

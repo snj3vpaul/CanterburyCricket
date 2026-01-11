@@ -14,12 +14,7 @@
   overflow: visible;
 }
 
-/* We scale the whole stage instead of recalculating GSAP distances */
-@media (max-width: 900px) {
-  .card-swap-container {
-    transform: scale(0.9);
-  }
-}
+
 
 @media (max-width: 700px) {
   .card-swap-container {
