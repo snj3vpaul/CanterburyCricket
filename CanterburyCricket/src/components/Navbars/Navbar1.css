@@ -280,17 +280,32 @@
   }
 }
 
+/* Make the Events <button> match <a class="navLink"> exactly */
 .eventsDropdown > button.navLink {
   appearance: none;
   -webkit-appearance: none;
-  background: transparent;
-  border: none;
+
+  /* match .navLink */
+  text-decoration: none;
   color: var(--nav-text);
-  font: inherit;
-  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
   padding: 10px 10px;
   border-radius: 12px;
-  line-height: 1;
+  transition: background 160ms ease, color 160ms ease;
+
+  /* button reset */
+  background: transparent;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+
+  /* alignment fixes */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: normal; /* ✅ remove line-height: 1 */
 }
 
 .eventsDropdown {
