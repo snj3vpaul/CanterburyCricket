@@ -1,11 +1,9 @@
-// src/pages/OurSquad/OurSquad.jsx
+// src/pages/OurSquad/OurSquad.jsx  (or src/pages/OurSquad.jsx)
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import "./OurSquadFlip.css";
 import ChromaGrid from "../components/ChromaGrid/ChromaGrid";
 
-
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
-const DIV_OPTIONS = ["All", "T20", "CTZ", "CHG"];
 
 const fallbackImage =
   "data:image/svg+xml;utf8," +
@@ -74,18 +72,19 @@ function pick(row, keys) {
 /**
  * Apps Script JSON row -> internal player model
  * Sheet headers:
- * Timestamp, Full Name, Playing Role, Playing Style, Bowling Style, Jersey Number, Photo for Squad Banner, Short Bio
+ * Timestamp, Full Name, Playing Role, Playing Style, Bowling Style, Jersey Number,
+ * Photo for Squad Banner, Short Bio
  */
 function mapRowToPlayer(row, idx) {
   const name = (row["Full Name"] ?? "").toString().trim() || `Player ${idx + 1}`;
   const role = normalizeRole(row["Playing Role"]);
+
   const batting = (row["Playing Style"] ?? "").toString().trim();
   const bowling = (row["Bowling Style"] ?? "").toString().trim();
   const jersey = (row["Jersey Number"] ?? "").toString().trim();
+
   const bio = pick(row, ["Short Bio", "Short bio", "Bio", "About", "Player Bio", "Short Bio "]);
   const image = normalizeDriveImageUrl(row["Photo for Squad Banner"]) || fallbackImage;
-
- 
 
   const tags = [
     batting ? `Bat: ${batting}` : null,
@@ -97,11 +96,12 @@ function mapRowToPlayer(row, idx) {
     id: `${name}-${idx}`,
     name,
     role,
-    division,
-    divisions: [division],
     image,
     bio,
     tags,
+    batting,
+    bowling,
+    jersey,
   };
 }
 
@@ -126,7 +126,6 @@ function roleTheme(role) {
       gradient: "linear-gradient(165deg, rgba(245,158,11,0.95), #000)",
     };
   }
-  // all-rounder / default
   return {
     borderColor: "#8b5cf6",
     gradient: "linear-gradient(225deg, rgba(139,92,246,0.95), #000)",
@@ -151,32 +150,22 @@ function playerToChromaItem(p) {
     id: p.id,
     image: p.image || fallbackImage,
     title: p.name,
-
-    // top line under name
     subtitle: subtitleParts.join(" "),
-
-    // small “handle” line (we’ll use it for styles)
     handle: handleParts.join(" • "),
-
-    // show bio as the paragraph (trimmed)
     location:
       p.bio?.trim()
         ? p.bio.trim().slice(0, 90) + (p.bio.trim().length > 90 ? "…" : "")
         : "Solid contributor for the club — competitive, reliable, and always up for a big game.",
-
     borderColor: theme.borderColor,
     gradient: theme.gradient,
-
-    url: "", // keep empty (no click-out)
+    url: "", // empty = non-clickable
   };
 }
 
-
 export default function OurSquad() {
-  // Filters (kept even if your UI is disabled right now)
+  // Filters (even if UI is disabled)
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
-  //const [division, setDivision] = useState("All");//
 
   // Data state
   const [players, setPlayers] = useState([]);
@@ -190,7 +179,6 @@ export default function OurSquad() {
     try {
       const res = await fetch(`/api/squad?_t=${Date.now()}`);
       const json = await res.json();
-
       if (!json?.ok) throw new Error(json?.error || "API error");
 
       const mapped = (json.data || []).map(mapRowToPlayer);
@@ -216,34 +204,31 @@ export default function OurSquad() {
         !q ||
         normalized(p.name).includes(q) ||
         normalized(p.role).includes(q) ||
+        normalized(p.bio).includes(q) ||
         (p.tags || []).some((t) => normalized(t).includes(q));
 
       const matchRole = role === "All" || normalized(p.role) === normalized(role);
 
-      const divs = Array.isArray(p.divisions) && p.divisions.length ? p.divisions : [p.division];
-      const matchDiv = division === "All" || divs.some((d) => normalized(d) === normalized(division));
-
-      return matchQuery && matchRole && matchDiv;
+      return matchQuery && matchRole;
     });
   }, [players, query, role]);
 
-  const chromaItems = useMemo(
-    () => filteredPlayers.map(playerToChromaItem),
-    [filteredPlayers]
-  );
+  const chromaItems = useMemo(() => filteredPlayers.map(playerToChromaItem), [filteredPlayers]);
 
   const clearFilters = () => {
     setQuery("");
     setRole("All");
-    
   };
 
   return (
     <div className="squadPage">
       <div className="squadContainer">
-        {/* You can re-enable your header + filters any time */}
-        {/* <button onClick={clearFilters}>Clear</button>
-            <button onClick={fetchSquad}>Refresh</button> */}
+        {/* Optional controls (if you re-enable later)
+        <div className="headerActions">
+          <button className="btn ghost" onClick={clearFilters} type="button">Clear</button>
+          <button className="btn" onClick={fetchSquad} type="button">Refresh</button>
+        </div>
+        */}
 
         {loadError ? (
           <div className="alert error" role="alert">
@@ -260,7 +245,7 @@ export default function OurSquad() {
         ) : chromaItems.length === 0 ? (
           <div className="emptyState">
             <div className="emptyTitle">No matches</div>
-            <div className="emptySub">Try a different name, role, or division.</div>
+            <div className="emptySub">Try a different name or role.</div>
           </div>
         ) : (
           <ChromaGrid
