@@ -14,7 +14,7 @@ body {
   font-family: "Roboto", sans-serif;
   color: #f8f8f8;
   overflow-x: hidden;
-  padding-top: 72px; /* match your navbar height */
+  padding-top: 0; /* match your navbar height */
   position: relative;
   z-index: 0;
 }
@@ -70,10 +70,7 @@ body {
   }
 }
 
-/* Make the scroll land below your fixed navbar */
-.parallax-container {
-  scroll-margin-top: 92px; /* tweak if navbar height differs */
-}
+
 
 /* Accessibility: respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
@@ -145,9 +142,15 @@ z-index: 0;
    ========================= */
 
 .parallax-container {
+  scroll-margin-top: calc(var(--nav-h, 72px) + 20px);
   max-width: 1200px;
   margin: 0 auto;
-  padding: 80px clamp(16px, 5vw, 80px);
+  /* ✅ push content below navbar, not the hero */
+  padding-top: calc(var(--nav-h, 72px) + 48px);
+  /* keep your side + bottom padding */
+  padding-right: clamp(16px, 5vw, 80px);
+  padding-left: clamp(16px, 5vw, 80px);
+  padding-bottom: 80px;
 }
 
 .parallax-container h2 {
