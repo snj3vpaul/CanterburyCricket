@@ -1,7 +1,7 @@
 // src/pages/OurSquad/OurSquad.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import "./OurSquadFlip.css";
-import ChromaGrid from "../../components/ChromaGrid/ChromaGrid";
+import ChromaGrid from "../components/ChromaGrid/ChromaGrid";
 
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
