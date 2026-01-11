@@ -85,8 +85,7 @@ function mapRowToPlayer(row, idx) {
   const bio = pick(row, ["Short Bio", "Short bio", "Bio", "About", "Player Bio", "Short Bio "]);
   const image = normalizeDriveImageUrl(row["Photo for Squad Banner"]) || fallbackImage;
 
-  // If you don’t have division in the form yet:
-  const division = "T20";
+ 
 
   const tags = [
     batting ? `Bat: ${batting}` : null,
@@ -138,35 +137,46 @@ function roleTheme(role) {
 function playerToChromaItem(p) {
   const theme = roleTheme(p.role);
 
-  // subtitle: keep it compact and informative
   const subtitleParts = [
     p.role || "All-rounder",
-    p.division ? `• ${p.division}` : null,
-    p.tags?.find((t) => t.startsWith("#")) || null, // jersey if present
+    p.jersey ? `• #${p.jersey}` : null,
+  ].filter(Boolean);
+
+  const handleParts = [
+    p.batting ? `Bat: ${p.batting}` : null,
+    p.bowling ? `Bowl: ${p.bowling}` : null,
   ].filter(Boolean);
 
   return {
     id: p.id,
     image: p.image || fallbackImage,
     title: p.name,
-    subtitle: subtitleParts.join(" "),
-    handle: p.tags?.filter((t) => t.startsWith("Bat:") || t.startsWith("Bowl:")).slice(0, 1)?.[0] || "",
-    location: p.bio ? p.bio.slice(0, 52) + (p.bio.length > 52 ? "…" : "") : "",
 
-    // Chroma styling
+    // top line under name
+    subtitle: subtitleParts.join(" "),
+
+    // small “handle” line (we’ll use it for styles)
+    handle: handleParts.join(" • "),
+
+    // show bio as the paragraph (trimmed)
+    location:
+      p.bio?.trim()
+        ? p.bio.trim().slice(0, 90) + (p.bio.trim().length > 90 ? "…" : "")
+        : "Solid contributor for the club — competitive, reliable, and always up for a big game.",
+
     borderColor: theme.borderColor,
     gradient: theme.gradient,
 
-    // optional click-through (leave null/empty to disable opening a new tab)
-    url: "", // e.g. `/player/${p.id}` if you later add routing
+    url: "", // keep empty (no click-out)
   };
 }
+
 
 export default function OurSquad() {
   // Filters (kept even if your UI is disabled right now)
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
-  const [division, setDivision] = useState("All");
+  //const [division, setDivision] = useState("All");//
 
   // Data state
   const [players, setPlayers] = useState([]);
@@ -206,7 +216,6 @@ export default function OurSquad() {
         !q ||
         normalized(p.name).includes(q) ||
         normalized(p.role).includes(q) ||
-        normalized(p.division).includes(q) ||
         (p.tags || []).some((t) => normalized(t).includes(q));
 
       const matchRole = role === "All" || normalized(p.role) === normalized(role);
@@ -216,7 +225,7 @@ export default function OurSquad() {
 
       return matchQuery && matchRole && matchDiv;
     });
-  }, [players, query, role, division]);
+  }, [players, query, role]);
 
   const chromaItems = useMemo(
     () => filteredPlayers.map(playerToChromaItem),
@@ -226,7 +235,7 @@ export default function OurSquad() {
   const clearFilters = () => {
     setQuery("");
     setRole("All");
-    setDivision("All");
+    
   };
 
   return (
