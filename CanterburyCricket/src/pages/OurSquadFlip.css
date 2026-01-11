@@ -30,6 +30,21 @@
   position: relative;
   z-index: 1;
 }
+.squadPage,
+.squadContainer {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.squadPage::before,
+.squadPage::after,
+.squadContainer::before,
+.squadContainer::after,
+.grid::before,
+.grid::after {
+  content: none !important;
+  display: none !important;
+}
 
 
 /* Header (TEMP DISABLED in JSX, safe to keep CSS) */
@@ -212,6 +227,13 @@
 
 /* ✅ Make the grid readable on top of the global background */
 .grid {
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  transform: none; /* optional */
+}
+
+.grid {
   position: relative;
   z-index: 1;
 
@@ -225,8 +247,8 @@
   padding: 18px;
 
   /* glass effect */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 
   /* depth */
   box-shadow: 0 22px 55px rgba(0, 0, 0, 0.40);
