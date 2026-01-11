@@ -1,6 +1,7 @@
 // src/pages/OurSquad/OurSquad.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import "./OurSquadFlip.css";
+import ChromaGrid from "../../components/ChromaGrid/ChromaGrid";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DIV_OPTIONS = ["All", "T20", "CTZ", "CHG"];
@@ -24,9 +25,7 @@ const fallbackImage =
   </svg>
 `);
 
-// ===== Helpers (kept from the previously working MUI version) =====
-
-// Drive link -> direct image URL
+// Drive link -> direct-ish image URL
 function normalizeDriveImageUrl(input) {
   if (!input) return "";
   const raw = String(input).trim();
@@ -72,7 +71,7 @@ function pick(row, keys) {
 }
 
 /**
- * Maps Apps Script JSON rows to UI model.
+ * Apps Script JSON row -> internal player model
  * Sheet headers:
  * Timestamp, Full Name, Playing Role, Playing Style, Bowling Style, Jersey Number, Photo for Squad Banner, Short Bio
  */
@@ -83,10 +82,9 @@ function mapRowToPlayer(row, idx) {
   const bowling = (row["Bowling Style"] ?? "").toString().trim();
   const jersey = (row["Jersey Number"] ?? "").toString().trim();
   const bio = pick(row, ["Short Bio", "Short bio", "Bio", "About", "Player Bio", "Short Bio "]);
-
   const image = normalizeDriveImageUrl(row["Photo for Squad Banner"]) || fallbackImage;
 
-  // no division in the form yet
+  // If you don’t have division in the form yet:
   const division = "T20";
 
   const tags = [
@@ -104,19 +102,70 @@ function mapRowToPlayer(row, idx) {
     image,
     bio,
     tags,
-    isCaptain: false,
-    isWicketKeeper: role === "Wicket-keeper",
+  };
+}
+
+/** Small helper to give each role a consistent neon feel */
+function roleTheme(role) {
+  const r = normalized(role);
+  if (r.includes("wicket")) {
+    return {
+      borderColor: "#22c55e",
+      gradient: "linear-gradient(210deg, rgba(34,197,94,0.95), #000)",
+    };
+  }
+  if (r.includes("bowl")) {
+    return {
+      borderColor: "#06b6d4",
+      gradient: "linear-gradient(200deg, rgba(6,182,212,0.95), #000)",
+    };
+  }
+  if (r.includes("bat")) {
+    return {
+      borderColor: "#f59e0b",
+      gradient: "linear-gradient(165deg, rgba(245,158,11,0.95), #000)",
+    };
+  }
+  // all-rounder / default
+  return {
+    borderColor: "#8b5cf6",
+    gradient: "linear-gradient(225deg, rgba(139,92,246,0.95), #000)",
+  };
+}
+
+/** Convert internal player model -> ChromaGrid item */
+function playerToChromaItem(p) {
+  const theme = roleTheme(p.role);
+
+  // subtitle: keep it compact and informative
+  const subtitleParts = [
+    p.role || "All-rounder",
+    p.division ? `• ${p.division}` : null,
+    p.tags?.find((t) => t.startsWith("#")) || null, // jersey if present
+  ].filter(Boolean);
+
+  return {
+    id: p.id,
+    image: p.image || fallbackImage,
+    title: p.name,
+    subtitle: subtitleParts.join(" "),
+    handle: p.tags?.filter((t) => t.startsWith("Bat:") || t.startsWith("Bowl:")).slice(0, 1)?.[0] || "",
+    location: p.bio ? p.bio.slice(0, 52) + (p.bio.length > 52 ? "…" : "") : "",
+
+    // Chroma styling
+    borderColor: theme.borderColor,
+    gradient: theme.gradient,
+
+    // optional click-through (leave null/empty to disable opening a new tab)
+    url: "", // e.g. `/player/${p.id}` if you later add routing
   };
 }
 
 export default function OurSquad() {
-  // Filters (kept even if UI is temporarily disabled)
+  // Filters (kept even if your UI is disabled right now)
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
   const [division, setDivision] = useState("All");
-
-  // Flip state
-  const [flippedId, setFlippedId] = useState(null);
 
   // Data state
   const [players, setPlayers] = useState([]);
@@ -131,7 +180,6 @@ export default function OurSquad() {
       const res = await fetch(`/api/squad?_t=${Date.now()}`);
       const json = await res.json();
 
-      // match the previously working contract exactly
       if (!json?.ok) throw new Error(json?.error || "API error");
 
       const mapped = (json.data || []).map(mapRowToPlayer);
@@ -149,7 +197,7 @@ export default function OurSquad() {
     fetchSquad();
   }, [fetchSquad]);
 
-  const filtered = useMemo(() => {
+  const filteredPlayers = useMemo(() => {
     const q = normalized(query);
 
     return players.filter((p) => {
@@ -169,84 +217,23 @@ export default function OurSquad() {
     });
   }, [players, query, role, division]);
 
+  const chromaItems = useMemo(
+    () => filteredPlayers.map(playerToChromaItem),
+    [filteredPlayers]
+  );
+
   const clearFilters = () => {
     setQuery("");
     setRole("All");
     setDivision("All");
-    setFlippedId(null);
-  };
-
-  const toggleFlip = (id) => setFlippedId((prev) => (prev === id ? null : id));
-
-  const onCardKeyDown = (e, id) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleFlip(id);
-    }
   };
 
   return (
     <div className="squadPage">
       <div className="squadContainer">
-        {/* ================= HEADER (TEMP DISABLED) =================
-        <header className="squadHeader">
-          <div>
-            <h1 className="squadTitle">Our Squad</h1>
-            <p className="squadSubtitle">
-              Meet the Canterbury crew — tap a card for details 🏏
-            </p>
-          </div>
-
-          <div className="headerActions">
-            <button className="btn ghost" onClick={clearFilters} type="button">
-              Clear
-            </button>
-            <button className="btn" onClick={fetchSquad} type="button">
-              Refresh
-            </button>
-          </div>
-        </header>
-        ========================================================== */}
-
-        {/* ================= FILTER BAR (TEMP DISABLED) =================
-        <section className="filterBar">
-          <div className="searchWrap">
-            <span className="searchIcon" aria-hidden="true">⌕</span>
-            <input
-              className="searchInput"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search player…"
-              type="search"
-            />
-          </div>
-
-          <div className="selectRow">
-            <label className="selectField">
-              <span className="selectLabel">Role</span>
-              <select className="select" value={role} onChange={(e) => setRole(e.target.value)}>
-                {ROLE_OPTIONS.map((x) => (
-                  <option key={x} value={x}>{x}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="selectField">
-              <span className="selectLabel">Division</span>
-              <select className="select" value={division} onChange={(e) => setDivision(e.target.value)}>
-                {DIV_OPTIONS.map((x) => (
-                  <option key={x} value={x}>{x}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="metaPill" aria-live="polite">
-            {loading ? "Loading…" : `${filtered.length} player${filtered.length === 1 ? "" : "s"}`}
-          </div>
-        </section>
-        <div className="filterSpacer" />
-        ============================================================= */}
+        {/* You can re-enable your header + filters any time */}
+        {/* <button onClick={clearFilters}>Clear</button>
+            <button onClick={fetchSquad}>Refresh</button> */}
 
         {loadError ? (
           <div className="alert error" role="alert">
@@ -260,123 +247,22 @@ export default function OurSquad() {
               <div className="skeletonCard" key={`sk-${i}`} />
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : chromaItems.length === 0 ? (
           <div className="emptyState">
             <div className="emptyTitle">No matches</div>
             <div className="emptySub">Try a different name, role, or division.</div>
           </div>
         ) : (
-          <div className="grid">
-            {filtered.map((p, idx) => {
-              const key = p.id ?? p.name ?? idx;
-              const isFlipped = flippedId === key;
-
-              const img = p.image || fallbackImage;
-              const displayRole = p.role ?? "All-rounder";
-              const displayDiv = p.division ?? "T20";
-
-              return (
-                <div
-                  className="flipCard"
-                  key={key}
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={isFlipped}
-                  aria-label={`Open details for ${p.name}`}
-                  onClick={() => toggleFlip(key)}
-                  onKeyDown={(e) => onCardKeyDown(e, key)}
-                >
-                  <div className={`flipInner ${isFlipped ? "isFlipped" : ""}`}>
-                    {/* FRONT */}
-                    <div className="cardFace cardFront">
-                      <div className="cardMedia">
-                        <img
-                          className="playerImg"
-                          src={img}
-                          alt={p.name}
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = fallbackImage;
-                          }}
-                        />
-
-                        <div className="badgeRow">
-                          <span className="badge">{displayDiv}</span>
-                          <span className="badge alt">{displayRole}</span>
-                          {p.isCaptain ? <span className="badge alt">Captain</span> : null}
-                          {p.isWicketKeeper ? <span className="badge alt">WK</span> : null}
-                        </div>
-                      </div>
-
-                      <div className="cardBody">
-                        <h3 className="playerName">{p.name}</h3>
-
-                        <div className="backTags" style={{ marginTop: 10 }}>
-                          {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
-                            <span key={t} className="badge" style={{ background: "rgba(12,14,20,0.62)" }}>
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-
-                        <div className="hint">Tap for details</div>
-                      </div>
-                    </div>
-
-                    {/* BACK */}
-                    <div className="cardFace cardBack">
-                      <div className="backTop">
-                        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                          <img
-                            src={img}
-                            alt={p.name}
-                            style={{
-                              width: 44,
-                              height: 44,
-                              borderRadius: "999px",
-                              objectFit: "cover",
-                              border: "1px solid rgba(255,255,255,0.14)",
-                            }}
-                            referrerPolicy="no-referrer"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = fallbackImage;
-                            }}
-                          />
-                          <div>
-                            <div className="backName">{p.name}</div>
-                            <div className="backMeta">
-                              {displayRole} • {displayDiv}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="backBody">
-                        <div className="backLabel">About</div>
-                        <div className="backText">
-                          {p.bio ||
-                            "Solid contributor for the club — reliable, competitive, and always up for a big game."}
-                        </div>
-
-                        <div className="backTags" style={{ marginTop: 12 }}>
-                          {(p.tags || ["Team-first", "Match-ready"]).slice(0, 6).map((t) => (
-                            <span key={t} className="badge" style={{ background: "rgba(255,255,255,0.06)" }}>
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="hint">Tap to go back</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ChromaGrid
+            items={chromaItems}
+            className="squadChroma"
+            radius={340}
+            columns={3}
+            rows={2}
+            damping={0.45}
+            fadeOut={0.6}
+            ease="power3.out"
+          />
         )}
       </div>
     </div>
