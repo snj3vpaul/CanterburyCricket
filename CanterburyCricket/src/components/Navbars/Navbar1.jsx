@@ -20,8 +20,15 @@ export default function Navbar1() {
     setEventsOpen(false);
   }, []);
 
+  // ✅ Desktop active class (keeps your current behavior)
   const linkClass = useCallback(
     ({ isActive }) => (isActive ? "navLink active" : "navLink"),
+    []
+  );
+
+  // ✅ Mobile active class (Step 2): uses .mobileNavItem + .active
+  const mobileLinkClass = useCallback(
+    ({ isActive }) => `mobileNavItem ${isActive ? "active" : ""}`,
     []
   );
 
@@ -49,7 +56,6 @@ export default function Navbar1() {
     lastYRef.current = last;
 
     const onScroll = () => {
-      // avoid setState spam
       if (rafRef.current) return;
 
       rafRef.current = window.requestAnimationFrame(() => {
@@ -58,24 +64,20 @@ export default function Navbar1() {
         const y = window.scrollY || 0;
         const delta = y - last;
 
-        // close menus while scrolling (only if open)
         if (menuOpen) setMenuOpen(false);
         if (eventsOpen) setEventsOpen(false);
 
-        // if near top, always show
         if (y < 6) {
           if (!isVisible) setIsVisible(true);
           last = y;
           return;
         }
 
-        // ignore tiny movements
         if (Math.abs(delta) < threshold) {
           last = y;
           return;
         }
 
-        // scroll down -> hide, scroll up -> show
         if (delta > 0) {
           if (isVisible) setIsVisible(false);
         } else {
@@ -99,18 +101,23 @@ export default function Navbar1() {
       <motion.header
         className={`navbar1 ${isVisible ? "show" : "hide"}`}
         initial={false}
-        // Hide using transform only (no spacer height changes)
         animate={
           prefersReducedMotion
             ? {}
             : { y: isVisible ? 0 : "calc(-1 * var(--nav-h))" }
         }
-        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
+        transition={
+          prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }
+        }
       >
         <div className="navInner">
           {/* Brand */}
           <NavLink to="/" className="brand" onClick={closeAll}>
-            <img className="brandLogo" src={CburyLogo} alt="Canterbury Cricket Club" />
+            <img
+              className="brandLogo"
+              src={CburyLogo}
+              alt="Canterbury Cricket Club"
+            />
             <div className="brandText">
               <div className="brandTitle">Canterbury CC</div>
               <div className="brandSub">Est. 1983</div>
@@ -199,38 +206,46 @@ export default function Navbar1() {
       >
         <div className="mobileHeader">
           <span className="mobileTitle">Menu</span>
-          <button className="closeBtn" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
+          <button
+            className="closeBtn"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+          >
             ✕
           </button>
         </div>
 
         <nav className="navLinksMobile">
-          <NavLink to="/" className={linkClass} onClick={closeAll}>
+          {/* ✅ Uses mobileLinkClass so current tab gets the gold/active styling */}
+          <NavLink to="/" className={mobileLinkClass} onClick={closeAll} end>
             Home
           </NavLink>
 
-          <NavLink to="/history" className={linkClass} onClick={closeAll}>
+          <NavLink to="/history" className={mobileLinkClass} onClick={closeAll}>
             Rich History
           </NavLink>
 
-          <NavLink to="/squad" className={linkClass} onClick={closeAll}>
+          <NavLink to="/squad" className={mobileLinkClass} onClick={closeAll}>
             Our Squad
           </NavLink>
 
-          <NavLink to="/season" className={linkClass} onClick={closeAll}>
+          <NavLink to="/season" className={mobileLinkClass} onClick={closeAll}>
             Season
           </NavLink>
 
-          <div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>Events</div>
-          <NavLink to="/awards" className={linkClass} onClick={closeAll}>
+          <div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>
+            Events
+          </div>
+
+          <NavLink to="/awards" className={mobileLinkClass} onClick={closeAll}>
             Awards Night Soon
           </NavLink>
 
-          <NavLink to="/sponsors" className={linkClass} onClick={closeAll}>
+          <NavLink to="/sponsors" className={mobileLinkClass} onClick={closeAll}>
             Sponsors
           </NavLink>
 
-          <NavLink to="/contact" className={linkClass} onClick={closeAll}>
+          <NavLink to="/contact" className={mobileLinkClass} onClick={closeAll}>
             Contact Us
           </NavLink>
         </nav>
