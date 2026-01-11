@@ -51,9 +51,7 @@ export default function AwardsCarousel() {
     <section className="awardsSwapWrap">
       <div className="awardsSwapHeader">
         <h2 className="awardsSwapTitle">Awards Night</h2>
-        <p className="awardsSwapSub">
-          A rotating stack of highlights — tap any card.
-        </p>
+        
       </div>
 
       <div className="awardsSwapStage">
@@ -62,7 +60,7 @@ export default function AwardsCarousel() {
           height={380}
           cardDistance={58}
           verticalDistance={68}
-          delay={4500}
+          delay={3000}
           pauseOnHover={true}
           easing="elastic"
           skewAmount={6}
