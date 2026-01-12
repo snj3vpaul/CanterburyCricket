@@ -37,13 +37,15 @@ const WINNERS = {
   "CHG:mvp": "Sanjeev K Paul",
   "CHG:best_batter": "Ameer Khan",
   "CHG:best_bowler": "Zain Mahmood",
-
+"CHG:best_fielder": "Jaideep Singh Grover",
   "T20:mvp": "Sanjeev K Paul",
   "T20:best_batter": "Sanjeev K Paul",
   "T20:best_bowler": "Ghous Bilal",
-
+  "T20:best_fielder": "Sanjeev K Paul",
+  "CTZ:mvp": "Sanjeev K Paul",
   "CTZ:best_batter": "Sanjeev K Paul",
   "CTZ:best_bowler": "Zaki",
+  "CTZ:best_fielder": "Amir Abbas",
 };
 
 // ✅ small hook: mobile sizing so you DON'T have to zoom out
