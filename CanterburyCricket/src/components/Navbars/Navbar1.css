@@ -110,9 +110,11 @@
 }
 
 .brandLogo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
+   width: 65px;        /* or whatever size */
+  height: 65px;
+  object-fit: cover; /* prevents stretching */
+  border-radius: 50%;
+   /* fills corners if logo isn't square */
 }
 
 .brandText {
