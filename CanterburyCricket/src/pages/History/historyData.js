@@ -113,11 +113,7 @@ export const championships = [
 
   highlights: [
     "Haris Chaudhry 39 (41 balls) — 1 four, 2 sixes",
-    "A Singh Chahal 20 (12 balls) — strike rate 166.67",
-    "R Gill 22 (29 balls)",
-    "S Akhlaq 4/11 (4.0 ov) — econ 2.75",
-    "S Gill 2/23 (4.0 ov)",
-    "A Singh 2/25 (4.0 ov)",
+       
   ],
 },
 
@@ -174,8 +170,7 @@ export const championships = [
             canterburyChase: "60/2 (14.3 ov)",
           },
           highlights: [
-            "Cathedral 59 all out (36.2 ov)",
-            "Canterbury 60/2 (14.3 ov) — won by 8 wickets",
+            
             "Vikram Arora 30* (59m, 32b)",
             "Kamran Raza 9 (run out)",
             

@@ -137,43 +137,11 @@ export default function ChampionshipCard({ item, onOpenGallery }) {
           )}
 
           {/* Thumbnails */}
-          {!!item.photos?.length && (
-            <Stack direction="row" spacing={1} sx={{ pt: 1, flexWrap: "wrap", gap: 1 }}>
-              {item.photos.slice(0, 6).map((src, i) => (
-                <Box
-                  key={`${item.id}-thumb-${i}`}
-                  onClick={() => onOpenGallery(item.photos, i)}
-                  sx={{
-                    width: 66,
-                    height: 46,
-                    borderRadius: 2,
-                    cursor: "pointer",
-                    backgroundImage: `url(${src})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    opacity: 0.92,
-                    "&:hover": { opacity: 1 },
-                  }}
-                  title="Open gallery"
-                  role="button"
-                />
-              ))}
-            </Stack>
-          )}
+          
 
           {/* CTA buttons */}
           <Stack direction="row" spacing={1.2} sx={{ pt: 1, flexWrap: "wrap" }}>
-            {item.photos?.length ? (
-              <Button
-                variant="contained"
-                onClick={() => onOpenGallery(item.photos, 0)}
-                startIcon={<PhotoLibraryIcon />}
-                sx={{ fontWeight: 950 }}
-              >
-                View Gallery
-              </Button>
-            ) : null}
+            
 
             {item.scoreboardUrl ? (
               <Button

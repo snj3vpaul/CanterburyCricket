@@ -102,27 +102,7 @@ export default function PerformerDialog({ performer, onClose }) {
                 <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
                 <Typography sx={{ fontWeight: 950, fontSize: 16 }}>Gallery</Typography>
 
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {images.slice(0, 8).map((src, i) => (
-                    <Box
-                      key={src}
-                      onClick={() => setLb({ open: true, index: i })}
-                      sx={{
-                        width: 96,
-                        height: 72,
-                        borderRadius: 2,
-                        cursor: "pointer",
-                        backgroundImage: `url(${src})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        border: "1px solid rgba(255,255,255,0.14)",
-                        opacity: 0.92,
-                        "&:hover": { opacity: 1 },
-                      }}
-                      title="Open gallery"
-                    />
-                  ))}
-                </Box>
+                
               </>
             )}
           </Stack>
