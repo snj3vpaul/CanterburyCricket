@@ -126,7 +126,7 @@ export const leagueLegends = [
   {
     id: "l-haris",
     name: "Haris Chaudhry",
-    role: "League Legend",
+    role: "Batter",
     headshot: HarisImg,
     bio:
       "A club icon and a consistent match-winner across multiple seasons. Known for leadership, calm under pressure, and big-game impact.",
@@ -137,7 +137,7 @@ export const leagueLegends = [
   highestScore: "240*",     // was H.S
   hundreds: 17,          // was 100s
   fifties: 71,           // was 50s
-  average: 36.95,        // was avg
+  battingAverage: 36.95,        // was avg
   wickets: 203,
   bestBowling: "6/21",   // was best
 },
@@ -148,7 +148,7 @@ export const leagueLegends = [
   {
     id: "l-zain",
     name: "Zain Mahmood",
-    role: "League Legend",
+    role: "All Rounder",
     headshot: ZainImg,
     bio:
       "A true competitor with elite consistency. Delivered standout performances year after year and inspired the next generation.",
@@ -159,17 +159,19 @@ export const leagueLegends = [
   highestScore: "200*",    
   hundreds: 10,          // was 100s
   fifties: 51,           // was 50s
-  average: 35.32,        // was avg
+  battingAverage: 35.32,
+  bowlingAverage: 11.89, // was avg
+  economy: 3.62,
   wickets: 522,
   bestBowling: "9/27",   // was best
 },
-    awards: ["Canada U-19 Representative", "Swing Specialist"],
+    awards: ["League Legend", "First Over Specialist"],
     
   },
   {
     id: "l-akbar",
     name: "Akbar Hussain",
-    role: "League Legend",
+    role: "All Rounder",
     headshot: "/images/legends/akbar.jpg",
     bio:
       "A pillar of the club’s success era — reliable, fearless, and clutch when it mattered most.",
@@ -180,7 +182,7 @@ export const leagueLegends = [
   highestScore: 196,     // was H.S
   hundreds: 6,          // was 100s
   fifties: 49,           // was 50s
-  average: 28.83,        // was avg
+  battingAverage: 28.83,        // was avg
   wickets: 469,
   bestBowling: "6/28",   // was best
 },
@@ -210,6 +212,42 @@ export const performers = [
     
   },
   {
+    id: "p-Danish",
+    name: "Danish Javed",
+    role: "Bowler",
+    //headshot: AmeerImg,
+    bio:
+      "Left Arm Orthodox.",
+    stats: {
+      matches: 49,
+      wickets:54,
+      economy: 4.28,
+      bowlingAverage: 18.56,
+      bestBowling: "5/18"
+    },
+    awards: ["Wicket-Taker"],
+    
+  },
+  {
+    id: "p-Sujon",
+    name: "Abdel Kader Sujon",
+    role: "Bowler",
+    //headshot: AmeerImg,
+    bio:
+      "Right Arm Off-Spin",
+    stats: {
+      matches: 23,
+      fifties: 1,
+      wickets:28,
+      economy: 3.91,
+      bowlingAverage: 15.79,
+
+      bestBowling: "3/10"
+    },
+    awards: ["Miserly Bowler"],
+    
+  },
+  {
     id: "p-Sanjeev",
     name: "Sanjeev",
     role: "All Rounder",
@@ -220,8 +258,10 @@ export const performers = [
   matches: 89,
   runs: 2138,
   highestScore: "122*",   // kept as string because of *
-  average: 31.44,
+  battingAverage: 31.44,
+  bowlingAverage: 21.3,
   strikeRate: 89.01,
+  economy: 4.76,
   wickets: 94,
   bestBowling: "5/38",
   fifties: 9,             // 50s
@@ -230,7 +270,7 @@ export const performers = [
     
 },
 
-    awards: ["T20 MVP (2025)"], 
+    awards: ["OVCC T20 MVP (2025)"], 
     
   },
 ];

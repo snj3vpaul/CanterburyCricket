@@ -1,15 +1,64 @@
 // src/pages/History/components/PerformerCard.jsx
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Avatar, Box, Card, CardContent, Chip, Stack, Typography } from "@mui/material";
 
-export default function PerformerCard({ performer, onOpen }) {
-  const s = performer.stats || {};
+function normalizeRole(roleRaw = "") {
+  const r = String(roleRaw).toLowerCase().trim();
 
-  // Handle both batter/bowler style stats gracefully
-  const statA = s.runs != null ? ["Runs", s.runs] : ["Wkts", s.wickets ?? "-"];
-  const statB = s.average != null ? ["Average", s.average] : ["Econ", s.economy ?? "-"];
-  const statC = s.wickets != null ? ["Wickets", s.wickets] : ["Best", s.highestScore ?? "-"];
+  // treat "all rounder", "all-rounder", etc.
+  if (r.includes("all")) return "allrounder";
+  if (r.includes("bowl")) return "bowler";
+  if (r.includes("bat")) return "batter";
+
+  // fallback: legends have "League Legend" etc.
+  return "other";
+}
+
+function pickStatsByRole(role, s) {
+  const val = (x) => (x === 0 ? 0 : x ?? "-");
+
+  // 🟢 Bowler → Economy | Best Bowling | Bowling Average
+  if (role === "bowler") {
+    return [
+      ["Wickets", val(s.wickets)],
+      ["Best", val(s.bestBowling)],
+      ["Bowl Avg", val(s.bowlingAverage ?? s.bowlingAvg ?? s.average)],
+    ];
+  }
+
+  // 🔵 Batter → Strike Rate | 50s | Highest Score
+  if (role === "batter") {
+    return [
+      ["Runs", val(s.runs)],
+      ["50s", val(s.fifties)],
+      ["HS", val(s.highestScore)],
+    ];
+  }
+
+  // 🟡 All-rounder → Runs | Wickets | Strike Rate
+  if (role === "allrounder") {
+    return [
+      ["Runs", val(s.runs)],
+      ["Wkts", val(s.wickets)],
+      ["HS", val(s.highestScore)],
+    ];
+  }
+
+  // ⚪ Fallback (Legends / unknown): balanced trio
+  const statA = s.runs != null ? ["Runs", val(s.runs)] : ["Wkts", val(s.wickets)];
+  const statB = s.average != null ? ["Avg", val(s.average)] : ["SR", val(s.strikeRate)];
+  const statC =
+    s.bestBowling != null ? ["Best", val(s.bestBowling)] : ["HS", val(s.highestScore)];
+
+  return [statA, statB, statC];
+}
+
+export default function PerformerCard({ performer, onOpen }) {
+  const s = performer?.stats || {};
+
+  const roleKey = useMemo(() => normalizeRole(performer?.role), [performer?.role]);
+  const statsToShow = useMemo(() => pickStatsByRole(roleKey, s), [roleKey, s]);
 
   return (
     <Card
@@ -29,17 +78,22 @@ export default function PerformerCard({ performer, onOpen }) {
         <Stack spacing={1.5}>
           <Stack direction="row" spacing={1.4} alignItems="center">
             <Avatar
-              src={performer.headshot}
+              src={performer?.headshot}
+              alt={performer?.name || "Performer"}
               sx={{ width: 56, height: 56, border: "2px solid rgba(255,255,255,0.18)" }}
             />
             <Box>
-              <Typography sx={{ fontWeight: 950, fontSize: 18 }}>{performer.name}</Typography>
-              <Typography sx={{ opacity: 0.8, fontWeight: 700 }}>{performer.role}</Typography>
+              <Typography sx={{ fontWeight: 950, fontSize: 18 }}>
+                {performer?.name}
+              </Typography>
+              <Typography sx={{ opacity: 0.8, fontWeight: 700 }}>
+                {performer?.role}
+              </Typography>
             </Box>
           </Stack>
 
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-            {(performer.awards ?? []).slice(0, 2).map((a) => (
+            {(performer?.awards ?? []).slice(0, 2).map((a) => (
               <Chip
                 key={a}
                 label={a}
@@ -54,10 +108,13 @@ export default function PerformerCard({ performer, onOpen }) {
             ))}
           </Stack>
 
-          <Stack direction="row" spacing={2} sx={{ pt: 0.5 }}>
-            {[statA, statB, statC].map(([k, v]) => (
+          {/* ✅ Always show ONLY 3 stats */}
+          <Stack direction="row" spacing={2} sx={{ pt: 0.5, flexWrap: "wrap", rowGap: 1 }}>
+            {statsToShow.slice(0, 3).map(([k, v]) => (
               <Box key={k} sx={{ minWidth: 82 }}>
-                <Typography sx={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>{k}</Typography>
+                <Typography sx={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>
+                  {k}
+                </Typography>
                 <Typography sx={{ fontWeight: 950, fontSize: 18 }}>{v}</Typography>
               </Box>
             ))}
