@@ -211,12 +211,20 @@
 
 /* Mobile dropdown button */
 .mobileDropdownBtn {
+  font-size:16px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border: 0;
   width: 100%;
   cursor: pointer;
+}
+.mobileDropdownBtn span {
+  font-size: inherit;
+  font-weight: inherit;
 }
 
 .mobileDropdownBtn .chev {
