@@ -97,8 +97,8 @@ export default function HistorySummary() {
           {/* CHG */}
           <DivisionCard
             division="CHG Division"
-            seasons={19}
-            range="2004–2023"
+            seasons={21}
+            range="2004–2025"
             finals={11}
             winners={6}
             semis={5}
@@ -114,27 +114,27 @@ export default function HistorySummary() {
           {/* CTZ */}
           <DivisionCard
             division="CTZ Division"
-            seasons={19}
-            range="2004–2023"
+            seasons={21}
+            range="2004–2025"
             finals={5}
             winners={2}
-            semis={3}
+            semis={4}
             playoffsPct={42}
             lastWin="2018"
-            notes={["No season in 2020, half season in 2021"]}
+            notes={["Platform for Young stars to shine"]}
           />
 
           {/* T20 */}
           <DivisionCard
             division="T20 Division"
-            seasons={15}
-            range="2008–2023"
-            finals={2}
+            seasons={17}
+            range="2008–2025"
+            finals={3}
             winners={2}
             semis={6}
             playoffsPct={53}
             lastWin="2018"
-            notes={["No season in 2020"]}
+            notes={["League Toppers in 2025 season"]}
           />
         </Stack>
       </Stack>

@@ -1,24 +1,21 @@
 /* Navbar1.css */
 :root {
-  
   --nav-bg: rgba(10, 12, 18, 0.72);
   --nav-border: rgba(255, 255, 255, 0.08);
   --nav-text: #faf9f5;
   --nav-muted: rgba(250, 249, 245, 0.7);
   --nav-accent: #ffd36a;
+
+  --dd-bg: rgba(12, 14, 20, 0.92);
+  --dd-border: rgba(255, 255, 255, 0.12);
+  --dd-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
 }
 
 /* This spacer prevents content being hidden behind fixed navbar */
 .navbarSpacer {
   height: var(--nav-h);
-}
-
-.navbarSpacer {
-  height: var(--nav-h);
   transition: height 200ms ease;
 }
-
-
 
 .navbar1 {
   position: fixed;
@@ -28,13 +25,11 @@
   width: 100%;
   z-index: 10000;
 
-  background: rgba(10, 12, 18, 0.72);
+  background: var(--nav-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
   transform: translateY(0);
-
-  
 }
 
 /* ✅ Put nav content above the glow layers */
@@ -43,14 +38,11 @@
   z-index: 2;
 }
 
-/* Blazing glow layer (clipped to navbar now) */
+/* Blazing glow layer */
 .navbar1::before {
   content: "";
   position: absolute;
-
-  /* ✅ keep it inside navbar bounds instead of negative inset */
   inset: -30px -60px -30px -60px;
-
   pointer-events: none;
   z-index: 0;
 
@@ -62,12 +54,11 @@
   opacity: 0.85;
 }
 
-/* Subtle animated “heat” sweep (you were missing content/position/inset) */
+/* Subtle animated “heat” sweep */
 .navbar1::after {
   content: "";
   position: absolute;
   inset: 0;
-
   pointer-events: none;
   z-index: 1;
 
@@ -88,6 +79,7 @@
   50%  { transform: translateX(0%); }
   100% { transform: translateX(-45%); }
 }
+
 .navInner {
   height: 100%;
   max-width: 1200px;
@@ -110,11 +102,10 @@
 }
 
 .brandLogo {
-   width: 65px;        /* or whatever size */
+  width: 65px;
   height: 65px;
-  object-fit: cover; /* prevents stretching */
+  object-fit: cover;
   border-radius: 50%;
-   /* fills corners if logo isn't square */
 }
 
 .brandText {
@@ -146,7 +137,7 @@
   font-size: 14px;
   padding: 10px 10px;
   border-radius: 12px;
-  transition: background 160ms ease, color 160ms ease;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
 .navLink:hover {
@@ -181,7 +172,9 @@
   border-radius: 999px;
 }
 
-/* Base mobile nav item */
+/* ===============================
+   Mobile base
+================================ */
 .mobileNavItem {
   background: rgba(255, 255, 255, 0.04);
   color: #faf9f5;
@@ -191,12 +184,10 @@
   transition: all 200ms ease;
 }
 
-/* Hover */
 .mobileNavItem:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* ✅ ACTIVE TAB */
 .mobileNavItem.active {
   background: linear-gradient(
     135deg,
@@ -209,9 +200,8 @@
     0 0 12px rgba(255, 211, 106, 0.25);
 }
 
-/* Mobile dropdown button */
 .mobileDropdownBtn {
-  font-size:16px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.2px;
   line-height: 1.2;
@@ -222,6 +212,7 @@
   width: 100%;
   cursor: pointer;
 }
+
 .mobileDropdownBtn span {
   font-size: inherit;
   font-weight: inherit;
@@ -236,7 +227,6 @@
   transform: rotate(180deg);
 }
 
-/* Collapsible submenu */
 .mobileSubMenu {
   margin-top: 6px;
   padding-left: 10px;
@@ -251,12 +241,11 @@
 }
 
 .mobileSubMenu.open {
-  max-height: 320px; /* enough to show items */
+  max-height: 360px;
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Sub items */
 .mobileSubItem {
   display: block;
   text-decoration: none;
@@ -319,19 +308,13 @@
   transform: translateX(0%);
 }
 
-/* When mobile menu is closed, it must not tint the page */
 .mobileMenu[aria-hidden="true"] {
   opacity: 0 !important;
   visibility: hidden !important;
   pointer-events: none !important;
-}
-
-/* If your mobileMenu itself has a background/backdrop, kill it when hidden */
-.mobileMenu[aria-hidden="true"] {
   background: transparent !important;
   backdrop-filter: none !important;
 }
-
 
 .mobileHeader {
   display: flex;
@@ -377,77 +360,41 @@
   .navLinksDesktop {
     display: none;
   }
-
   .burger {
     display: flex;
   }
 }
 
-/* Make the Events <button> match <a class="navLink"> exactly */
-.eventsDropdown > button.navLink {
-  appearance: none;
-  -webkit-appearance: none;
-
-  /* match .navLink */
-  text-decoration: none;
-  color: var(--nav-text);
-  font-weight: 700;
-  font-size: 14px;
-  padding: 10px 10px;
-  border-radius: 12px;
-  transition: background 160ms ease, color 160ms ease;
-
-  /* button reset */
-  background: transparent;
-  border: 0;
-  margin: 0;
-  cursor: pointer;
-
-  /* alignment fixes */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  line-height: normal; /* ✅ remove line-height: 1 */
-}
-
+/* ===============================
+   Desktop dropdowns
+================================ */
+.eventsDropdown,
 .historyDropdown {
-  position: relative;   /* ✅ THIS anchors the dropdown */
+  position: relative;
   display: inline-flex;
   align-items: center;
+  z-index: 100001;
 }
 
-/* Only the History dropdown menu */
-.historyDropdown .dropdownMenu {
-  top: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%); /* ✅ centered under the button */
-  right: auto;
-  min-width: 220px;
-  z-index: 100000;
-}
-
-/* Make the History <button> match <a class="navLink"> exactly */
+/* Make <button class="navLink"> match the <a.navLink> exactly */
+.eventsDropdown > button.navLink,
 .historyDropdown > button.navLink {
   appearance: none;
   -webkit-appearance: none;
 
-  /* match .navLink */
   text-decoration: none;
   color: var(--nav-text);
   font-weight: 700;
   font-size: 14px;
   padding: 10px 10px;
   border-radius: 12px;
-  transition: background 160ms ease, color 160ms ease;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 
-  /* button reset */
   background: transparent;
   border: 0;
   margin: 0;
   cursor: pointer;
 
-  /* alignment */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -455,58 +402,102 @@
   line-height: normal;
 }
 
+.eventsDropdown > button.navLink:hover,
 .historyDropdown > button.navLink:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* when dropdown is open OR history route active, highlight like active tab */
+.eventsDropdown > button.navLink.active,
 .historyDropdown > button.navLink.active {
   color: #0b0c10;
   background: var(--nav-accent);
 }
 
-.eventsDropdown {
-  position: relative;
-  z-index: 100001;
-}
-
-
-.eventsDropdown > button.navLink:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* when dropdown is open, highlight like active tab */
-.eventsDropdown > button.navLink.active {
-  color: #0b0c10;
-  background: var(--nav-accent);
-}
-
+/* Dropdown menu (polished entrance + hover effects) */
 .dropdownMenu {
   position: absolute;
   top: calc(100% + 10px);
-  left: 0;              /* ✅ anchor under Events button */
-  right: auto;          /* ✅ remove right alignment */
-  min-width: 180px;
+  left: 0;
+  min-width: 220px;
   padding: 8px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(12, 14, 20, 0.92);
+  border: 1px solid var(--dd-border);
+  background: var(--dd-bg);
   backdrop-filter: blur(14px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--dd-shadow);
   z-index: 100000;
+
+  /* Entrance animation */
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Center the History dropdown under its button */
+.historyDropdown .dropdownMenu {
+  left: 50%;
+  transform: translateX(-50%) translateY(10px) scale(0.98);
+  right: auto;
+}
 
+/* When React renders it, make it “open” */
+.eventsDropdown .dropdownMenu,
+.historyDropdown .dropdownMenu {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* History open state needs centered transform */
+.historyDropdown .dropdownMenu {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Dropdown items */
 .dropdownItem {
   display: block;
+  width: 100%;
   text-decoration: none;
-  color: #faf9f5;
+
+  color: rgba(250, 249, 245, 0.86);
   font-weight: 700;
   font-size: 14px;
-  padding: 10px 10px;
+
+  padding: 12px 14px;
   border-radius: 12px;
+
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    transform 140ms ease;
 }
 
+/* ✅ Premium hover */
 .dropdownItem:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(
+    90deg,
+    rgba(79, 82, 255, 0.18),
+    rgba(255, 211, 106, 0.18)
+  );
+  color: #fff;
+  transform: translateX(4px);
+}
+
+.dropdownItem:active {
+  transform: translateX(6px) scale(0.98);
+}
+
+/* ✅ Golden shimmer for Golden Era link (add className="dropdownItem golden" in JSX if desired) */
+.dropdownItem.golden:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 211, 106, 0.22),
+    rgba(79, 82, 255, 0.16)
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 211, 106, 0.22);
 }
