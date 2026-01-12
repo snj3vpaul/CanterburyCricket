@@ -163,6 +163,13 @@ export default function Navbar1() {
                   >
                     League Legends
                   </Link>
+                  <Link
+                    to="/history#performers"
+                    className="dropdownItem"
+                    onClick={closeAll}
+                  >
+                    Recent Stars
+                  </Link>
                 </div>
               )}
             </div>
@@ -266,6 +273,14 @@ export default function Navbar1() {
           >
             League Legends
           </Link>
+                <Link
+        to="/history#performers"
+        className={`mobileNavItem ${isHistoryActive && hash === "#performers" ? "active" : ""}`}
+        onClick={closeAll}
+      >
+        Recent Stars
+      </Link>
+
 
           <NavLink to="/squad" className={mobileLinkClass} onClick={closeAll}>
             Our Squad

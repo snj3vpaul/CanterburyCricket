@@ -137,7 +137,9 @@ export default function HistoryPage() {
         />
 
         {/* TOP PERFORMERS */}
-        <PerformersSection performers={performers} />
+        <Box id="performers" sx={{ scrollMarginTop: "96px" }}>
+  <PerformersSection performers={performers} />
+</Box>
       </Container>
     </Box>
   );
