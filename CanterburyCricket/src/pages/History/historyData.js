@@ -58,6 +58,71 @@ export const championships = [
     keyPerformers: ["Akram", "Haris", "Jitesh"],
   },
   {
+  id: "ctz-2018-final",
+  year: 2018,
+  division: "CTZ",
+  placement: "champion",
+
+  title: "CTZ Division Champions",
+  subtitle: "2018 Final — Canterbury vs Royal",
+  // ✅ ADD scorecard link
+  scoreboardUrl:
+    "https://cricheroes.com/scorecard/____/2018-citizen-final/canterbury-(ctz)-vs-royal-(ctz)/summary",
+  result: "Won by 118 runs",
+
+  match: {
+    opponent: "Royal (CTZ)",
+    canterbury: "245/10 (37.5 ov)",
+    royal: "127/10 (30.5 ov)",
+    date: "22-Sep-2018",
+    location: "Ottawa (Ontario)",
+    format: "40 Ov",
+    toss: "Royal (CTZ) opted to field",
+  },
+
+  highlights: [
+    "Haris Chaudhry 85 (60 balls) — 7 fours, 4 sixes",
+    "S Ahmed 50 (68 balls) — 1 four, 3 sixes",
+    "A Ahmadzai 42 (31 balls) — 2 fours, 2 sixes",
+    "Z Mahmood 4/18 (8.0 ov) — econ 2.25",
+    "S Patel 3/43 (7.5 ov)",
+    "A Khalid 3/37 (5.0 ov)",
+  ],
+},
+{
+  id: "t20-2018-final",
+  year: 2018,
+  division: "T20",
+  placement: "champion",
+
+  title: "T20 Division Champions",
+  subtitle: "2018 Final — Canterbury vs Defence",
+  scoreboardUrl:
+    "https://cricheroes.com/scorecard/____/2018-t20-final/canterbury-(t20)-vs-defence-(t20)/summary",
+  result: "Won by 5 wickets",
+
+  match: {
+    opponent: "Defence T20",
+    canterbury: "106/5 (18.2 ov)",
+    defence: "105/9 (20.0 ov)",
+    date: "06-Oct-2018",
+    location: "Ottawa (Ontario)",
+    format: "T20",
+    toss: "Canterbury (T20) opted to field",
+  },
+
+  highlights: [
+    "Haris Chaudhry 39 (41 balls) — 1 four, 2 sixes",
+    "A Singh Chahal 20 (12 balls) — strike rate 166.67",
+    "R Gill 22 (29 balls)",
+    "S Akhlaq 4/11 (4.0 ov) — econ 2.75",
+    "S Gill 2/23 (4.0 ov)",
+    "A Singh 2/25 (4.0 ov)",
+  ],
+},
+
+
+  {
     id: "chg-2017-final",
     year: 2017,
     division: "CHG",
