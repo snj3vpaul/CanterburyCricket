@@ -1,6 +1,6 @@
 // src/components/Navbars/Navbar1.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { NavLink, Link, useLocation } from "react-router-dom";
+import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import "./Navbar1.css";
 import CburyLogo from "../../assets/CburyLogo.png";
@@ -13,29 +13,30 @@ export default function Navbar1() {
   const [eventsOpen, setEventsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  // Mobile accordions (separate from desktop so they don't fight each other)
+  // Mobile accordions
   const [mEventsOpen, setMEventsOpen] = useState(false);
   const [mHistoryOpen, setMHistoryOpen] = useState(false);
 
   const prefersReducedMotion = useReducedMotion();
   const { pathname, hash } = useLocation();
+  const navigate = useNavigate();
 
   const lastYRef = useRef(0);
   const rafRef = useRef(0);
 
-  // ✅ Desktop active class
+  // Desktop active class
   const linkClass = useCallback(
     ({ isActive }) => (isActive ? "navLink active" : "navLink"),
     []
   );
 
-  // ✅ Mobile active class
+  // Mobile active class
   const mobileLinkClass = useCallback(
     ({ isActive }) => `mobileNavItem ${isActive ? "active" : ""}`,
     []
   );
 
-  // ✅ Treat /history and /history#* as active for History
+  // Treat /history and /history#* as active for History
   const isHistoryActive = pathname === "/history";
 
   const closeAll = useCallback(() => {
@@ -54,17 +55,31 @@ export default function Navbar1() {
   const toggleMenu = useCallback(() => {
     setMenuOpen((v) => {
       const next = !v;
-      // When opening the drawer, reset accordions for a clean start
+
       if (next) {
+        // reset mobile accordions
         setMEventsOpen(false);
         setMHistoryOpen(false);
-        // also close desktop dropdowns
+
+        // close desktop dropdowns
         setEventsOpen(false);
         setHistoryOpen(false);
       }
       return next;
     });
   }, []);
+
+  const goHistoryTop = useCallback(() => {
+    // Always navigate to /history (no hash) and ensure top
+    if (pathname !== "/history" || hash) {
+      navigate("/history");
+    }
+    // Scroll after navigation tick
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
+    closeAll();
+  }, [navigate, pathname, hash, closeAll]);
 
   // Lock body scroll only while mobile menu is open
   useEffect(() => {
@@ -74,7 +89,7 @@ export default function Navbar1() {
     };
   }, [menuOpen]);
 
-  // Close desktop dropdowns if clicking outside (only relevant on desktop)
+  // Close desktop dropdowns if clicking outside
   useEffect(() => {
     const onDocClick = (e) => {
       if (!e.target.closest(".eventsDropdown")) setEventsOpen(false);
@@ -84,14 +99,11 @@ export default function Navbar1() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // Close mobile menu + dropdowns on route change (prevents stale open menus)
+  // Close menus on route change
   useEffect(() => {
-    // Close drawer + accordions
     setMenuOpen(false);
     setMEventsOpen(false);
     setMHistoryOpen(false);
-
-    // Close desktop dropdowns
     setEventsOpen(false);
     setHistoryOpen(false);
   }, [pathname, hash]);
@@ -153,24 +165,14 @@ export default function Navbar1() {
         className={`navbar1 ${isVisible ? "show" : "hide"}`}
         initial={false}
         animate={
-          prefersReducedMotion
-            ? {}
-            : { y: isVisible ? 0 : "calc(-1 * var(--nav-h))" }
+          prefersReducedMotion ? {} : { y: isVisible ? 0 : "calc(-1 * var(--nav-h))" }
         }
-        transition={
-          prefersReducedMotion
-            ? { duration: 0 }
-            : { duration: 0.2, ease: "easeOut" }
-        }
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }}
       >
         <div className="navInner">
           {/* Brand */}
           <NavLink to="/" className="brand" onClick={closeAll}>
-            <img
-              className="brandLogo"
-              src={CburyLogo}
-              alt="Canterbury Cricket Club"
-            />
+            <img className="brandLogo" src={CburyLogo} alt="Canterbury Cricket Club" />
             <div className="brandText">
               <div className="brandTitle">Canterbury CC</div>
               <div className="brandSub">Est. 1983</div>
@@ -191,7 +193,12 @@ export default function Navbar1() {
                 aria-haspopup="menu"
                 aria-expanded={historyOpen}
                 onClick={() => {
-                  // ensure only one desktop dropdown open at a time
+                  // ✅ Always clickable: first action is to go to History top
+                  // If already on /history with no hash, toggle dropdown on subsequent clicks
+                  if (pathname !== "/history" || hash) {
+                    goHistoryTop();
+                    return;
+                  }
                   setEventsOpen(false);
                   setHistoryOpen((v) => !v);
                 }}
@@ -201,25 +208,19 @@ export default function Navbar1() {
 
               {historyOpen && (
                 <div className="dropdownMenu" role="menu">
-                  <Link
-                    to="/history#championships"
-                    className="dropdownItem"
-                    onClick={closeAll}
-                  >
+                  <Link to="/history#golden-era" className="dropdownItem" onClick={closeAll}>
+                    Golden Era
+                  </Link>
+                  <Link to="/history#summary" className="dropdownItem" onClick={closeAll}>
+                    Club Summary
+                  </Link>
+                  <Link to="/history#championships" className="dropdownItem" onClick={closeAll}>
                     Championship History
                   </Link>
-                  <Link
-                    to="/history#legends"
-                    className="dropdownItem"
-                    onClick={closeAll}
-                  >
+                  <Link to="/history#legends" className="dropdownItem" onClick={closeAll}>
                     League Legends
                   </Link>
-                  <Link
-                    to="/history#performers"
-                    className="dropdownItem"
-                    onClick={closeAll}
-                  >
+                  <Link to="/history#performers" className="dropdownItem" onClick={closeAll}>
                     Recent Stars
                   </Link>
                 </div>
@@ -302,11 +303,7 @@ export default function Navbar1() {
       >
         <div className="mobileHeader">
           <span className="mobileTitle">Menu</span>
-          <button
-            className="closeBtn"
-            aria-label="Close menu"
-            onClick={() => setMenuOpen(false)}
-          >
+          <button className="closeBtn" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
             ✕
           </button>
         </div>
@@ -316,13 +313,18 @@ export default function Navbar1() {
             Home
           </NavLink>
 
-          {/* Mobile: Rich History accordion */}
+          {/* ✅ Mobile: Rich History quick link + accordion */}
           <button
             type="button"
             className={`mobileNavItem mobileDropdownBtn ${mHistoryOpen ? "open" : ""}`}
             aria-expanded={mHistoryOpen}
             onClick={() => {
-              // only one accordion open at a time
+              // If user taps the row (not the chevron intention), take them to History top.
+              // Then a second tap can open submenu if they want.
+              if (!isHistoryActive || hash) {
+                goHistoryTop();
+                return;
+              }
               setMEventsOpen(false);
               setMHistoryOpen((v) => !v);
             }}
@@ -335,6 +337,22 @@ export default function Navbar1() {
 
           <div className={`mobileSubMenu ${mHistoryOpen ? "open" : ""}`}>
             <Link
+              to="/history#golden-era"
+              className={`mobileSubItem ${isHistoryActive && hash === "#golden-era" ? "active" : ""}`}
+              onClick={closeAll}
+            >
+              Golden Era
+            </Link>
+
+            <Link
+              to="/history#summary"
+              className={`mobileSubItem ${isHistoryActive && hash === "#summary" ? "active" : ""}`}
+              onClick={closeAll}
+            >
+              Club Summary
+            </Link>
+
+            <Link
               to="/history#championships"
               className={`mobileSubItem ${
                 isHistoryActive && (hash === "" || hash === "#championships") ? "active" : ""
@@ -346,9 +364,7 @@ export default function Navbar1() {
 
             <Link
               to="/history#legends"
-              className={`mobileSubItem ${
-                isHistoryActive && hash === "#legends" ? "active" : ""
-              }`}
+              className={`mobileSubItem ${isHistoryActive && hash === "#legends" ? "active" : ""}`}
               onClick={closeAll}
             >
               League Legends
@@ -356,9 +372,7 @@ export default function Navbar1() {
 
             <Link
               to="/history#performers"
-              className={`mobileSubItem ${
-                isHistoryActive && hash === "#performers" ? "active" : ""
-              }`}
+              className={`mobileSubItem ${isHistoryActive && hash === "#performers" ? "active" : ""}`}
               onClick={closeAll}
             >
               Recent Stars

@@ -1,31 +1,29 @@
 // src/pages/History/HistoryPage.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState,useEffect } from "react";
 import { Box, Chip, Container, Divider, Stack, Typography } from "@mui/material";
 
 import HeroHistory from "./components/HeroHistory";
+import GoldenEraHighlight from "./components/GoldenEraHighlight";
 import ChampionshipTimeline from "./components/ChampionshipTimeline";
 import LeagueLegendsSection from "./components/LeagueLegendsSection";
 import PerformersSection from "./components/PerformersSection";
+import HistorySummary from "./components/HistorySummary";
 
 import { championships, leagueLegends, performers } from "./historyData";
 
-const DIVS = ["All", "T20", "CTZ", "CHG"];
+const DIVS = ["All", "T20", "CTZ", "CHG"]; // add "OCA" here later if you want that filter too
 const PLACEMENTS = ["All", "Champion", "Runner-Up"];
 
 export default function HistoryPage() {
   const [division, setDivision] = useState("All");
   const [placement, setPlacement] = useState("All");
+useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+  // ✅ Timeline data = championships only (Golden Era is featured at top)
+  const allChampionships = useMemo(() => [...(championships ?? [])], []);
 
-  // Add any manual legacy entries here (optional)
-  const extraChampionships = useMemo(() => [], []);
-
-  // Merge base + extra once
-  const allChampionships = useMemo(
-    () => [...(championships ?? []), ...(extraChampionships ?? [])],
-    [extraChampionships]
-  );
-
-  // Filter from merged list
+  // Filter timeline list
   const filteredChamps = useMemo(() => {
     return (allChampionships ?? []).filter((c) => {
       if (division !== "All" && c.division !== division) return false;
@@ -39,7 +37,7 @@ export default function HistoryPage() {
     });
   }, [allChampionships, division, placement]);
 
-  // Counts (use merged list for consistency)
+  // Counts for HeroHistory
   const totalTitles = useMemo(
     () => (allChampionships ?? []).filter((c) => c.placement === "champion").length,
     [allChampionships]
@@ -59,6 +57,14 @@ export default function HistoryPage() {
       />
 
       <Container sx={{ py: { xs: 6, md: 10 } }}>
+        {/* ✅ FEATURED: GOLDEN ERA */}
+        <Box id="golden-era" sx={{ scrollMarginTop: "96px", mb: { xs: 6, md: 7 } }}>
+          <GoldenEraHighlight />
+        </Box>
+        <Box id="summary" sx={{ scrollMarginTop: "96px", mb: { xs: 6, md: 7 } }}>
+  <HistorySummary />
+</Box>
+
         {/* ✅ ANCHOR TARGET: Championship History */}
         <Box id="championships" sx={{ scrollMarginTop: "96px" }}>
           <Stack spacing={2} sx={{ mb: 4 }}>
@@ -138,8 +144,8 @@ export default function HistoryPage() {
 
         {/* TOP PERFORMERS */}
         <Box id="performers" sx={{ scrollMarginTop: "96px" }}>
-  <PerformersSection performers={performers} />
-</Box>
+          <PerformersSection performers={performers} />
+        </Box>
       </Container>
     </Box>
   );
