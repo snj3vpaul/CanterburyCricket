@@ -1,6 +1,6 @@
-// Navbar1.jsx
+// src/components/Navbars/Navbar1.jsx
 import { useEffect, useRef, useState, useCallback } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import "./Navbar1.css";
 import CburyLogo from "../../assets/CburyLogo.png";
@@ -9,8 +9,10 @@ export default function Navbar1() {
   const [isVisible, setIsVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [eventsOpen, setEventsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const prefersReducedMotion = useReducedMotion();
+  const { pathname, hash } = useLocation();
 
   const lastYRef = useRef(0);
   const rafRef = useRef(0);
@@ -18,6 +20,7 @@ export default function Navbar1() {
   const closeAll = useCallback(() => {
     setMenuOpen(false);
     setEventsOpen(false);
+    setHistoryOpen(false);
   }, []);
 
   // ✅ Desktop active class (keeps your current behavior)
@@ -26,11 +29,14 @@ export default function Navbar1() {
     []
   );
 
-  // ✅ Mobile active class (Step 2): uses .mobileNavItem + .active
+  // ✅ Mobile active class
   const mobileLinkClass = useCallback(
     ({ isActive }) => `mobileNavItem ${isActive ? "active" : ""}`,
     []
   );
+
+  // ✅ Treat /history and /history#* as active for the History dropdown button
+  const isHistoryActive = pathname === "/history";
 
   // Lock body scroll only while mobile menu is open
   useEffect(() => {
@@ -40,10 +46,11 @@ export default function Navbar1() {
     };
   }, [menuOpen]);
 
-  // Close desktop dropdown if clicking outside
+  // Close desktop dropdowns if clicking outside
   useEffect(() => {
     const onDocClick = (e) => {
       if (!e.target.closest(".eventsDropdown")) setEventsOpen(false);
+      if (!e.target.closest(".historyDropdown")) setHistoryOpen(false);
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
@@ -51,7 +58,7 @@ export default function Navbar1() {
 
   // Hide/reveal on scroll (NO layout shifts)
   useEffect(() => {
-    const threshold = 14; // ignore tiny scroll jitter
+    const threshold = 14;
     let last = window.scrollY || 0;
     lastYRef.current = last;
 
@@ -64,8 +71,10 @@ export default function Navbar1() {
         const y = window.scrollY || 0;
         const delta = y - last;
 
+        // Close menus on scroll
         if (menuOpen) setMenuOpen(false);
         if (eventsOpen) setEventsOpen(false);
+        if (historyOpen) setHistoryOpen(false);
 
         if (y < 6) {
           if (!isVisible) setIsVisible(true);
@@ -94,7 +103,7 @@ export default function Navbar1() {
       window.removeEventListener("scroll", onScroll);
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
     };
-  }, [eventsOpen, menuOpen, isVisible]);
+  }, [eventsOpen, menuOpen, historyOpen, isVisible]);
 
   return (
     <>
@@ -113,11 +122,7 @@ export default function Navbar1() {
         <div className="navInner">
           {/* Brand */}
           <NavLink to="/" className="brand" onClick={closeAll}>
-            <img
-              className="brandLogo"
-              src={CburyLogo}
-              alt="Canterbury Cricket Club"
-            />
+            <img className="brandLogo" src={CburyLogo} alt="Canterbury Cricket Club" />
             <div className="brandText">
               <div className="brandTitle">Canterbury CC</div>
               <div className="brandSub">Est. 1983</div>
@@ -129,12 +134,43 @@ export default function Navbar1() {
             <NavLink to="/" className={linkClass}>
               Home
             </NavLink>
-            <NavLink to="/history" className={linkClass}>
-              Rich History
-            </NavLink>
+
+            {/* ✅ History dropdown (desktop) */}
+            <div className="historyDropdown">
+              <button
+                type="button"
+                className={`navLink ${historyOpen || isHistoryActive ? "active" : ""}`}
+                aria-haspopup="menu"
+                aria-expanded={historyOpen}
+                onClick={() => setHistoryOpen((v) => !v)}
+              >
+                Rich History ▾
+              </button>
+
+              {historyOpen && (
+                <div className="dropdownMenu" role="menu">
+                  <Link
+                    to="/history#championships"
+                    className="dropdownItem"
+                    onClick={closeAll}
+                  >
+                    Championship History
+                  </Link>
+                  <Link
+                    to="/history#legends"
+                    className="dropdownItem"
+                    onClick={closeAll}
+                  >
+                    League Legends
+                  </Link>
+                </div>
+              )}
+            </div>
+
             <NavLink to="/squad" className={linkClass}>
               Our Squad
             </NavLink>
+
             <NavLink to="/season" className={linkClass}>
               Season
             </NavLink>
@@ -153,11 +189,7 @@ export default function Navbar1() {
 
               {eventsOpen && (
                 <div className="dropdownMenu" role="menu">
-                  <NavLink
-                    to="/awards"
-                    className="dropdownItem"
-                    onClick={() => setEventsOpen(false)}
-                  >
+                  <NavLink to="/awards" className="dropdownItem" onClick={closeAll}>
                     Awards Night
                   </NavLink>
                 </div>
@@ -167,9 +199,11 @@ export default function Navbar1() {
             <NavLink to="/sponsors" className={linkClass}>
               Sponsors
             </NavLink>
+
             <NavLink to="/contact" className={linkClass}>
               Contact Us!
             </NavLink>
+
             <NavLink to="/member-login" className={linkClass}>
               Member Only
             </NavLink>
@@ -206,24 +240,32 @@ export default function Navbar1() {
       >
         <div className="mobileHeader">
           <span className="mobileTitle">Menu</span>
-          <button
-            className="closeBtn"
-            aria-label="Close menu"
-            onClick={() => setMenuOpen(false)}
-          >
+          <button className="closeBtn" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
             ✕
           </button>
         </div>
 
         <nav className="navLinksMobile">
-          {/* ✅ Uses mobileLinkClass so current tab gets the gold/active styling */}
           <NavLink to="/" className={mobileLinkClass} onClick={closeAll} end>
             Home
           </NavLink>
 
-          <NavLink to="/history" className={mobileLinkClass} onClick={closeAll}>
-            Rich History
-          </NavLink>
+          {/* ✅ Mobile: two direct section links */}
+          <Link
+            to="/history#championships"
+            className={`mobileNavItem ${isHistoryActive && (hash === "" || hash === "#championships") ? "active" : ""}`}
+            onClick={closeAll}
+          >
+            Championship History
+          </Link>
+
+          <Link
+            to="/history#legends"
+            className={`mobileNavItem ${isHistoryActive && hash === "#legends" ? "active" : ""}`}
+            onClick={closeAll}
+          >
+            League Legends
+          </Link>
 
           <NavLink to="/squad" className={mobileLinkClass} onClick={closeAll}>
             Our Squad
@@ -251,7 +293,7 @@ export default function Navbar1() {
         </nav>
       </aside>
 
-      {/* ✅ Spacer ALWAYS present (prevents flicker) */}
+      {/* Spacer ALWAYS present */}
       <div className="navbarSpacer" />
     </>
   );

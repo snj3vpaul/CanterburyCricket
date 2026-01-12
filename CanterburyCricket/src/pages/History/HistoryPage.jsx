@@ -16,21 +16,16 @@ export default function HistoryPage() {
   const [division, setDivision] = useState("All");
   const [placement, setPlacement] = useState("All");
 
-  // ✅ ADD: 2006 CHG Final (from your screenshot)
-  const extraChampionships = useMemo(
-    () => [
-      
-    ],
-    []
-  );
+  // Add any manual legacy entries here (optional)
+  const extraChampionships = useMemo(() => [], []);
 
-  // ✅ ADD: merge base + extra
+  // Merge base + extra once
   const allChampionships = useMemo(
-    () => [...(championships ?? []), ...extraChampionships],
+    () => [...(championships ?? []), ...(extraChampionships ?? [])],
     [extraChampionships]
   );
 
-  // ✅ CHANGE: filter from merged list (was championships)
+  // Filter from merged list
   const filteredChamps = useMemo(() => {
     return (allChampionships ?? []).filter((c) => {
       if (division !== "All" && c.division !== division) return false;
@@ -44,78 +39,83 @@ export default function HistoryPage() {
     });
   }, [allChampionships, division, placement]);
 
-  // ✅ CHANGE: count titles from merged list (was championships)
+  // Counts (use merged list for consistency)
   const totalTitles = useMemo(
     () => (allChampionships ?? []).filter((c) => c.placement === "champion").length,
     [allChampionships]
   );
+
   const totalRunnerUps = useMemo(
-  () => (championships ?? []).filter((c) => c.placement === "runner-up").length,
-  []
-);
+    () => (allChampionships ?? []).filter((c) => c.placement === "runner-up").length,
+    [allChampionships]
+  );
 
   return (
     <Box sx={{ color: "#faf9f5", minHeight: "100vh" }}>
       <HeroHistory
         totalTitles={totalTitles}
-        totalRunnerUps={totalRunnerUps} 
+        totalRunnerUps={totalRunnerUps}
         subtitle="Trophies, finals, and the legends who made it happen."
       />
 
       <Container sx={{ py: { xs: 6, md: 10 } }}>
-        {/* TIMELINE HEADER + FILTERS */}
-        <Stack spacing={2} sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 900 }}>
-            Seasons & Finals Journey
-          </Typography>
+        {/* ✅ ANCHOR TARGET: Championship History */}
+        <Box id="championships" sx={{ scrollMarginTop: "96px" }}>
+          <Stack spacing={2} sx={{ mb: 4 }}>
+            <Typography variant="h4" sx={{ fontWeight: 900 }}>
+              Seasons & Finals Journey
+            </Typography>
 
-          <Typography sx={{ opacity: 0.85, maxWidth: 950 }}>
-            Scroll through our timeline — titles, runner-ups, and the moments that built the club.
-          </Typography>
+            <Typography sx={{ opacity: 0.85, maxWidth: 950 }}>
+              Scroll through our timeline — titles, runner-ups, and the moments that built the club.
+            </Typography>
 
-          <Stack spacing={1.2}>
-            {/* Division filter */}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-              {DIVS.map((d) => (
-                <Chip
-                  key={d}
-                  label={d}
-                  clickable
-                  onClick={() => setDivision(d)}
-                  color={division === d ? "primary" : "default"}
-                  sx={{
-                    fontWeight: 850,
-                    bgcolor: division === d ? "primary.main" : "rgba(255,255,255,0.08)",
-                    color: "#faf9f5",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                  }}
-                />
-              ))}
-            </Stack>
+            <Stack spacing={1.2}>
+              {/* Division filter */}
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+                {DIVS.map((d) => (
+                  <Chip
+                    key={d}
+                    label={d}
+                    clickable
+                    onClick={() => setDivision(d)}
+                    color={division === d ? "primary" : "default"}
+                    sx={{
+                      fontWeight: 850,
+                      bgcolor:
+                        division === d ? "primary.main" : "rgba(255,255,255,0.08)",
+                      color: "#faf9f5",
+                      border: "1px solid rgba(255,255,255,0.14)",
+                    }}
+                  />
+                ))}
+              </Stack>
 
-            {/* Placement filter */}
-            <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
-              {PLACEMENTS.map((p) => (
-                <Chip
-                  key={p}
-                  label={p}
-                  clickable
-                  onClick={() => setPlacement(p)}
-                  color={placement === p ? "primary" : "default"}
-                  sx={{
-                    fontWeight: 850,
-                    bgcolor: placement === p ? "primary.main" : "rgba(255,255,255,0.08)",
-                    color: "#faf9f5",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                  }}
-                />
-              ))}
+              {/* Placement filter */}
+              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+                {PLACEMENTS.map((p) => (
+                  <Chip
+                    key={p}
+                    label={p}
+                    clickable
+                    onClick={() => setPlacement(p)}
+                    color={placement === p ? "primary" : "default"}
+                    sx={{
+                      fontWeight: 850,
+                      bgcolor:
+                        placement === p ? "primary.main" : "rgba(255,255,255,0.08)",
+                      color: "#faf9f5",
+                      border: "1px solid rgba(255,255,255,0.14)",
+                    }}
+                  />
+                ))}
+              </Stack>
             </Stack>
           </Stack>
-        </Stack>
 
-        {/* TIMELINE */}
-        <ChampionshipTimeline items={filteredChamps} />
+          {/* TIMELINE */}
+          <ChampionshipTimeline items={filteredChamps} />
+        </Box>
 
         <Divider
           sx={{
@@ -124,8 +124,10 @@ export default function HistoryPage() {
           }}
         />
 
-        {/* LEGENDS */}
-        <LeagueLegendsSection legends={leagueLegends} />
+        {/* ✅ ANCHOR TARGET: League Legends */}
+        <Box id="legends" sx={{ scrollMarginTop: "96px" }}>
+          <LeagueLegendsSection legends={leagueLegends} />
+        </Box>
 
         <Divider
           sx={{
