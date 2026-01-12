@@ -256,8 +256,10 @@ export default function Navbar1() {
           <NavLink to="/" className={mobileLinkClass} onClick={closeAll} end>
             Home
           </NavLink>
-
-          {/* ✅ Mobile: two direct section links */}
+<div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>
+            Rich History
+          </div>
+          {/* ✅ Mobile: three direct section links */}
           <Link
             to="/history#championships"
             className={`mobileNavItem ${isHistoryActive && (hash === "" || hash === "#championships") ? "active" : ""}`}
