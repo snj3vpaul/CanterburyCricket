@@ -8,8 +8,14 @@ import CburyLogo from "../../assets/CburyLogo.png";
 export default function Navbar1() {
   const [isVisible, setIsVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Desktop dropdown state
   const [eventsOpen, setEventsOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Mobile accordions (separate from desktop so they don't fight each other)
+  const [mEventsOpen, setMEventsOpen] = useState(false);
+  const [mHistoryOpen, setMHistoryOpen] = useState(false);
 
   const prefersReducedMotion = useReducedMotion();
   const { pathname, hash } = useLocation();
@@ -17,13 +23,7 @@ export default function Navbar1() {
   const lastYRef = useRef(0);
   const rafRef = useRef(0);
 
-  const closeAll = useCallback(() => {
-    setMenuOpen(false);
-    setEventsOpen(false);
-    setHistoryOpen(false);
-  }, []);
-
-  // ✅ Desktop active class (keeps your current behavior)
+  // ✅ Desktop active class
   const linkClass = useCallback(
     ({ isActive }) => (isActive ? "navLink active" : "navLink"),
     []
@@ -35,8 +35,36 @@ export default function Navbar1() {
     []
   );
 
-  // ✅ Treat /history and /history#* as active for the History dropdown button
+  // ✅ Treat /history and /history#* as active for History
   const isHistoryActive = pathname === "/history";
+
+  const closeAll = useCallback(() => {
+    setMenuOpen(false);
+    setEventsOpen(false);
+    setHistoryOpen(false);
+    setMEventsOpen(false);
+    setMHistoryOpen(false);
+  }, []);
+
+  const closeDesktopDropdowns = useCallback(() => {
+    setEventsOpen(false);
+    setHistoryOpen(false);
+  }, []);
+
+  const toggleMenu = useCallback(() => {
+    setMenuOpen((v) => {
+      const next = !v;
+      // When opening the drawer, reset accordions for a clean start
+      if (next) {
+        setMEventsOpen(false);
+        setMHistoryOpen(false);
+        // also close desktop dropdowns
+        setEventsOpen(false);
+        setHistoryOpen(false);
+      }
+      return next;
+    });
+  }, []);
 
   // Lock body scroll only while mobile menu is open
   useEffect(() => {
@@ -46,7 +74,7 @@ export default function Navbar1() {
     };
   }, [menuOpen]);
 
-  // Close desktop dropdowns if clicking outside
+  // Close desktop dropdowns if clicking outside (only relevant on desktop)
   useEffect(() => {
     const onDocClick = (e) => {
       if (!e.target.closest(".eventsDropdown")) setEventsOpen(false);
@@ -55,6 +83,18 @@ export default function Navbar1() {
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
+
+  // Close mobile menu + dropdowns on route change (prevents stale open menus)
+  useEffect(() => {
+    // Close drawer + accordions
+    setMenuOpen(false);
+    setMEventsOpen(false);
+    setMHistoryOpen(false);
+
+    // Close desktop dropdowns
+    setEventsOpen(false);
+    setHistoryOpen(false);
+  }, [pathname, hash]);
 
   // Hide/reveal on scroll (NO layout shifts)
   useEffect(() => {
@@ -75,6 +115,8 @@ export default function Navbar1() {
         if (menuOpen) setMenuOpen(false);
         if (eventsOpen) setEventsOpen(false);
         if (historyOpen) setHistoryOpen(false);
+        if (mEventsOpen) setMEventsOpen(false);
+        if (mHistoryOpen) setMHistoryOpen(false);
 
         if (y < 6) {
           if (!isVisible) setIsVisible(true);
@@ -103,7 +145,7 @@ export default function Navbar1() {
       window.removeEventListener("scroll", onScroll);
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
     };
-  }, [eventsOpen, menuOpen, historyOpen, isVisible]);
+  }, [eventsOpen, historyOpen, menuOpen, mEventsOpen, mHistoryOpen, isVisible]);
 
   return (
     <>
@@ -116,13 +158,19 @@ export default function Navbar1() {
             : { y: isVisible ? 0 : "calc(-1 * var(--nav-h))" }
         }
         transition={
-          prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: "easeOut" }
+          prefersReducedMotion
+            ? { duration: 0 }
+            : { duration: 0.2, ease: "easeOut" }
         }
       >
         <div className="navInner">
           {/* Brand */}
           <NavLink to="/" className="brand" onClick={closeAll}>
-            <img className="brandLogo" src={CburyLogo} alt="Canterbury Cricket Club" />
+            <img
+              className="brandLogo"
+              src={CburyLogo}
+              alt="Canterbury Cricket Club"
+            />
             <div className="brandText">
               <div className="brandTitle">Canterbury CC</div>
               <div className="brandSub">Est. 1983</div>
@@ -131,18 +179,22 @@ export default function Navbar1() {
 
           {/* Desktop Links */}
           <nav className="navLinksDesktop" aria-label="Primary navigation">
-            <NavLink to="/" className={linkClass}>
+            <NavLink to="/" className={linkClass} onClick={closeDesktopDropdowns}>
               Home
             </NavLink>
 
-            {/* ✅ History dropdown (desktop) */}
+            {/* History dropdown (desktop) */}
             <div className="historyDropdown">
               <button
                 type="button"
                 className={`navLink ${historyOpen || isHistoryActive ? "active" : ""}`}
                 aria-haspopup="menu"
                 aria-expanded={historyOpen}
-                onClick={() => setHistoryOpen((v) => !v)}
+                onClick={() => {
+                  // ensure only one desktop dropdown open at a time
+                  setEventsOpen(false);
+                  setHistoryOpen((v) => !v);
+                }}
               >
                 Rich History ▾
               </button>
@@ -174,11 +226,11 @@ export default function Navbar1() {
               )}
             </div>
 
-            <NavLink to="/squad" className={linkClass}>
+            <NavLink to="/squad" className={linkClass} onClick={closeDesktopDropdowns}>
               Our Squad
             </NavLink>
 
-            <NavLink to="/season" className={linkClass}>
+            <NavLink to="/season" className={linkClass} onClick={closeDesktopDropdowns}>
               Season
             </NavLink>
 
@@ -189,7 +241,10 @@ export default function Navbar1() {
                 className={`navLink ${eventsOpen ? "active" : ""}`}
                 aria-haspopup="menu"
                 aria-expanded={eventsOpen}
-                onClick={() => setEventsOpen((v) => !v)}
+                onClick={() => {
+                  setHistoryOpen(false);
+                  setEventsOpen((v) => !v);
+                }}
               >
                 Events ▾
               </button>
@@ -203,15 +258,15 @@ export default function Navbar1() {
               )}
             </div>
 
-            <NavLink to="/sponsors" className={linkClass}>
+            <NavLink to="/sponsors" className={linkClass} onClick={closeDesktopDropdowns}>
               Sponsors
             </NavLink>
 
-            <NavLink to="/contact" className={linkClass}>
+            <NavLink to="/contact" className={linkClass} onClick={closeDesktopDropdowns}>
               Contact Us!
             </NavLink>
 
-            <NavLink to="/member-login" className={linkClass}>
+            <NavLink to="/member-login" className={linkClass} onClick={closeDesktopDropdowns}>
               Member Only
             </NavLink>
           </nav>
@@ -221,7 +276,7 @@ export default function Navbar1() {
             className="burger"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((v) => !v)}
+            onClick={toggleMenu}
           >
             <span className="burgerLine" />
             <span className="burgerLine" />
@@ -247,7 +302,11 @@ export default function Navbar1() {
       >
         <div className="mobileHeader">
           <span className="mobileTitle">Menu</span>
-          <button className="closeBtn" aria-label="Close menu" onClick={() => setMenuOpen(false)}>
+          <button
+            className="closeBtn"
+            aria-label="Close menu"
+            onClick={() => setMenuOpen(false)}
+          >
             ✕
           </button>
         </div>
@@ -256,33 +315,55 @@ export default function Navbar1() {
           <NavLink to="/" className={mobileLinkClass} onClick={closeAll} end>
             Home
           </NavLink>
-<div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>
-            Rich History
+
+          {/* Mobile: Rich History accordion */}
+          <button
+            type="button"
+            className={`mobileNavItem mobileDropdownBtn ${mHistoryOpen ? "open" : ""}`}
+            aria-expanded={mHistoryOpen}
+            onClick={() => {
+              // only one accordion open at a time
+              setMEventsOpen(false);
+              setMHistoryOpen((v) => !v);
+            }}
+          >
+            <span>Rich History</span>
+            <span className="chev" aria-hidden="true">
+              ▾
+            </span>
+          </button>
+
+          <div className={`mobileSubMenu ${mHistoryOpen ? "open" : ""}`}>
+            <Link
+              to="/history#championships"
+              className={`mobileSubItem ${
+                isHistoryActive && (hash === "" || hash === "#championships") ? "active" : ""
+              }`}
+              onClick={closeAll}
+            >
+              Championship History
+            </Link>
+
+            <Link
+              to="/history#legends"
+              className={`mobileSubItem ${
+                isHistoryActive && hash === "#legends" ? "active" : ""
+              }`}
+              onClick={closeAll}
+            >
+              League Legends
+            </Link>
+
+            <Link
+              to="/history#performers"
+              className={`mobileSubItem ${
+                isHistoryActive && hash === "#performers" ? "active" : ""
+              }`}
+              onClick={closeAll}
+            >
+              Recent Stars
+            </Link>
           </div>
-          {/* ✅ Mobile: three direct section links */}
-          <Link
-            to="/history#championships"
-            className={`mobileNavItem ${isHistoryActive && (hash === "" || hash === "#championships") ? "active" : ""}`}
-            onClick={closeAll}
-          >
-            Championship History
-          </Link>
-
-          <Link
-            to="/history#legends"
-            className={`mobileNavItem ${isHistoryActive && hash === "#legends" ? "active" : ""}`}
-            onClick={closeAll}
-          >
-            League Legends
-          </Link>
-                <Link
-        to="/history#performers"
-        className={`mobileNavItem ${isHistoryActive && hash === "#performers" ? "active" : ""}`}
-        onClick={closeAll}
-      >
-        Recent Stars
-      </Link>
-
 
           <NavLink to="/squad" className={mobileLinkClass} onClick={closeAll}>
             Our Squad
@@ -292,13 +373,31 @@ export default function Navbar1() {
             Season
           </NavLink>
 
-          <div style={{ marginTop: 8, opacity: 0.85, fontWeight: 800 }}>
-            Events
-          </div>
+          {/* Mobile: Events accordion */}
+          <button
+            type="button"
+            className={`mobileNavItem mobileDropdownBtn ${mEventsOpen ? "open" : ""}`}
+            aria-expanded={mEventsOpen}
+            onClick={() => {
+              setMHistoryOpen(false);
+              setMEventsOpen((v) => !v);
+            }}
+          >
+            <span>Events</span>
+            <span className="chev" aria-hidden="true">
+              ▾
+            </span>
+          </button>
 
-          <NavLink to="/awards" className={mobileLinkClass} onClick={closeAll}>
-            Awards Night Soon
-          </NavLink>
+          <div className={`mobileSubMenu ${mEventsOpen ? "open" : ""}`}>
+            <NavLink
+              to="/awards"
+              className={({ isActive }) => `mobileSubItem ${isActive ? "active" : ""}`}
+              onClick={closeAll}
+            >
+              Awards Night Soon
+            </NavLink>
+          </div>
 
           <NavLink to="/sponsors" className={mobileLinkClass} onClick={closeAll}>
             Sponsors
@@ -306,6 +405,10 @@ export default function Navbar1() {
 
           <NavLink to="/contact" className={mobileLinkClass} onClick={closeAll}>
             Contact Us
+          </NavLink>
+
+          <NavLink to="/member-login" className={mobileLinkClass} onClick={closeAll}>
+            Member Only
           </NavLink>
         </nav>
       </aside>
