@@ -200,11 +200,11 @@ export const performers = [
     stats: {
       matches: 131,
       runs: 2665,
-      avg: 25.5,
-      sr: 110.5,
+      average: 25.5,
+      strikeRate: 110.5,
       fifties: 10,
       hundreds: 2,
-      best: 136,
+      highestScore: 136,
     },
     awards: ["Sarpanch", "Best Batter (2025)"],
     

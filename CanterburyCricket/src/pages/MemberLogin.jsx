@@ -52,7 +52,7 @@ const navigate = useNavigate(); // ✅ THIS LINE WAS MISSING
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25, duration: 0.6 }}
         >
-          🚀 Future Project — secure member portal coming soon.
+          🚀 Future Project — secure member portal in Phase 2.
         </motion.p>
 
         <div className="future-actions">

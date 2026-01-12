@@ -336,6 +336,60 @@
   line-height: normal; /* ✅ remove line-height: 1 */
 }
 
+.historyDropdown {
+  position: relative;   /* ✅ THIS anchors the dropdown */
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Only the History dropdown menu */
+.historyDropdown .dropdownMenu {
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%); /* ✅ centered under the button */
+  right: auto;
+  min-width: 220px;
+  z-index: 100000;
+}
+
+/* Make the History <button> match <a class="navLink"> exactly */
+.historyDropdown > button.navLink {
+  appearance: none;
+  -webkit-appearance: none;
+
+  /* match .navLink */
+  text-decoration: none;
+  color: var(--nav-text);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  transition: background 160ms ease, color 160ms ease;
+
+  /* button reset */
+  background: transparent;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+
+  /* alignment */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: normal;
+}
+
+.historyDropdown > button.navLink:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* when dropdown is open OR history route active, highlight like active tab */
+.historyDropdown > button.navLink.active {
+  color: #0b0c10;
+  background: var(--nav-accent);
+}
+
 .eventsDropdown {
   position: relative;
   z-index: 100001;

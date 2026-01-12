@@ -40,10 +40,10 @@ export default function PerformersSection({ performers }) {
     <Box ref={rootRef}>
       <Stack spacing={1.5} sx={{ mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 900 }}>
-          Top Performers
+          Recent Stars 
         </Typography>
         <Typography sx={{ opacity: 0.85, maxWidth: 900 }}>
-          The people behind the moments — tap a card for full stats, awards, and photos.
+          Continuing Canterbury Legacy.
         </Typography>
       </Stack>
 

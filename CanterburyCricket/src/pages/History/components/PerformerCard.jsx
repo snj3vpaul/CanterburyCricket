@@ -9,7 +9,7 @@ export default function PerformerCard({ performer, onOpen }) {
   // Handle both batter/bowler style stats gracefully
   const statA = s.runs != null ? ["Runs", s.runs] : ["Wkts", s.wickets ?? "-"];
   const statB = s.average != null ? ["Average", s.average] : ["Econ", s.economy ?? "-"];
-  const statC = s.wickets != null ? ["Wickets", s.wickets] : ["Best", s.bestBowling ?? "-"];
+  const statC = s.wickets != null ? ["Wickets", s.wickets] : ["Best", s.highestScore ?? "-"];
 
   return (
     <Card
