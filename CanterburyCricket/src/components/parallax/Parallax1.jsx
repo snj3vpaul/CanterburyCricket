@@ -50,45 +50,42 @@ export const Parallax1 = () => {
       >
         {/* KEEP your hero animation wrapper */}
         <div className={`parallax-heroContent ${isDiving ? "isDiving" : ""}`}>
-          <h2>Canterbury Cricket Club</h2>
+          
           {/* ✅ Button removed from hero (animations still exist) */}
         </div>
       </section>
 
       <section className="parallax-container" ref={historyRef} id="history">
         <h2>Canterbury Cricket Club — Where Passion Meet the Pitch</h2>
+<p>
+Canterbury Cricket Club Ottawa traces its roots back more than four decades,
+ with its modern identity officially beginning in <strong>1983</strong>. 
+ Before that, the club was known as the <strong>Canadian Forces Ottawa Cricket Club (CFOCC)</strong> — fondly called <em>Forces</em> — and was based out of the Uplands military grounds. </p>
+ 
+ <p>
+By 1982, however, a combination of retirements and an unfortunate incident led to a sharp decline in membership, leaving Forces CC on the brink of folding. 
+At the same time, another neighbouring club, <strong>Levenoques Cricket Club</strong>, based in Hillcrest, was facing similar struggles. 
+Rather than allowing two historic clubs to disappear, the leadership and players of both sides chose unity over loss.
+Forces CC was one of the most successful and respected clubs in the Ottawa Valley Cricket Council,
+producing championship teams and some of the greatest cricketers the city has ever seen.
+</p>
 
-        <p>
-          Canterbury Cricket Club Ottawa has been a proud part of the city’s
-          cricketing community since <strong>1983</strong>. What started as a
-          small group of passionate cricketers has grown into one of Ottawa’s
-          most respected and long-standing cricket clubs. Over the years,
-          Canterbury has become known not just for competitive cricket, but for
-          strong friendships, sportsmanship, and a deep love for the game.
-        </p>
+<p>
+Legends of Ottawa cricket such as <strong>Jim Siew, Tariq Javed, Gullu Bajwa, Tony Edwards, Clinton Calixte, Shahid Khan, Mumtaz Akhter, and Akhter Mufti</strong> proudly wore the Forces colours,
+ helping build a legacy of excellence, discipline, and sportsmanship that still defines the club today.
+</p>
 
-        <p>
-          From weekend league matches to tournament finals, Canterbury has always
-          been about playing hard, playing fair, and enjoying every moment on
-          and off the field. Our club proudly brings together players from
-          diverse backgrounds, united by a shared passion for cricket and a
-          commitment to representing the club with pride.
-        </p>
+<p>
+With overwhelming support from both memberships, Forces CC and Levenoques CC merged to form a new club. 
+Because both teams played within the Canterbury ward, the newly united club was proudly named <strong>Canterbury Cricket Club</strong>.
+ A new home was assigned at <strong>Lynda Lane</strong>, a ground that was transformed into a playable cricket field through the dedication, labour, and commitment of Canterbury players themselves.
+</p>
 
-        <p>
-          With decades of history behind us, Canterbury has celebrated countless
-          milestones — championship victories, unforgettable performances, and
-          generations of players who’ve worn the club colors with honor. Whether
-          you’re a seasoned cricketer or new to the game, there’s always a place
-          for you in the Canterbury family.
-        </p>
+<p>
+Today, Canterbury Cricket Club carries forward the combined legacy of two proud cricketing traditions. Built on resilience, teamwork, and a deep love for the game, the club continues to honour its past while building its future — welcoming new generations of players to represent Canterbury with pride, passion, and respect for the game. 🏏
+</p>
 
-        <p>
-          Today, Canterbury Cricket Club continues to build on its legacy while
-          looking toward the future — developing young talent, strengthening our
-          community, and keeping the spirit of cricket alive in Ottawa. Join us
-          on the journey as we write the next chapter of Canterbury cricket. 🏏❤️
-        </p>
+        
 
         {/* ✅ NEW: CTA below the paragraphs (keeps dive animation via same class) */}
         <div className={`parallax-historyCta ${isDiving ? "isDiving" : ""}`}>
