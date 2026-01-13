@@ -128,6 +128,34 @@ function isHttpUrl(value) {
     return false;
   }
 }
+// ✅ Add these helpers near the top (above GetInTouch)
+
+function collapseSpaces(raw) {
+  return String(raw ?? "").replace(/\s+/g, " ").trim();
+}
+
+// Only alphabets + single spaces between words
+function isValidFullName(raw) {
+  const v = collapseSpaces(raw);
+  if (!v) return { ok: false, value: v, error: "Full name is required." };
+  if (v.length < 2) return { ok: false, value: v, error: "Name is too short." };
+  if (v.length > 80) return { ok: false, value: v, error: "Name is too long." };
+
+  // ✅ STRICT: A-Z letters only + single spaces between words
+  // Allows: "Sanjeev", "Sanjeev Paul", "Sanjeev K Paul"
+  // Blocks: "Sanj222v", "Sanjeev.Paul", "Sanjeev, Paul", "<script> paul"
+  const re = /^[A-Za-z]+(?: [A-Za-z]+)*$/;
+  if (!re.test(v)) {
+    return {
+      ok: false,
+      value: v,
+      error: "Use letters only (A–Z) with single spaces. No numbers or symbols.",
+    };
+  }
+
+  return { ok: true, value: v, error: "" };
+}
+
 
 export default function GetInTouch() {
   const [loading, setLoading] = useState(false);
@@ -152,10 +180,8 @@ export default function GetInTouch() {
 
     switch (name) {
       case "name":
-        if (!v) return "Full name is required.";
-        if (v.length < 2) return "Name is too short.";
-        if (v.length > 80) return "Name is too long.";
-        return "";
+        const check = isValidFullName(value);
+  return check.error;
 
       case "email": {
         if (!v) return "Email address is required.";
@@ -200,8 +226,15 @@ export default function GetInTouch() {
   const handleBlur = (e) => {
     const { name, value } = e.target;
     setTouched((prev) => ({ ...prev, [name]: true }));
-    const err = validateField(name, value);
-    setFieldError(name, err);
+
+  // 🔧 Auto-normalize spacing for the Full Name field on blur
+  if (name === "name") {
+    const normalized = collapseSpaces(value);
+    if (value !== normalized) e.target.value = normalized;
+  }
+
+  const err = validateField(name, e.target.value);
+  setFieldError(name, err);
   };
 
   const handleChange = (e) => {
@@ -233,14 +266,16 @@ export default function GetInTouch() {
 
     setLoading(true);
 
-    const payload = {
-      name: form.name.value.trim(),
-      email: form.email.value.trim(),
-      profile: form.profile.value.trim(),
-      message: form.message.value.trim(),
-      website: form.website.value.trim(), // honeypot
-      startedAt, // bot signal
-    };
+    // ✅ In handleSubmit, normalize the name before sending (replace payload.name line)
+const payload = {
+  name: isValidFullName(form.name.value).value, // normalized + validated format
+  email: form.email.value.trim(),
+  profile: form.profile.value.trim(),
+  message: form.message.value.trim(),
+  website: form.website.value.trim(),
+  startedAt,
+};
+
 
     try {
       const res = await fetch("/api/contact", {
