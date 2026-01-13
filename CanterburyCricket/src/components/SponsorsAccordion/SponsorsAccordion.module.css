@@ -58,12 +58,13 @@
 
 /* Text area */
 .body {
+  font-family: var(--font-body);
   padding: 16px 18px 18px;
   text-align: center;
 }
 
 .thankYou {
- font-family: var(--font-display);
+ font-family: var(--font-body);
   font-size: 22px;
   margin: 0 0 10px 0;
   letter-spacing: 0.5px;
