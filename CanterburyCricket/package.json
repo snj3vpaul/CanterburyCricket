@@ -24,6 +24,7 @@
     "@tabler/icons-react": "^3.36.1",
     "framer-motion": "^12.25.0",
     "gsap": "^3.14.2",
+    "motion": "^12.26.2",
     "nodemailer": "^7.0.12",
     "papaparse": "^5.5.3",
     "react": "^19.2.0",

@@ -1,5 +1,4 @@
-import React, { forwardRef, useMemo, useState, useCallback, useEffect } from "react";
-import CardSwap, { Card } from "../CardSwap/CardSwap"; // adjust path
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import {
   Box,
   Modal,
@@ -13,6 +12,8 @@ import {
   Button,
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+
+import TiltedCard from "../../components/TiltedCard/TiltedCard"; // ✅ adjust if your path differs
 import "./AwardsCarousel.css";
 
 const DIVISIONS = ["T20", "CTZ", "CHG"];
@@ -32,23 +33,33 @@ const CLUB_AWARDS = [
   { key: "best_spell", label: "Best Bowling Spell of the Year", emoji: "🎯" },
 ];
 
-// ✅ Known winners map (division awards you provided)
+// ✅ Winners map (yours)
 const WINNERS = {
   "CHG:mvp": "Sanjeev K Paul",
   "CHG:best_batter": "Ameer Khan",
   "CHG:best_bowler": "Zain Mahmood",
-"CHG:best_fielder": "Jaideep Singh Grover",
+  "CHG:best_fielder": "Jaideep Singh Grover",
+
   "T20:mvp": "Sanjeev K Paul",
   "T20:best_batter": "Sanjeev K Paul",
   "T20:best_bowler": "Ghous Bilal",
   "T20:best_fielder": "Sanjeev K Paul",
+
   "CTZ:mvp": "Sanjeev K Paul",
   "CTZ:best_batter": "Sanjeev K Paul",
   "CTZ:best_bowler": "Zaki",
   "CTZ:best_fielder": "Amir Abbas",
 };
 
-// ✅ small hook: mobile sizing so you DON'T have to zoom out
+// ✅ OPTIONAL: a map where you’ll later plug real images
+// Put images in /src/assets/awards/... and import them here, then set the values.
+// For now, they can stay empty strings.
+const AWARD_IMAGES = {
+  // examples:
+  // "2025-CLUB-player_of_year": PlayerOfYearImg,
+  // "2025-T20-mvp": T20MvpImg,
+};
+
 function useIsMobile(breakpoint = 520) {
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth <= breakpoint : false
@@ -63,13 +74,55 @@ function useIsMobile(breakpoint = 520) {
   return isMobile;
 }
 
-// ✅ Build the awards list with winners
+/**
+ * ✅ Image-only placeholder SVG (NO title/winner text)
+ * You’ll still get a nice “award poster” look until you add real images.
+ */
+function imagePlaceholderDataUri({ emoji = "🏆", accent = "#4f52ff" } = {}) {
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900">
+    <defs>
+      <radialGradient id="g" cx="22%" cy="15%" r="90%">
+        <stop offset="0%" stop-color="${accent}" stop-opacity="0.55"/>
+        <stop offset="55%" stop-color="#0b0d1b" stop-opacity="1"/>
+      </radialGradient>
+      <filter id="blur" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="22" />
+      </filter>
+    </defs>
+
+    <rect width="100%" height="100%" fill="url(#g)"/>
+    <circle cx="760" cy="180" r="260" fill="${accent}" opacity="0.20" filter="url(#blur)"/>
+    <circle cx="150" cy="780" r="320" fill="${accent}" opacity="0.14" filter="url(#blur)"/>
+
+    <text x="70" y="180"
+      font-size="140"
+      font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial"
+      fill="#ffffff"
+      opacity="0.95"
+    >${emoji}</text>
+
+    <rect x="70" y="700" width="760" height="16" rx="8" fill="rgba(255,255,255,0.14)"/>
+    <rect x="70" y="740" width="540" height="16" rx="8" fill="rgba(255,255,255,0.10)"/>
+  </svg>`;
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function accentByDivision(div) {
+  if (div === "T20") return "#4f52ff";
+  if (div === "CTZ") return "#f7b500";
+  if (div === "CHG") return "#7c3aed";
+  return "#4f52ff";
+}
+
 function buildAwards(season = "2025") {
   const divisionAwards = DIVISIONS.flatMap((div) =>
     DIVISION_AWARDS.map((a) => {
       const winnerName = WINNERS[`${div}:${a.key}`] ?? "TBD";
+      const id = `${season}-${div}-${a.key}`;
       return {
-        id: `${season}-${div}-${a.key}`,
+        id,
         season,
         division: div,
         type: "division",
@@ -77,77 +130,36 @@ function buildAwards(season = "2025") {
         emoji: a.emoji,
         subtitle: `${div} Division`,
         meta: `${season} • ${div}`,
-        winner: {
-          name: winnerName,
-          role: "",
-          photoUrl: "",
-          stats: [],
-          highlight: "",
-        },
+        winner: { name: winnerName, role: "", photoUrl: "", stats: [], highlight: "" },
         link: "",
+
+        // ✅ Hero card image slot (for future)
+        imageUrl: AWARD_IMAGES[id] ?? "",
       };
     })
   );
 
-  const clubAwards = CLUB_AWARDS.map((a) => ({
-    id: `${season}-CLUB-${a.key}`,
-    season,
-    division: "CLUB",
-    type: "club",
-    title: a.label,
-    emoji: a.emoji,
-    subtitle: "Club Award",
-    meta: `${season}`,
-    winner: {
-      name: "TBD",
-      role: "",
-      photoUrl: "",
-      stats: [],
-      highlight: "",
-    },
-    link: "",
-  }));
+  const clubAwards = CLUB_AWARDS.map((a) => {
+    const id = `${season}-CLUB-${a.key}`;
+    return {
+      id,
+      season,
+      division: "CLUB",
+      type: "club",
+      title: a.label,
+      emoji: a.emoji,
+      subtitle: "Club Award",
+      meta: `${season}`,
+      winner: { name: "TBD", role: "", photoUrl: "", stats: [], highlight: "" },
+      link: "",
+
+      // ✅ Hero card image slot (for future)
+      imageUrl: AWARD_IMAGES[id] ?? "",
+    };
+  });
 
   return [...clubAwards, ...divisionAwards];
 }
-
-const AwardCard = forwardRef(function AwardCard({ item, style, onClick }, ref) {
-  const divLabel = item.division === "CLUB" ? "Club" : item.division;
-
-  return (
-    <Card
-      ref={ref}
-      style={style}
-      onClick={onClick}
-      className="awardCard"
-      role="button"
-      tabIndex={0}
-      aria-label={`${item.title} — ${divLabel}`}
-    >
-      <div className="awardGlow" aria-hidden="true" />
-
-      <div className="awardTop">
-        <div className="awardEmoji" aria-hidden="true">
-          {item.emoji}
-        </div>
-        <div className="awardMeta">{item.meta}</div>
-      </div>
-
-      <div className="awardTitle">{item.title}</div>
-      <div className="awardSubtitle">{item.subtitle}</div>
-
-      <div className="awardWinnerLine">
-        <span className="awardWinnerLabel">Winner</span>
-        <span className="awardWinnerName">{item.winner?.name ?? "TBD"}</span>
-      </div>
-
-      <div className="awardFooter">
-        <span className="awardTag">Awards Night</span>
-        <span className="awardHint">Details</span>
-      </div>
-    </Card>
-  );
-});
 
 function AwardModal({ open, award, onClose, onNext }) {
   if (!award) return null;
@@ -236,8 +248,10 @@ export default function AwardsCarousel() {
   const isMobile = useIsMobile(520);
 
   const awards = useMemo(() => buildAwards("2025"), []);
-  // ✅ fewer hero cards on mobile so it fits + looks cleaner
-  const heroCards = useMemo(() => (isMobile ? awards.slice(0, 4) : awards.slice(0, 6)), [awards, isMobile]);
+  const heroCards = useMemo(
+    () => (isMobile ? awards.slice(0, 4) : awards.slice(0, 6)),
+    [awards, isMobile]
+  );
 
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -255,12 +269,9 @@ export default function AwardsCarousel() {
 
   const activeAward = awards[activeIndex];
 
-  const swapSize = isMobile
-    ? { width: 320, height: 360, cardDistance: 34, verticalDistance: 52, skewAmount: 4, delay: 4200 }
-    : { width: 560, height: 380, cardDistance: 58, verticalDistance: 68, skewAmount: 6, delay: 4500 };
-
   return (
     <section className="awardsSwapWrap">
+      <div className="awardsSwapInner">
       <div className="awardsSwapHeader">
         <h2 className="awardsSwapTitle">Awards Night</h2>
         <p className="awardsSwapSub">
@@ -268,28 +279,48 @@ export default function AwardsCarousel() {
         </p>
       </div>
 
-      <div className="awardsSwapStage">
-        <CardSwap
-          width={swapSize.width}
-          height={swapSize.height}
-          cardDistance={swapSize.cardDistance}
-          verticalDistance={swapSize.verticalDistance}
-          delay={swapSize.delay}
-          pauseOnHover={!isMobile}
-          easing="elastic"
-          skewAmount={swapSize.skewAmount}
-          onCardClick={(stackIndex) => {
-            // stackIndex maps to heroCards
-            openAward(stackIndex);
-          }}
-        >
-          {heroCards.map((item) => (
-            <AwardCard key={item.id} item={item} />
-          ))}
-        </CardSwap>
+      {/* ✅ HERO: Tilted Cards = IMAGE PLACEHOLDERS (no mini-card text) */}
+      <div className="awardsTiltStage" aria-label="Awards hero cards">
+        <div className="awardsTiltRow">
+          {heroCards.map((item) => {
+            const idx = awards.findIndex((x) => x.id === item.id);
+
+            const imageSrc =
+              item.imageUrl ||
+              imagePlaceholderDataUri({
+                emoji: item.emoji,
+                accent: accentByDivision(item.division === "CLUB" ? "CLUB" : item.division),
+              });
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="awardsTiltBtn"
+                onClick={() => openAward(idx)}
+                aria-label={`${item.title} — ${item.subtitle}`}
+              >
+                <TiltedCard
+                  imageSrc={imageSrc}
+                  altText={`${item.title} (${item.subtitle})`}
+                  captionText=""                 // ✅ no text tooltip
+                  containerHeight={isMobile ? "300px" : "320px"}
+                  containerWidth={isMobile ? "280px" : "320px"}
+                  imageHeight={isMobile ? "300px" : "320px"}
+                  imageWidth={isMobile ? "280px" : "320px"}
+                  rotateAmplitude={isMobile ? 8 : 12}
+                  scaleOnHover={isMobile ? 1.03 : 1.08}
+                  showMobileWarning={false}
+                  showTooltip={false}            // ✅ no tooltip text
+                  displayOverlayContent={false}  // ✅ no overlay text
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Division + Club sections (grid list) */}
+      {/* ✅ Mini cards stay EXACTLY the same */}
       <div className="awardsSections">
         <div className="awardsSection">
           <h3 className="awardsSectionTitle">Club Awards</h3>
@@ -333,7 +364,7 @@ export default function AwardsCarousel() {
           </div>
         ))}
       </div>
-
+</div>
       <AwardModal open={open} award={activeAward} onClose={closeAward} onNext={nextAward} />
     </section>
   );

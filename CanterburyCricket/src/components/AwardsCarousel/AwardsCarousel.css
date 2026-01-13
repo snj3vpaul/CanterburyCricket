@@ -1,9 +1,71 @@
+/* ✅ Tilted Cards hero stage (image placeholders) */
+.awardsTiltStage {
+  width: 100%;
+  margin-top: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.awardsTiltRow {
+  width: 100%;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  display: flex;
+  gap: 14px;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px 0 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 18px 16px; /* ✅ extra bottom padding so scrollbar isn't “cut” */
+}
+
+.awardsTiltRow::-webkit-scrollbar {
+  height: 8px;
+}
+.awardsTiltRow::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+}
+
+.awardsTiltBtn {
+  all: unset;
+  cursor: pointer;
+  scroll-snap-align: center;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  flex: 0 0 auto;
+}
+
+/* optional nicer scrollbar */
+.awardsTiltRow::-webkit-scrollbar {
+  height: 10px;
+}
+.awardsTiltRow::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+}
+@media (max-width: 680px) {
+  .awardsTiltRow {
+    justify-content: flex-start;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+/* ✅ Awards Swap main carousel */
+
+
 .awardsSwapWrap {
-  width: min(1100px, calc(100% - 36px));
-  margin: 0 auto;
+  width: 100vw;
+  max-width: 100%;
+  margin: 0;
   padding: 24px 0 40px;
   position: relative;
   isolation: isolate;
+  overflow-x: visible; /* prevent tilted cards / glow from forcing scroll */
 }
 .awardsSwapHeader {
   display: flex;
@@ -14,6 +76,12 @@
   position: relative;
   z-index: 5;
 }
+
+.awardsSwapInner {
+  width: min(1200px, calc(100% - 36px));
+  margin: 0 auto;
+}
+
 /* Winner line on big cards */
 .awardWinnerLine {
   position: relative;
@@ -368,3 +436,5 @@
     transform: scale(0.78);
   }
 }
+
+
