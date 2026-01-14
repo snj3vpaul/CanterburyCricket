@@ -244,13 +244,25 @@ body {
 @media (max-width: 900px) {
   /* Push hero content right under the navbar (incl. iOS safe area) */
   .heroOverlay.heroSplit {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
+    position: absolute !important;
+    inset: 0 !important;
 
-    padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + 4px) !important;
-    padding-bottom: 18px;
-    gap: 12px;
+    /* ✅ start below navbar */
+    padding-top: calc(var(--nav-h, 74px) + env(safe-area-inset-top, 0px) + 12px) !important;
+
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 18px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+
+    gap: 12px !important;
+    z-index: 6 !important;
+    z-index: 6 !important;
+
   }
 
   /* Ensure text comes first and stays readable */

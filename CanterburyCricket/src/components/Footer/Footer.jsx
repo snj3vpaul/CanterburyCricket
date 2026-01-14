@@ -60,7 +60,7 @@ export default function Footer() {
               </li>
             </ul>
 
-            <Link to="/contact" className={styles.cta}>
+            <Link to="/contact#top" className={styles.cta}>
               Join the Club
               <span className={styles.ctaArrow} aria-hidden="true">→</span>
             </Link>

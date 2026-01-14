@@ -9,6 +9,8 @@
   --dd-bg: rgba(12, 14, 20, 0.92);
   --dd-border: rgba(255, 255, 255, 0.12);
   --dd-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+  --nav-safe: env(safe-area-inset-top, 0px);
+  --nav-total-h: calc(var(--nav-h) + var(--nav-safe));
   
 }
 

@@ -4,7 +4,7 @@ import GetInTouch from "../components/GetInTouch/GetInTouch";
 import bgSvg from "../assets/CGPT.png";
 export default function Contact() {
   return (
-    <div>
+    <div id="top">
       <GetInTouch/>
       
     </div>
