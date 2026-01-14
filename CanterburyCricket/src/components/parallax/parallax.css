@@ -242,41 +242,56 @@ body {
    ========================= */
 
 @media (max-width: 900px) {
+  /* Push hero content right under the navbar */
   .heroOverlay.heroSplit {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    padding-top: calc(var(--nav-h, 72px) + 16px);
-    padding-bottom: 24px;
+    padding-top: calc(var(--nav-h, 72px) + 10px);
+    padding-bottom: 18px;
+    gap: 12px;
   }
 
-  /* ✅ Make text/buttons come FIRST visually */
+  /* Ensure text comes first and stays readable */
   .heroCopy {
     order: 1;
     z-index: 6;
     position: relative;
+    max-width: 100%;
   }
-  .heroMark {
-    order: 2;
-    align-self: flex-end;
-    width: min(260px, 58vw);
-    margin-top: 10px;
-    z-index: 2;
-    position: relative;
-    opacity: 0.9; /* optional */
-  }
-  /* Optional: if logo still competes, make it more subtle */
-  .heroMark img {
-    filter: drop-shadow(0 16px 45px rgba(0,0,0,0.55));
-    opacity: 0.92;
+
+  /* Put buttons directly under the headline */
+  .heroButtons {
+    margin-top: 12px;
+    flex-wrap: nowrap;           /* keep in one row */
+    gap: 10px;
   }
 
   .heroPrimary,
   .heroSecondary {
-    width: 100%;
-    max-width: 340px;
+    flex: 1 1 0;                 /* equal width */
+    max-width: none;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  /* Move crest lower so it doesn't block text */
+  .heroMark {
+    order: 2;
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: min(240px, 55vw);
+    z-index: 2;
+    opacity: 0.55;               /* watermark feel */
+  }
+
+  .heroMark img {
+    filter: drop-shadow(0 14px 36px rgba(0,0,0,0.6));
   }
 }
+
+
 
 @media (max-width: 520px) {
   .heroTitle {
