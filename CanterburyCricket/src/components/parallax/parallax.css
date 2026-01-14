@@ -242,12 +242,13 @@ body {
    ========================= */
 
 @media (max-width: 900px) {
-  /* Push hero content right under the navbar */
+  /* Push hero content right under the navbar (incl. iOS safe area) */
   .heroOverlay.heroSplit {
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
-    padding-top: calc(var(--nav-h, 72px) + 4px);
+
+    padding-top: calc(var(--nav-h, 72px) + env(safe-area-inset-top, 0px) + 4px) !important;
     padding-bottom: 18px;
     gap: 12px;
   }
@@ -260,35 +261,6 @@ body {
     max-width: 100%;
   }
 
-  /* Put buttons directly under the headline */
-  .heroButtons {
-    margin-top: 12px;
-    flex-wrap: nowrap;           /* keep in one row */
-    gap: 10px;
-  }
-
-  .heroPrimary,
-  .heroSecondary {
-    flex: 1 1 0;                 /* equal width */
-    max-width: none;
-    padding: 12px 14px;
-    font-size: 0.95rem;
-  }
-
-  /* Move crest lower so it doesn't block text */
-  .heroMark {
-    order: 2;
-    position: absolute;
-    right: 12px;
-    bottom: 12px;
-    width: min(240px, 55vw);
-    z-index: 2;
-    opacity: 0.55;               /* watermark feel */
-  }
-
-  .heroMark img {
-    filter: drop-shadow(0 14px 36px rgba(0,0,0,0.6));
-  }
   .heroTitle {
     line-height: 0.95;
     margin-bottom: 6px;
@@ -298,18 +270,44 @@ body {
     margin-top: 6px;
   }
 
+  /* Buttons in ONE row */
   .heroButtons {
     margin-top: 10px;
+    display: flex;
+    flex-wrap: nowrap; /* keep in one row */
+    gap: 10px;
+    width: 100%;
+    max-width: 520px; /* prevents super wide stretch */
+  }
+
+  .heroPrimary,
+  .heroSecondary {
+    flex: 1 1 0; /* equal width */
+    max-width: none;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    white-space: nowrap; /* prevents wrapping inside button */
+  }
+
+  /* Crest becomes a watermark behind/lower */
+  .heroMark {
+    order: 2;
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: min(240px, 55vw);
+    z-index: 2;
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  .heroMark img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 14px 36px rgba(0, 0, 0, 0.6));
   }
 }
 
-
-
-@media (max-width: 520px) {
-  .heroTitle {
-    font-size: clamp(2rem, 10vw, 3rem);
-  }
-}
 
 /* =========================
    Content Section
