@@ -5,12 +5,19 @@
   --nav-text: #faf9f5;
   --nav-muted: rgba(250, 249, 245, 0.7);
   --nav-accent: #ffd36a;
-
+  --nav-h: 84px;
   --dd-bg: rgba(12, 14, 20, 0.92);
   --dd-border: rgba(255, 255, 255, 0.12);
   --dd-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+  
 }
 
+/* Slightly shorter navbar on mobile */
+@media (max-width: 860px) {
+  :root {
+    --nav-h: 74px;
+  }
+}
 /* This spacer prevents content being hidden behind fixed navbar */
 .navbarSpacer {
   height: var(--nav-h);
