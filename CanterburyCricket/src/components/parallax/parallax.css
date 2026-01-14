@@ -248,7 +248,7 @@ body {
     align-items: flex-start;
     justify-content: flex-start;
 
-    padding-top: calc(var(--nav-h, 72px) + env(safe-area-inset-top, 0px) + 4px) !important;
+    padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + 4px) !important;
     padding-bottom: 18px;
     gap: 12px;
   }
