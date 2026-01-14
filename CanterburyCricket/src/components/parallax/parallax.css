@@ -257,9 +257,18 @@ body {
     position: relative;
   }
   .heroMark {
-    width: min(280px, 56vw);
+    order: 2;
     align-self: flex-end;
-    margin-top: 14px;
+    width: min(260px, 58vw);
+    margin-top: 10px;
+    z-index: 2;
+    position: relative;
+    opacity: 0.9; /* optional */
+  }
+  /* Optional: if logo still competes, make it more subtle */
+  .heroMark img {
+    filter: drop-shadow(0 16px 45px rgba(0,0,0,0.55));
+    opacity: 0.92;
   }
 
   .heroPrimary,
