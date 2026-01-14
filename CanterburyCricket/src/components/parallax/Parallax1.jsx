@@ -48,11 +48,36 @@ export const Parallax1 = () => {
         }}
         className="parallax-banner"
       >
-        {/* KEEP your hero animation wrapper */}
-        <div className={`parallax-heroContent ${isDiving ? "isDiving" : ""}`}>
-          
-          {/* ✅ Button removed from hero (animations still exist) */}
+         <div className={`parallax-heroContent ${isDiving ? "isDiving" : ""}`}>
+    <div className="heroOverlay heroSplit">
+      {/* LEFT: copy */}
+      <div className="heroCopy">
+        <h1 className="heroTitle">
+          Represent <span>Canterbury</span>
+        </h1>
+
+        <p className="heroSubtitle">
+          Join Ottawa’s most proud cricketing legacy
+        </p>
+
+        <div className="heroButtons">
+          <button className="heroPrimary" onClick={() => navigate("/contact")}>
+            Join The Team
+          </button>
+
+          <button className="heroSecondary" onClick={handleDiveToHistoryPage}>
+            Our Legacy →
+          </button>
         </div>
+      </div>
+
+      {/* RIGHT: crest/logo */}
+      {/*<div className="heroMark" aria-hidden="true">
+        <img className="heroLogo" src="/../../src/assets/CanterburyLogo.png" alt="" />
+      </div>*/}
+    </div>
+  </div>
+
       </section>
 
       <section className="parallax-container" ref={historyRef} id="history">
