@@ -53,7 +53,7 @@ export const Parallax1 = () => {
       {/* LEFT: copy */}
       <div className="heroCopy">
         <h1 className="heroTitle">
-          Represent <span>Canterbury</span>
+          Canterbury <span>Cricket Club</span> Ottawa
         </h1>
 
         <p className="heroSubtitle">
@@ -80,45 +80,68 @@ export const Parallax1 = () => {
 
       </section>
 
-      <section className="parallax-container" ref={historyRef} id="history">
-        <h2>Canterbury Cricket Club — Where Passion Meet the Pitch</h2>
-<p>
-Canterbury Cricket Club Ottawa traces its roots back more than four decades,
- with its modern identity officially beginning in <strong>1983</strong>. 
- Before that, the club was known as the <strong>Canadian Forces Ottawa Cricket Club (CFOCC)</strong> — fondly called <em>Forces</em> — and was based out of the Uplands military grounds. </p>
- 
- <p>
-By 1982, however, a combination of retirements and an unfortunate incident led to a sharp decline in membership, leaving Forces CC on the brink of folding. 
-At the same time, another neighbouring club, <strong>Levenoques Cricket Club</strong>, based in Hillcrest, was facing similar struggles. 
-Rather than allowing two historic clubs to disappear, the leadership and players of both sides chose unity over loss.
-Forces CC was one of the most successful and respected clubs in the Ottawa Valley Cricket Council,
-producing championship teams and some of the greatest cricketers the city has ever seen.
-</p>
+      <section className="parallax-container" ref={historyRef} id="history" aria-label="Canterbury Cricket Club Ottawa history">
+  {/* SEO: Keyword-forward H2 */}
+  <h2>Canterbury Cricket Club Ottawa and the foundation story</h2>
 
-<p>
-Legends of Ottawa cricket such as <strong>Jim Siew, Tariq Javed, Gullu Bajwa, Tony Edwards, Clinton Calixte, Shahid Khan, Mumtaz Akhter, and Akhter Mufti</strong> proudly wore the Forces colours,
- helping build a legacy of excellence, discipline, and sportsmanship that still defines the club today.
-</p>
+  {/* Optional: keep your vibe line as supporting text (not another heading) */}
+  <p className="sectionKicker">
+    Canterbury Cricket Club — Where Passion Meets the Pitch
+  </p>
 
-<p>
-With overwhelming support from both memberships, Forces CC and Levenoques CC merged to form a new club. 
-Because both teams played within the Canterbury ward, the newly united club was proudly named <strong>Canterbury Cricket Club</strong>.
- A new home was assigned at <strong>Lynda Lane</strong>, a ground that was transformed into a playable cricket field through the dedication, labour, and commitment of Canterbury players themselves.
-</p>
+  {/* SEO: Add a short “intent paragraph” early (keywords in first 1–2 sentences) */}
+  <p>
+    Canterbury Cricket Club is a proud <strong>cricket club in Ottawa</strong> with a legacy built through competitive
+    cricket and strong community values. Founded in its modern form in <strong>1983</strong>, the club has helped shape
+    <strong> Ottawa cricket</strong> for decades — from historic roots to today’s growing game, including{" "}
+    <strong>leather ball cricket</strong> and league competitions.
+  </p>
 
-<p>
-Today, Canterbury Cricket Club carries forward the combined legacy of two proud cricketing traditions. Built on resilience, teamwork, and a deep love for the game, the club continues to honour its past while building its future — welcoming new generations of players to represent Canterbury with pride, passion, and respect for the game. 🏏
-</p>
+  <p>
+    Canterbury Cricket Club Ottawa traces its roots back more than four decades, with its modern identity officially
+    beginning in <strong>1983</strong>. Before that, the club was known as the{" "}
+    <strong>Canadian Forces Ottawa Cricket Club (CFOCC)</strong> — fondly called <em>Forces</em> — and was based out of
+    the Uplands military grounds.
+  </p>
 
-        
+  <p>
+    By 1982, a combination of retirements and an unfortunate incident led to a decline in membership, leaving Forces CC
+    on the brink of folding. At the same time, another neighbouring club, <strong>Levenoques Cricket Club</strong>, based
+    in Hillcrest, was facing similar struggles. Rather than allowing two historic Ottawa clubs to disappear, the
+    leadership and players of both sides chose unity over loss. Forces CC was one of the most successful and respected
+    clubs in the Ottawa Valley Cricket Council, producing championship teams and some of the greatest cricketers the city
+    has ever seen.
+  </p>
 
-        {/* ✅ NEW: CTA below the paragraphs (keeps dive animation via same class) */}
-        <div className={`parallax-historyCta ${isDiving ? "isDiving" : ""}`}>
-          <button onClick={handleDiveToHistoryPage}>
-            Let&apos;s Dive into History
-          </button>
-        </div>
-      </section>
+  <p>
+    Legends of Ottawa cricket such as{" "}
+    <strong>
+      Jim Siew, Tariq Javed, Gullu Bajwa, Tony Edwards, Clinton Calixte, Shahid Khan, Mumtaz Akhter, and Akhter Mufti
+    </strong>{" "}
+    proudly wore the Forces colours, helping build a legacy of excellence, discipline, and sportsmanship that still
+    defines the club today.
+  </p>
+
+  <p>
+    With overwhelming support from both memberships, Forces CC and Levenoques CC merged to form a new club. Because both
+    teams played within the Canterbury ward, the newly united club was proudly named <strong>Canterbury Cricket Club</strong>.
+    A new home was assigned at <strong>Lynda Lane</strong>, a ground that was transformed into a playable cricket field
+    through the dedication, labour, and commitment of Canterbury players themselves.
+  </p>
+
+  {/* SEO: Add a local + membership “hook” sentence (converts + ranks) */}
+  <p>
+    Today, Canterbury Cricket Club continues to grow the game in Ottawa — welcoming new players and experienced cricketers
+    who want competitive matches, strong team culture, and respect for cricket traditions. 🏏
+  </p>
+
+  {/* ✅ CTA below the paragraphs (keeps dive animation) */}
+  <div className={`parallax-historyCta ${isDiving ? "isDiving" : ""}`}>
+    <button onClick={handleDiveToHistoryPage}>Let&apos;s Dive into History</button>
+
+    
+  </div>
+</section>
     </div>
   );
 };
