@@ -89,13 +89,26 @@ export const Parallax1 = () => {
     Canterbury Cricket Club — Where Passion Meets the Pitch
   </p>
 
-  {/* SEO: Add a short “intent paragraph” early (keywords in first 1–2 sentences) */}
   <p>
-    Canterbury Cricket Club is a proud <strong>cricket club in Ottawa</strong> with a legacy built through competitive
-    cricket and strong community values. Founded in its modern form in <strong>1983</strong>, the club has helped shape
-    <strong> Ottawa cricket</strong> for decades — from historic roots to today’s growing game, including{" "}
-    <strong>leather ball cricket</strong> and league competitions.
-  </p>
+  Canterbury Cricket Club is a proud{" "}
+  <strong>
+    cricket club playing under{" "}
+    <a
+      href="https://www.ottawacricket.ca/"
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Ottawa Valley Cricket Council (OVCC)"
+    >
+      OVCC (Ottawa Valley Cricket Council)
+    </a>{" "}
+    in Ottawa
+  </strong>{" "}
+  with a legacy built through competitive cricket and strong community values.
+  Founded in its modern form in <strong>1983</strong>, the club has helped lay initial foundation for Cricket in {" "}
+  <strong>Ottawa </strong> for decades — from historic roots to today’s
+  growing game, including <strong>Quick Fire T10 tournament to </strong> challenge division.
+</p>
+
 
   <p>
     Canterbury Cricket Club Ottawa traces its roots back more than four decades, with its modern identity officially

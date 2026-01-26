@@ -356,14 +356,16 @@ body {
 }
 
 .parallax-historyCta button {
-  border-radius: 999px;
-  padding: 12px 18px;
+   padding: 14px 32px;
+  font-size: 1rem;
   font-weight: 800;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.92);
-  color: #0b0c10;
+  border-radius: 999px;
+  border: none;
   cursor: pointer;
-  transition: transform 0.18s ease, background 0.18s ease;
+  background: linear-gradient(135deg, #ffd36a, #f7b500);
+  color: #1b1b1b;
+  box-shadow: 0 14px 40px rgba(255, 211, 106, 0.32);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .parallax-historyCta button:hover {
