@@ -38,7 +38,7 @@ import FielderCTZImg from "./FielderCTZ.jpg";
 // T20 Division
 import BatT20Img from "./T20Bat.jpg";
 import BowlT20Img from "./T20Bowl.jpg";
-import FielderT20Img from "./FieldT20.jpg";
+import FielderT20Img from "./Fieldt20.jpg";
 
 // =========================
 // Config
