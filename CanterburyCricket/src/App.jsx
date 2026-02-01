@@ -7,6 +7,10 @@ import Footer from "./components/Footer/Footer";
 import Home from "./pages/home";
 import Sponsors from "./pages/Sponsors";
 import Awards from "./pages/Awards";
+import Masonry from "./pages/Masonry";
+
+
+
 import Season from "./pages/Season";
 import Contact from "./pages/Contact";
 import MemberLogin from "./pages/MemberLogin";
@@ -29,6 +33,7 @@ export default function App() {
         <Route path="/squad" element={<OurSquad />} />
         <Route path="/season" element={<Season />} />
         <Route path="/awards" element={<Awards />} />
+        <Route path="/masonry" element={<Masonry />} />
         <Route path="/sponsors" element={<Sponsors />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/member-login" element={<MemberLogin />} />

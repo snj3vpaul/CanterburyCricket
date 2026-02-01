@@ -1,0 +1,84 @@
+/* Masonry.css */
+
+/* The container is given a real height via inline style in JSX (totalHeight),
+   so do NOT force height: 100% here. */
+.list {
+  position: relative;
+  width: 100%;
+  /* height comes from inline style */
+  overflow: visible;
+  margin: 0 auto;
+}
+
+/* Each tile wrapper is absolutely positioned by GSAP using x/y transforms */
+.item-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 8px;
+  cursor: pointer;
+  transform-origin: center;
+  will-change: transform, width, height, opacity;
+  /* avoid accidental text selection while dragging/clicking */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The visual “card” */
+.item-wrapper > .item-img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  /* ✅ No distortion; crops naturally based on aspect ratio */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  border-radius: 14px;
+  overflow: hidden;
+
+  /* nicer depth */
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.25),
+    0 2px 10px rgba(0, 0, 0, 0.18);
+
+  /* subtle border for separation on dark backgrounds */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* smooth hover interaction */
+  transition: transform 220ms ease, filter 220ms ease, box-shadow 220ms ease;
+}
+
+/* Optional: add a gentle vignette so images pop consistently */
+.item-wrapper > .item-img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 420px at 50% 0%, rgba(255, 255, 255, 0.10), transparent 55%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.18));
+  opacity: 0.9;
+}
+
+/* Hover/Focus: make it feel premium */
+.item-wrapper:hover > .item-img,
+.item-wrapper:focus-visible > .item-img {
+  transform: scale(1.03);
+  filter: saturate(1.05) contrast(1.03);
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.32),
+    0 3px 12px rgba(0, 0, 0, 0.20);
+  outline: none;
+}
+
+.item-wrapper:focus-visible {
+  outline: none;
+}
+
+/* If you enable the gradient overlay in JSX (colorShiftOnHover) */
+.color-overlay {
+  border-radius: inherit;
+}

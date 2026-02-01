@@ -236,28 +236,33 @@ export default function Navbar1() {
             </NavLink>
 
             {/* Events dropdown (desktop) */}
-            <div className="eventsDropdown">
-              <button
-                type="button"
-                className={`navLink ${eventsOpen ? "active" : ""}`}
-                aria-haspopup="menu"
-                aria-expanded={eventsOpen}
-                onClick={() => {
-                  setHistoryOpen(false);
-                  setEventsOpen((v) => !v);
-                }}
-              >
-                Events ▾
-              </button>
+<div className="eventsDropdown">
+  <button
+    type="button"
+    className={`navLink ${eventsOpen ? "active" : ""}`}
+    aria-haspopup="menu"
+    aria-expanded={eventsOpen}
+    onClick={() => {
+      setHistoryOpen(false);
+      setEventsOpen((v) => !v);
+    }}
+  >
+    Events ▾
+  </button>
 
-              {eventsOpen && (
-                <div className="dropdownMenu" role="menu">
-                  <NavLink to="/awards" className="dropdownItem" onClick={closeAll}>
-                    Awards Night
-                  </NavLink>
-                </div>
-              )}
-            </div>
+  {eventsOpen && (
+    <div className="dropdownMenu" role="menu">
+      <NavLink to="/awards" className="dropdownItem" onClick={closeAll}>
+        Awards Night
+      </NavLink>
+
+      <NavLink to="/masonry" className="dropdownItem" onClick={closeAll}>
+        Masonry Gallery
+      </NavLink>
+    </div>
+  )}
+</div>
+
 
             <NavLink to="/sponsors" className={linkClass} onClick={closeDesktopDropdowns}>
               Sponsors
@@ -404,14 +409,23 @@ export default function Navbar1() {
           </button>
 
           <div className={`mobileSubMenu ${mEventsOpen ? "open" : ""}`}>
-            <NavLink
-              to="/awards"
-              className={({ isActive }) => `mobileSubItem ${isActive ? "active" : ""}`}
-              onClick={closeAll}
-            >
-              Awards Night Soon
-            </NavLink>
-          </div>
+  <NavLink
+    to="/awards"
+    className={({ isActive }) => `mobileSubItem ${isActive ? "active" : ""}`}
+    onClick={closeAll}
+  >
+    Awards Night
+  </NavLink>
+
+  <NavLink
+    to="/masonry"
+    className={({ isActive }) => `mobileSubItem ${isActive ? "active" : ""}`}
+    onClick={closeAll}
+  >
+    Masonry Gallery
+  </NavLink>
+</div>
+
 
           <NavLink to="/sponsors" className={mobileLinkClass} onClick={closeAll}>
             Sponsors

@@ -16,6 +16,35 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import TiltedCard from "../../components/TiltedCard/TiltedCard"; // ✅ adjust if your path differs
 import "./AwardsCarousel.css";
 
+// =========================
+// Images (local)
+// =========================
+
+// Club award images
+import PlayerOfTheYearImg from "./PlayeroftheYear.jpg";
+import BestKnockImg from "./BestKnock.jpg";
+import BestSpellImg from "./BestSpell.jpg";
+
+// CHG Division
+import BatCHGImg from "./batCHG.png";
+import BowlCHGImg from "./BowlCHG.jpg";
+import FielderCHGImg from "./FielderCHG.jpg";
+
+// CTZ Division
+import BatCTZImg from "./BatCTZ.jpg";
+import BowlCTZImg from "./BowlerCTZ.jpg";
+import FielderCTZImg from "./FielderCTZ.jpg";
+
+// T20 Division
+import BatT20Img from "./T20Bat.jpg";
+import BowlT20Img from "./T20Bowl.jpg";
+import FielderT20Img from "./FieldT20.jpg";
+
+// =========================
+// Config
+// =========================
+
+const SEASON = "2025";
 const DIVISIONS = ["T20", "CTZ", "CHG"];
 
 const DIVISION_AWARDS = [
@@ -27,13 +56,12 @@ const DIVISION_AWARDS = [
 
 const CLUB_AWARDS = [
   { key: "player_of_year", label: "Player of the Year", emoji: "👑" },
-  { key: "emerging", label: "Emerging Player of the Year", emoji: "🌟" },
-  { key: "most_improved", label: "Most Improved Player of the Year", emoji: "📈" },
+  { key: "most_dedicated", label: "Most Dedicated Player", emoji: "🫡" },
   { key: "best_knock", label: "Best Knock of the Year", emoji: "💥" },
   { key: "best_spell", label: "Best Bowling Spell of the Year", emoji: "🎯" },
 ];
 
-// ✅ Winners map (yours)
+// ✅ Division winners map
 const WINNERS = {
   "CHG:mvp": "Sanjeev K Paul",
   "CHG:best_batter": "Ameer Khan",
@@ -51,14 +79,59 @@ const WINNERS = {
   "CTZ:best_fielder": "Amir Abbas",
 };
 
-// ✅ OPTIONAL: a map where you’ll later plug real images
-// Put images in /src/assets/awards/... and import them here, then set the values.
-// For now, they can stay empty strings.
-const AWARD_IMAGES = {
-  // examples:
-  // "2025-CLUB-player_of_year": PlayerOfYearImg,
-  // "2025-T20-mvp": T20MvpImg,
+// ✅ Club winners + details
+const CLUB_WINNERS = {
+  player_of_year: {
+    name: "Sanjeev K Paul",
+    stats: [
+      { label: "Runs", value: "1083" },
+      { label: "Wickets", value: "36" },
+    ],
+    highlight: "",
+  },
+  most_dedicated: {
+    name: "Syed Bazil Ravi",
+    stats: [],
+    highlight: "",
+  },
+  best_spell: {
+    name: "Amir Abbas",
+    stats: [{ label: "Spell", value: "5/5" }],
+    highlight: "Best Spell of the Year against Cathedral CC",
+  },
+  best_knock: {
+    name: "Varun Harish",
+    stats: [{ label: "Knock", value: "92 off 32" }],
+    highlight: "Best Knock of the Year vs Belair CC",
+  },
 };
+
+// ✅ Award images map (id -> import)
+const AWARD_IMAGES = {
+  // ===== CLUB =====
+  [`${SEASON}-CLUB-player_of_year`]: PlayerOfTheYearImg,
+  [`${SEASON}-CLUB-best_knock`]: BestKnockImg,
+  [`${SEASON}-CLUB-best_spell`]: BestSpellImg,
+
+  // ===== CHG =====
+  [`${SEASON}-CHG-best_batter`]: BatCHGImg,
+  [`${SEASON}-CHG-best_bowler`]: BowlCHGImg,
+  [`${SEASON}-CHG-best_fielder`]: FielderCHGImg,
+
+  // ===== CTZ =====
+  [`${SEASON}-CTZ-best_batter`]: BatCTZImg,
+  [`${SEASON}-CTZ-best_bowler`]: BowlCTZImg,
+  [`${SEASON}-CTZ-best_fielder`]: FielderCTZImg,
+
+  // ===== T20 =====
+  [`${SEASON}-T20-best_batter`]: BatT20Img,
+  [`${SEASON}-T20-best_bowler`]: BowlT20Img,
+  [`${SEASON}-T20-best_fielder`]: FielderT20Img,
+};
+
+// =========================
+// Hooks / helpers
+// =========================
 
 function useIsMobile(breakpoint = 520) {
   const [isMobile, setIsMobile] = useState(
@@ -75,8 +148,7 @@ function useIsMobile(breakpoint = 520) {
 }
 
 /**
- * ✅ Image-only placeholder SVG (NO title/winner text)
- * You’ll still get a nice “award poster” look until you add real images.
+ * Fallback placeholder (used only when there’s no image)
  */
 function imagePlaceholderDataUri({ emoji = "🏆", accent = "#4f52ff" } = {}) {
   const svg = `
@@ -113,14 +185,16 @@ function accentByDivision(div) {
   if (div === "T20") return "#4f52ff";
   if (div === "CTZ") return "#f7b500";
   if (div === "CHG") return "#7c3aed";
+  if (div === "CLUB") return "#22c55e";
   return "#4f52ff";
 }
 
-function buildAwards(season = "2025") {
+function buildAwards(season = SEASON) {
   const divisionAwards = DIVISIONS.flatMap((div) =>
     DIVISION_AWARDS.map((a) => {
       const winnerName = WINNERS[`${div}:${a.key}`] ?? "TBD";
       const id = `${season}-${div}-${a.key}`;
+
       return {
         id,
         season,
@@ -130,10 +204,14 @@ function buildAwards(season = "2025") {
         emoji: a.emoji,
         subtitle: `${div} Division`,
         meta: `${season} • ${div}`,
-        winner: { name: winnerName, role: "", photoUrl: "", stats: [], highlight: "" },
+        winner: {
+          name: winnerName,
+          role: "",
+          photoUrl: "",
+          stats: [],
+          highlight: "",
+        },
         link: "",
-
-        // ✅ Hero card image slot (for future)
         imageUrl: AWARD_IMAGES[id] ?? "",
       };
     })
@@ -141,6 +219,8 @@ function buildAwards(season = "2025") {
 
   const clubAwards = CLUB_AWARDS.map((a) => {
     const id = `${season}-CLUB-${a.key}`;
+    const cw = CLUB_WINNERS[a.key];
+
     return {
       id,
       season,
@@ -150,16 +230,25 @@ function buildAwards(season = "2025") {
       emoji: a.emoji,
       subtitle: "Club Award",
       meta: `${season}`,
-      winner: { name: "TBD", role: "", photoUrl: "", stats: [], highlight: "" },
+      winner: {
+        name: cw?.name ?? "TBD",
+        role: "",
+        photoUrl: "",
+        stats: cw?.stats ?? [],
+        highlight: cw?.highlight ?? "",
+      },
       link: "",
-
-      // ✅ Hero card image slot (for future)
       imageUrl: AWARD_IMAGES[id] ?? "",
     };
   });
 
+  // Club first, then divisions
   return [...clubAwards, ...divisionAwards];
 }
+
+// =========================
+// Modal
+// =========================
 
 function AwardModal({ open, award, onClose, onNext }) {
   if (!award) return null;
@@ -197,7 +286,9 @@ function AwardModal({ open, award, onClose, onNext }) {
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} className="awardModalBody">
             <div className="awardWinnerPhoto" aria-hidden="true">
-              {award.winner.photoUrl ? (
+              {award.imageUrl ? (
+                <img src={award.imageUrl} alt={award.title} />
+              ) : award.winner.photoUrl ? (
                 <img src={award.winner.photoUrl} alt={award.winner.name} />
               ) : (
                 <div className="awardPhotoPlaceholder">{award.emoji}</div>
@@ -244,10 +335,14 @@ function AwardModal({ open, award, onClose, onNext }) {
   );
 }
 
+// =========================
+// Component
+// =========================
+
 export default function AwardsCarousel() {
   const isMobile = useIsMobile(520);
 
-  const awards = useMemo(() => buildAwards("2025"), []);
+  const awards = useMemo(() => buildAwards(SEASON), []);
   const heroCards = useMemo(
     () => (isMobile ? awards.slice(0, 4) : awards.slice(0, 6)),
     [awards, isMobile]
@@ -272,82 +367,67 @@ export default function AwardsCarousel() {
   return (
     <section className="awardsSwapWrap">
       <div className="awardsSwapInner">
-      <div className="awardsSwapHeader">
-        <h2 className="awardsSwapTitle">Awards Night</h2>
-        <p className="awardsSwapSub">
-          Tap a card to reveal the winner — swipe-worthy highlights for the season.
-        </p>
-      </div>
-
-      {/* ✅ HERO: Tilted Cards = IMAGE PLACEHOLDERS (no mini-card text) */}
-      <div className="awardsTiltStage" aria-label="Awards hero cards">
-        <div className="awardsTiltRow">
-          {heroCards.map((item) => {
-            const idx = awards.findIndex((x) => x.id === item.id);
-
-            const imageSrc =
-              item.imageUrl ||
-              imagePlaceholderDataUri({
-                emoji: item.emoji,
-                accent: accentByDivision(item.division === "CLUB" ? "CLUB" : item.division),
-              });
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className="awardsTiltBtn"
-                onClick={() => openAward(idx)}
-                aria-label={`${item.title} — ${item.subtitle}`}
-              >
-                <TiltedCard
-                  imageSrc={imageSrc}
-                  altText={`${item.title} (${item.subtitle})`}
-                  captionText=""                 // ✅ no text tooltip
-                  containerHeight={isMobile ? "300px" : "320px"}
-                  containerWidth={isMobile ? "280px" : "320px"}
-                  imageHeight={isMobile ? "300px" : "320px"}
-                  imageWidth={isMobile ? "280px" : "320px"}
-                  rotateAmplitude={isMobile ? 8 : 12}
-                  scaleOnHover={isMobile ? 1.03 : 1.08}
-                  showMobileWarning={false}
-                  showTooltip={false}            // ✅ no tooltip text
-                  displayOverlayContent={false}  // ✅ no overlay text
-                />
-              </button>
-            );
-          })}
+        <div className="awardsSwapHeader">
+          <h2 className="awardsSwapTitle">Awards Night</h2>
+          <p className="awardsSwapSub">
+            Tap a card to reveal the winner — swipe-worthy highlights for the season.
+          </p>
         </div>
-      </div>
 
-      {/* ✅ Mini cards stay EXACTLY the same */}
-      <div className="awardsSections">
-        <div className="awardsSection">
-          <h3 className="awardsSectionTitle">Club Awards</h3>
-          <div className="awardsGrid">
-            {awards
-              .filter((a) => a.division === "CLUB")
-              .map((a) => (
+        {/* ✅ HERO: blurred preview images + tap to reveal */}
+        <div className="awardsTiltStage" aria-label="Awards hero cards">
+          <div className="awardsTiltRow">
+            {heroCards.map((item) => {
+              const idx = awards.findIndex((x) => x.id === item.id);
+
+              // ✅ Use real image if present; otherwise fallback placeholder
+              const imageSrc =
+                item.imageUrl ||
+                imagePlaceholderDataUri({
+                  emoji: item.emoji,
+                  accent: accentByDivision(item.division),
+                });
+
+              return (
                 <button
-                  key={a.id}
-                  className="awardMiniCard"
-                  onClick={() => openAward(awards.findIndex((x) => x.id === a.id))}
+                  key={item.id}
+                  type="button"
+                  className="awardsTiltBtn"
+                  onClick={() => openAward(idx)}
+                  aria-label={`${item.title} — ${item.subtitle}`}
                 >
-                  <span className="miniEmoji">{a.emoji}</span>
-                  <span className="miniTitle">{a.title}</span>
-                  <span className="miniMeta">{a.meta}</span>
-                  <span className="miniWinner">{a.winner?.name ?? "TBD"}</span>
+                 
+
+                  {/* Blur wrapper: add CSS .awardsBlurPreview to actually blur */}
+                  <div className="awardsBlurPreview">
+                    <TiltedCard
+                      imageSrc={imageSrc}
+                      altText={`${item.title} (${item.subtitle})`}
+                      captionText=""
+                      containerHeight={isMobile ? "300px" : "320px"}
+                      containerWidth={isMobile ? "280px" : "320px"}
+                      imageHeight={isMobile ? "300px" : "320px"}
+                      imageWidth={isMobile ? "280px" : "320px"}
+                      rotateAmplitude={isMobile ? 8 : 12}
+                      scaleOnHover={isMobile ? 1.03 : 1.08}
+                      showMobileWarning={false}
+                      showTooltip={false}
+                      displayOverlayContent={false}
+                    />
+                  </div>
                 </button>
-              ))}
+              );
+            })}
           </div>
         </div>
 
-        {DIVISIONS.map((div) => (
-          <div className="awardsSection" key={div}>
-            <h3 className="awardsSectionTitle">{div} Division Awards</h3>
+        {/* ✅ Mini cards */}
+        <div className="awardsSections">
+          <div className="awardsSection">
+            <h3 className="awardsSectionTitle">Club Awards</h3>
             <div className="awardsGrid">
               {awards
-                .filter((a) => a.division === div)
+                .filter((a) => a.division === "CLUB")
                 .map((a) => (
                   <button
                     key={a.id}
@@ -362,9 +442,31 @@ export default function AwardsCarousel() {
                 ))}
             </div>
           </div>
-        ))}
+
+          {DIVISIONS.map((div) => (
+            <div className="awardsSection" key={div}>
+              <h3 className="awardsSectionTitle">{div} Division Awards</h3>
+              <div className="awardsGrid">
+                {awards
+                  .filter((a) => a.division === div)
+                  .map((a) => (
+                    <button
+                      key={a.id}
+                      className="awardMiniCard"
+                      onClick={() => openAward(awards.findIndex((x) => x.id === a.id))}
+                    >
+                      <span className="miniEmoji">{a.emoji}</span>
+                      <span className="miniTitle">{a.title}</span>
+                      <span className="miniMeta">{a.meta}</span>
+                      <span className="miniWinner">{a.winner?.name ?? "TBD"}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-</div>
+
       <AwardModal open={open} award={activeAward} onClose={closeAward} onNext={nextAward} />
     </section>
   );

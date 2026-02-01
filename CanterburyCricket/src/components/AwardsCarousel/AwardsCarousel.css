@@ -22,6 +22,19 @@
   padding: 8px 18px 16px; /* ✅ extra bottom padding so scrollbar isn't “cut” */
 }
 
+/* ===== Hero card blur preview ===== */
+.awardsBlurPreview {
+  filter: blur(14px) brightness(0.75);
+  transform: scale(1.08); /* prevents edge blur cutoff */
+  transition: filter 260ms ease, transform 260ms ease;
+}
+
+/* Optional: subtle hover hint */
+.awardsTiltBtn:hover .awardsBlurPreview {
+  filter: blur(10px) brightness(0.85);
+  transform: scale(1.04);
+}
+
 .awardsTiltRow::-webkit-scrollbar {
   height: 8px;
 }
