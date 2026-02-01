@@ -21,7 +21,7 @@ import "./AwardsCarousel.css";
 // =========================
 
 // Club award images
-import PlayerOfTheYearImg from "./PlayeroftheYear.jpg";
+import PlayerOfTheYearImg from "./2025.jpg";
 import BestKnockImg from "./BestKnock.jpg";
 import BestSpellImg from "./BestSpell.jpg";
 
