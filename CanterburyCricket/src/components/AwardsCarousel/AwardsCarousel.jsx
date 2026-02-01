@@ -92,7 +92,7 @@ const CLUB_WINNERS = {
   most_dedicated: {
     name: "Syed Bazil Ravi",
     stats: [],
-    highlight: "",
+    highlight: " Always there to support the playing XI",
   },
   best_spell: {
     name: "Amir Abbas",
