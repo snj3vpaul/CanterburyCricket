@@ -7,7 +7,13 @@ import "./ProfileCard.css";
  * ✅ Works in plain React + CSS
  * ✅ Tilt + shine follows pointer via CSS variables
  * ✅ Optional behind-glow
+ *
+ * Performance fixes:
+ * ✅ No infinite RAF loop
+ * ✅ pointermove throttled to 1/frame
+ * ✅ getBoundingClientRect cached on enter
  */
+
 const DEFAULT_INNER_GRADIENT =
   "linear-gradient(145deg, rgba(96,73,110,0.55) 0%, rgba(113,196,255,0.27) 100%)";
 
@@ -51,6 +57,11 @@ export default function ProfileCard({
   const enterTimerRef = useRef(null);
   const leaveRafRef = useRef(null);
 
+  // perf refs (MUST be inside component)
+  const rectRef = useRef(null);
+  const moveRafRef = useRef(null);
+  const lastPtRef = useRef({ x: 0, y: 0 });
+
   // ✅ Tilt engine: smooth pointer-follow using CSS vars
   const tiltEngine = useMemo(() => {
     if (!enableTilt) return null;
@@ -87,18 +98,34 @@ export default function ProfileCard({
         "--pointer-y": `${percentY}%`,
         "--background-x": `${adjust(percentX, 0, 100, 35, 65)}%`,
         "--background-y": `${adjust(percentY, 0, 100, 35, 65)}%`,
-        "--pointer-from-center": `${clamp(Math.hypot(percentY - 50, percentX - 50) / 50, 0, 1)}`,
+        "--pointer-from-center": `${clamp(
+          Math.hypot(percentY - 50, percentX - 50) / 50,
+          0,
+          1
+        )}`,
         "--pointer-from-top": `${percentY / 100}`,
         "--pointer-from-left": `${percentX / 100}`,
         "--rotate-x": `${round(-(centerX / 5))}deg`,
         "--rotate-y": `${round(centerY / 4)}deg`,
       };
 
-      for (const [k, v] of Object.entries(properties)) wrap.style.setProperty(k, v);
+      for (const [k, v] of Object.entries(properties)) {
+        wrap.style.setProperty(k, v);
+      }
+    };
+
+    const stop = () => {
+      running = false;
+      lastTs = 0;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
     };
 
     const step = (ts) => {
       if (!running) return;
+
       if (lastTs === 0) lastTs = ts;
       const dt = (ts - lastTs) / 1000;
       lastTs = ts;
@@ -111,18 +138,14 @@ export default function ProfileCard({
 
       setVarsFromXY(currentX, currentY);
 
+      // stop when close enough (no document.hasFocus()!)
       const stillFar =
         Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05;
 
-      if (stillFar || document.hasFocus()) {
+      if (stillFar) {
         rafId = requestAnimationFrame(step);
       } else {
-        running = false;
-        lastTs = 0;
-        if (rafId) {
-          cancelAnimationFrame(rafId);
-          rafId = null;
-        }
+        stop();
       }
     };
 
@@ -157,33 +180,45 @@ export default function ProfileCard({
         return { x: currentX, y: currentY, tx: targetX, ty: targetY };
       },
       cancel() {
-        if (rafId) cancelAnimationFrame(rafId);
-        rafId = null;
-        running = false;
-        lastTs = 0;
+        stop();
       },
     };
   }, [enableTilt]);
 
-  const getOffsets = (evt, el) => {
-    const rect = el.getBoundingClientRect();
+  const getOffsetsCached = useCallback((evt, el) => {
+    // refresh rect lazily (in case scroll/layout shifts)
+    const rect = rectRef.current || el.getBoundingClientRect();
+    if (!rectRef.current) rectRef.current = rect;
+
     return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
-  };
+  }, []);
 
   const handlePointerMove = useCallback(
     (event) => {
       const shell = shellRef.current;
       if (!shell || !tiltEngine) return;
-      const { x, y } = getOffsets(event, shell);
-      tiltEngine.setTarget(x, y);
+
+      const { x, y } = getOffsetsCached(event, shell);
+      lastPtRef.current = { x, y };
+
+      // throttle to 1 per frame
+      if (moveRafRef.current) return;
+      moveRafRef.current = requestAnimationFrame(() => {
+        moveRafRef.current = null;
+        const pt = lastPtRef.current;
+        tiltEngine.setTarget(pt.x, pt.y);
+      });
     },
-    [tiltEngine]
+    [tiltEngine, getOffsetsCached]
   );
 
   const handlePointerEnter = useCallback(
     (event) => {
       const shell = shellRef.current;
       if (!shell || !tiltEngine) return;
+
+      // cache rect once on enter
+      rectRef.current = shell.getBoundingClientRect();
 
       shell.classList.add("active");
       shell.classList.add("entering");
@@ -193,15 +228,22 @@ export default function ProfileCard({
         shell.classList.remove("entering");
       }, ANIMATION_CONFIG.ENTER_TRANSITION_MS);
 
-      const { x, y } = getOffsets(event, shell);
+      const { x, y } = getOffsetsCached(event, shell);
       tiltEngine.setTarget(x, y);
     },
-    [tiltEngine]
+    [tiltEngine, getOffsetsCached]
   );
 
   const handlePointerLeave = useCallback(() => {
     const shell = shellRef.current;
     if (!shell || !tiltEngine) return;
+
+    // clear cached rect + pending move raf
+    rectRef.current = null;
+    if (moveRafRef.current) {
+      cancelAnimationFrame(moveRafRef.current);
+      moveRafRef.current = null;
+    }
 
     tiltEngine.toCenter();
 
@@ -250,12 +292,10 @@ export default function ProfileCard({
     const shell = shellRef.current;
     if (!shell) return;
 
-    // pointer events
-    shell.addEventListener("pointerenter", handlePointerEnter);
-    shell.addEventListener("pointermove", handlePointerMove);
-    shell.addEventListener("pointerleave", handlePointerLeave);
+    shell.addEventListener("pointerenter", handlePointerEnter, { passive: true });
+    shell.addEventListener("pointermove", handlePointerMove, { passive: true });
+    shell.addEventListener("pointerleave", handlePointerLeave, { passive: true });
 
-    // mobile tilt permission (optional)
     const handleClick = () => {
       if (!enableMobileTilt || location.protocol !== "https:") return;
       const anyMotion = window.DeviceMotionEvent;
@@ -291,8 +331,13 @@ export default function ProfileCard({
       if (enterTimerRef.current) window.clearTimeout(enterTimerRef.current);
       if (leaveRafRef.current) cancelAnimationFrame(leaveRafRef.current);
 
+      if (moveRafRef.current) cancelAnimationFrame(moveRafRef.current);
+      moveRafRef.current = null;
+      rectRef.current = null;
+
       tiltEngine.cancel();
       shell.classList.remove("entering");
+      shell.classList.remove("active");
     };
   }, [
     enableTilt,
@@ -320,11 +365,7 @@ export default function ProfileCard({
   }, [onContactClick]);
 
   return (
-    <div
-      ref={wrapRef}
-      className={`pc-card-wrapper ${className}`.trim()}
-      style={cardStyle}
-    >
+    <div ref={wrapRef} className={`pc-card-wrapper ${className}`.trim()} style={cardStyle}>
       {behindGlowEnabled ? <div className="pc-behind" /> : null}
 
       <div ref={shellRef} className="pc-card-shell">
@@ -340,6 +381,7 @@ export default function ProfileCard({
                 src={avatarUrl}
                 alt={`${name} avatar`}
                 loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.style.opacity = "0";
                 }}
@@ -353,6 +395,7 @@ export default function ProfileCard({
                         src={miniAvatarUrl || avatarUrl}
                         alt={`${name} mini avatar`}
                         loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           e.currentTarget.style.opacity = "0.55";
                           e.currentTarget.src = avatarUrl;
