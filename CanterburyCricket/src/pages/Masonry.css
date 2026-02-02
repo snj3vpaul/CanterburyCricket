@@ -15,7 +15,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  padding: 8px;
+  padding: 0px;
   cursor: pointer;
   transform-origin: center;
   will-change: transform, width, height, opacity;
@@ -26,42 +26,35 @@
 
 /* The visual “card” */
 .item-wrapper > .item-img {
-  position: relative;
   width: 100%;
   height: 100%;
-
-  /* ✅ No distortion; crops naturally based on aspect ratio */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: cover;  /* ✅ same as background-size: cover */
+  display: block;
 
   border-radius: 14px;
   overflow: hidden;
 
-  /* nicer depth */
   box-shadow:
     0 10px 28px rgba(0, 0, 0, 0.25),
     0 2px 10px rgba(0, 0, 0, 0.18);
 
-  /* subtle border for separation on dark backgrounds */
   border: 1px solid rgba(255, 255, 255, 0.08);
 
-  /* smooth hover interaction */
   transition: transform 220ms ease, filter 220ms ease, box-shadow 220ms ease;
 }
 
-/* Optional: add a gentle vignette so images pop consistently */
-.item-wrapper > .item-img::after {
+.item-wrapper::after {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: inherit;
+  border-radius: 14px;
   pointer-events: none;
   background:
     radial-gradient(900px 420px at 50% 0%, rgba(255, 255, 255, 0.10), transparent 55%),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.18));
   opacity: 0.9;
 }
+
 
 /* Hover/Focus: make it feel premium */
 .item-wrapper:hover > .item-img,
@@ -81,4 +74,122 @@
 /* If you enable the gradient overlay in JSX (colorShiftOnHover) */
 .color-overlay {
   border-radius: inherit;
+}
+
+/* ===== Lightbox ===== */
+.mModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.mBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.mPanel {
+  position: relative;
+  width: min(980px, 100%);
+  border-radius: 18px;
+  background: rgba(10, 10, 12, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.mTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mCount {
+  opacity: 0.85;
+  font-weight: 700;
+}
+
+.mActions {
+  display: flex;
+  gap: 10px;
+}
+
+.mBtn {
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.mBtn:hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.mBtnGhost {
+  background: transparent;
+}
+
+.mStage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.mFull {
+  width: 100%;
+  height: min(70vh, 640px);
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+}
+
+.mNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  font-size: 28px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.mNavLeft { left: 14px; }
+.mNavRight { right: 14px; }
+
+.mFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mCaption {
+  opacity: 0.9;
+  font-weight: 650;
+}
+
+.mHint {
+  opacity: 0.7;
+  font-size: 0.92rem;
 }
