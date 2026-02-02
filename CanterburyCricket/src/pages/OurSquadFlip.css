@@ -6,7 +6,7 @@
 
 .squadPage {
   min-height: 100vh;
-  background: transparent; /* let global theme show */
+  background: transparent;
   position: relative;
   isolation: isolate;
 }
@@ -19,7 +19,7 @@
 }
 
 /* =========================================================
-   Header (optional - safe to keep)
+   Header
    ========================================================= */
 
 .squadHeader {
@@ -108,31 +108,57 @@
 }
 
 /* =========================================================
-   Loading skeleton
-   (we render <div className="grid"> only while loading)
+   ✅ CHANGE: ProfileCard grid layout (replaces ChromaGrid styles)
    ========================================================= */
 
-.grid {
+.squadCards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
+  align-items: start;
 }
 
-@media (max-width: 820px) {
-  .grid {
+@media (max-width: 980px) {
+  .squadCards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 520px) {
-  .grid {
+@media (max-width: 560px) {
+  .squadCards {
     grid-template-columns: 1fr;
   }
 }
 
-.skeletonCard {
-  height: 380px;
-  border-radius: 20px;
+.squadCardItem {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ✅ CHANGE: Gives the ProfileCard room but doesn’t fight its own CSS */
+.squadCardItem .pc-card-wrapper {
+  width: 100%;
+  max-width: 420px; /* prevents “too wide” stretch on large screens */
+  margin: 0 auto;   /* centers card in its grid column */
+}
+
+/* Optional line under card for bat/bowl style */
+.squadMetaLine {
+  opacity: 0.75;
+  font-size: 13px;
+  line-height: 1.35;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+/* =========================================================
+   ✅ CHANGE: Loading skeletons updated (match ProfileCard footprint)
+   ========================================================= */
+
+.skeletonProfile {
+  height: 430px;
+  border-radius: 22px;
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.06) 0%,
@@ -154,225 +180,7 @@
 }
 
 /* =========================================================
-   ChromaGrid (scoped to OurSquad page)
+   ✅ CHANGE: Removed / no longer needed:
+   - .chroma-grid, .chroma-card, overlay masks, etc.
+   Because we no longer render <ChromaGrid /> in OurSquad.jsx
    ========================================================= */
-
-.squadPage .chroma-grid {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(var(--cols, 3), 320px);
-  grid-auto-rows: auto;
-  justify-content: center;
-  gap: 0.75rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
-  box-sizing: border-box;
-
-  --x: 50%;
-  --y: 50%;
-  --r: 220px;
-
-  isolation: isolate;
-  contain: paint;
-}
-
-@media (max-width: 1124px) {
-  .squadPage .chroma-grid {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 320px));
-    gap: 0.5rem;
-    padding: 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .squadPage .chroma-grid {
-    grid-template-columns: 320px;
-    gap: 0.75rem;
-    padding: 1rem;
-  }
-}
-
-.squadPage .chroma-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 320px;
-  height: auto;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid #333;
-  transition: border-color 0.3s ease;
-  background: var(--card-gradient);
-
-  --mouse-x: 50%;
-  --mouse-y: 50%;
-  --spotlight-color: rgba(255, 255, 255, 0.3);
-}
-
-.squadPage .chroma-card:hover {
-  border-color: var(--card-border);
-}
-
-.squadPage .chroma-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at var(--mouse-x) var(--mouse-y),
-    var(--spotlight-color),
-    transparent 70%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  z-index: 2;
-}
-
-.squadPage .chroma-card:hover::before {
-  opacity: 1;
-}
-
-.squadPage .chroma-img-wrapper {
-  position: relative;
-  z-index: 1;
-  padding: 10px;
-  box-sizing: border-box;
-  background: transparent;
-}
-
-.squadPage .chroma-img-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 10px;
-  display: block;
-}
-
-.squadPage .chroma-info {
-  position: relative;
-  z-index: 1;
-  padding: 0.75rem 1rem;
-  color: #fff;
-  font-family: system-ui, sans-serif;
-
-  display: grid;
-  grid-template-columns: 1fr auto;
-  row-gap: 0.25rem;
-  column-gap: 0.75rem;
-}
-
-.squadPage .chroma-info .handle,
-.squadPage .chroma-info .role {
-  color: #aaa;
-}
-
-.squadPage .chroma-info .role {
-  grid-column: 1 / -1;
-  margin: 0;
-  line-height: 1.25;
-}
-
-.squadPage .chroma-info .location {
-  grid-column: 1 / -1;
-  /* ✅ Fallback for very old browsers */
-  overflow: hidden;
-
-  /* ✅ Standard-ish line clamp (supported in some modern browsers) */
-  line-clamp: 3;
-
-  /* ✅ Modern standard syntax (Firefox is improving here) */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-height: 1.3;
-  margin-top: 0.25rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.squadPage .chroma-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 3;
-
-  backdrop-filter: grayscale(1) brightness(0.78);
-  -webkit-backdrop-filter: grayscale(1) brightness(0.78);
-  background: rgba(0, 0, 0, 0.001);
-
-  mask-image: radial-gradient(
-    circle var(--r) at var(--x) var(--y),
-    transparent 0%,
-    transparent 15%,
-    rgba(0, 0, 0, 0.1) 30%,
-    rgba(0, 0, 0, 0.22) 45%,
-    rgba(0, 0, 0, 0.35) 60%,
-    rgba(0, 0, 0, 0.5) 75%,
-    rgba(0, 0, 0, 0.68) 88%,
-    white 100%
-  );
-  -webkit-mask-image: radial-gradient(
-    circle var(--r) at var(--x) var(--y),
-    transparent 0%,
-    transparent 15%,
-    rgba(0, 0, 0, 0.1) 30%,
-    rgba(0, 0, 0, 0.22) 45%,
-    rgba(0, 0, 0, 0.35) 60%,
-    rgba(0, 0, 0, 0.5) 75%,
-    rgba(0,  0, 0, 0.68) 88%,
-    white 100%
-  );
-}
-
-.squadPage .chroma-fade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 4;
-
-  backdrop-filter: grayscale(1) brightness(0.78);
-  -webkit-backdrop-filter: grayscale(1) brightness(0.78);
-  background: rgba(0, 0, 0, 0.001);
-
-  mask-image: radial-gradient(
-    circle var(--r) at var(--x) var(--y),
-    white 0%,
-    white 15%,
-    rgba(255, 255, 255, 0.9) 30%,
-    rgba(255, 255, 255, 0.78) 45%,
-    rgba(255, 255, 255, 0.65) 60%,
-    rgba(255, 255, 255, 0.5) 75%,
-    rgba(255, 255, 255, 0.32) 88%,
-    transparent 100%
-  );
-  -webkit-mask-image: radial-gradient(
-    circle var(--r) at var(--x) var(--y),
-    white 0%,
-    white 15%,
-    rgba(255, 255, 255, 0.9) 30%,
-    rgba(255, 255, 255, 0.78) 45%,
-    rgba(255, 255, 255, 0.65) 60%,
-    rgba(255, 255, 255, 0.5) 75%,
-    rgba(255, 255, 255, 0.32) 88%,
-    transparent 100%
-  );
-
-  opacity: 1;
-  transition: opacity 0.25s ease;
-}
-
-/* Mobile tuning */
-@media (max-width: 600px) {
-  .squadPage .chroma-info .location {
-    /* 2 lines on mobile */
-    max-height: calc(1.3em * 2);
-    line-clamp: 2;
-    max-lines: 2;
-    -webkit-line-clamp: 2;
-  }
-}
-

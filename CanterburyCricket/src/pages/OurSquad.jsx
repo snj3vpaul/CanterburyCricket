@@ -1,7 +1,9 @@
-// src/pages/OurSquad/OurSquad.jsx  (or src/pages/OurSquad.jsx)
+// src/pages/OurSquad/OurSquad.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import "./OurSquadFlip.css";
-import ChromaGrid from "../components/ChromaGrid/ChromaGrid";
+
+// ✅ CHANGE: Replaced ChromaGrid import with ProfileCard
+import ProfileCard from "../components/ProfileCard/ProfileCard"; // <-- adjust path if your ProfileCard lives elsewhere
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DEFAULT_BIOS = [
@@ -14,7 +16,7 @@ const DEFAULT_BIOS = [
   "A valued member of the Canterbury squad.",
   "Proud to wear Canterbury colours.",
   "Plays for the love of the game and the team.",
-  "Heart on the sleeve, bat in hand."
+  "Heart on the sleeve, bat in hand.",
 ];
 
 // deterministic hash so it doesn't change on every render
@@ -46,7 +48,6 @@ const fallbackImage =
   </svg>
 `);
 
-// Drive link -> direct-ish image URL
 function normalizeDriveImageUrl(input) {
   if (!input) return "";
   const raw = String(input).trim();
@@ -91,12 +92,6 @@ function pick(row, keys) {
   return "";
 }
 
-/**
- * Apps Script JSON row -> internal player model
- * Sheet headers:
- * Timestamp, Full Name, Playing Role, Playing Style, Bowling Style, Jersey Number,
- * Photo for Squad Banner, Short Bio
- */
 function mapRowToPlayer(row, idx) {
   const name = (row["Full Name"] ?? "").toString().trim() || `Player ${idx + 1}`;
   const role = normalizeRole(row["Playing Role"]);
@@ -108,11 +103,7 @@ function mapRowToPlayer(row, idx) {
   const bio = pick(row, ["Short Bio", "Short bio", "Bio", "About", "Player Bio", "Short Bio "]);
   const image = normalizeDriveImageUrl(row["Photo for Squad Banner"]) || fallbackImage;
 
-  const tags = [
-    batting ? `Bat: ${batting}` : null,
-    bowling ? `Bowl: ${bowling}` : null,
-    jersey ? `#${jersey}` : null,
-  ].filter(Boolean);
+  const tags = [batting ? `Bat: ${batting}` : null, bowling ? `Bowl: ${bowling}` : null, jersey ? `#${jersey}` : null].filter(Boolean);
 
   return {
     id: `${name}-${idx}`,
@@ -127,74 +118,30 @@ function mapRowToPlayer(row, idx) {
   };
 }
 
-/** Small helper to give each role a consistent neon feel */
-function roleTheme(role) {
+// ✅ CHANGE: new helper to create a “handle” like @shadcn profile cards
+function makeHandle(name) {
+  const base = (name || "player")
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s_-]/g, "")
+    .replace(/\s+/g, "");
+  return base || "player";
+}
+
+// ✅ CHANGE: new helper to style inner gradient per role (keeps it “club themed”)
+function innerGradientForRole(role) {
   const r = normalized(role);
-  if (r.includes("wicket")) {
-    return {
-      borderColor: "#22c55e",
-      gradient: "linear-gradient(210deg, rgba(34,197,94,0.95), #000)",
-    };
-  }
-  if (r.includes("bowl")) {
-    return {
-      borderColor: "#06b6d4",
-      gradient: "linear-gradient(200deg, rgba(6,182,212,0.95), #000)",
-    };
-  }
-  if (r.includes("bat")) {
-    return {
-      borderColor: "#f59e0b",
-      gradient: "linear-gradient(165deg, rgba(245,158,11,0.95), #000)",
-    };
-  }
-  return {
-    borderColor: "#8b5cf6",
-    gradient: "linear-gradient(225deg, rgba(139,92,246,0.95), #000)",
-  };
+  if (r.includes("wicket")) return "linear-gradient(145deg, rgba(34,197,94,0.22) 0%, rgba(8,12,22,0.92) 100%)";
+  if (r.includes("bowl")) return "linear-gradient(145deg, rgba(6,182,212,0.22) 0%, rgba(8,12,22,0.92) 100%)";
+  if (r.includes("bat")) return "linear-gradient(145deg, rgba(245,158,11,0.22) 0%, rgba(8,12,22,0.92) 100%)";
+  return "linear-gradient(145deg, rgba(139,92,246,0.22) 0%, rgba(8,12,22,0.92) 100%)";
 }
-
-function playerToChromaItem(p) {
-  const theme = roleTheme(p.role);
-
-  const subtitleParts = [
-    p.role || "All-rounder",
-    p.jersey ? `• #${p.jersey}` : null,
-  ].filter(Boolean);
-
-  const handleParts = [
-    p.batting ? `Bat: ${p.batting}` : null,
-    p.bowling ? `Bowl: ${p.bowling}` : null,
-  ].filter(Boolean);
-
-  // pick a stable “random” fallback bio per player
-  const fallbackBio =
-    DEFAULT_BIOS[stableIndexFromString(p.id || p.name, DEFAULT_BIOS.length)];
-
-  const bio =
-    p.bio?.trim() ||
-    fallbackBio;
-
-  return {
-    id: p.id,
-    image: p.image || fallbackImage,
-    title: p.name,
-    subtitle: subtitleParts.join(" "),
-    handle: handleParts.join(" • "),
-    location: bio.slice(0, 90) + (bio.length > 90 ? "…" : ""),
-    borderColor: theme.borderColor,
-    gradient: theme.gradient,
-    url: "",
-  };
-}
-
 
 export default function OurSquad() {
-  // Filters (even if UI is disabled)
   const [query, setQuery] = useState("");
   const [role, setRole] = useState("All");
 
-  // Data state
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -235,12 +182,9 @@ export default function OurSquad() {
         (p.tags || []).some((t) => normalized(t).includes(q));
 
       const matchRole = role === "All" || normalized(p.role) === normalized(role);
-
       return matchQuery && matchRole;
     });
   }, [players, query, role]);
-
-  const chromaItems = useMemo(() => filteredPlayers.map(playerToChromaItem), [filteredPlayers]);
 
   const clearFilters = () => {
     setQuery("");
@@ -250,12 +194,19 @@ export default function OurSquad() {
   return (
     <div className="squadPage">
       <div className="squadContainer">
-        {/* Optional controls (if you re-enable later)
-        <div className="headerActions">
-          <button className="btn ghost" onClick={clearFilters} type="button">Clear</button>
-          <button className="btn" onClick={fetchSquad} type="button">Refresh</button>
+        {/* ✅ CHANGE: Added (optional) header back, but still safe to remove */}
+        <div className="squadHeader">
+          <div>
+            <h1 className="squadTitle">Our Squad</h1>
+            <p className="squadSubtitle">Meet the Canterbury players — built from live squad submissions.</p>
+          </div>
+
+          {/* ✅ CHANGE: Left filters “wired” but UI still optional */}
+          {/* <div className="headerActions">
+            <button className="btn ghost" onClick={clearFilters} type="button">Clear</button>
+            <button className="btn" onClick={fetchSquad} type="button">Refresh</button>
+          </div> */}
         </div>
-        */}
 
         {loadError ? (
           <div className="alert error" role="alert">
@@ -263,28 +214,66 @@ export default function OurSquad() {
           </div>
         ) : null}
 
+        {/* ✅ CHANGE: Loading UI updated to match ProfileCard sizing */}
         {loading ? (
-          <div className="grid">
+          <div className="squadCards">
             {Array.from({ length: 9 }).map((_, i) => (
-              <div className="skeletonCard" key={`sk-${i}`} />
+              <div className="skeletonProfile" key={`sk-${i}`} />
             ))}
           </div>
-        ) : chromaItems.length === 0 ? (
+        ) : filteredPlayers.length === 0 ? (
           <div className="emptyState">
             <div className="emptyTitle">No matches</div>
             <div className="emptySub">Try a different name or role.</div>
           </div>
         ) : (
-          <ChromaGrid
-            items={chromaItems}
-            className="squadChroma"
-            radius={340}
-            columns={3}
-            rows={2}
-            damping={0.45}
-            fadeOut={0.6}
-            ease="power3.out"
-          />
+          // ✅ CHANGE: Replaced <ChromaGrid /> with a simple responsive grid of <ProfileCard />
+          <div className="squadCards">
+            {filteredPlayers.map((p) => {
+              const fallbackBio = DEFAULT_BIOS[stableIndexFromString(p.id || p.name, DEFAULT_BIOS.length)];
+              const bio = (p.bio?.trim() || fallbackBio).slice(0, 60) + ((p.bio || fallbackBio).length > 60 ? "…" : "");
+
+              const titleParts = [
+                p.role || "All-rounder",
+                p.jersey ? `• #${p.jersey}` : null,
+              ].filter(Boolean);
+
+              const subtitleParts = [
+                p.batting ? `Bat: ${p.batting}` : null,
+                p.bowling ? `Bowl: ${p.bowling}` : null,
+              ].filter(Boolean);
+
+              return (
+                <div className="squadCardItem" key={p.id}>
+                  <ProfileCard
+                    // ✅ CHANGE: ProfileCard expects avatarUrl (+ optional miniAvatarUrl)
+                    avatarUrl={p.image || fallbackImage}
+                    miniAvatarUrl={p.image || fallbackImage}
+                    name={p.name}
+                    title={titleParts.join(" ")}
+                    handle={makeHandle(p.name)}
+                    status={bio} // ✅ CHANGE: Using “status” slot as a short bio line
+                    contactText="Details"
+                    // ✅ CHANGE: Keeps effect consistent per role with gradient + glow
+                    innerGradient={innerGradientForRole(p.role)}
+                    behindGlowEnabled={true}
+                    enableTilt={true}
+                    enableMobileTilt={false}
+                    // ✅ CHANGE: Make button do something non-breaking (easy to swap later)
+                    onContactClick={() => {
+                      // you can replace this with a modal / route later
+                      console.log("Player:", p);
+                    }}
+                    showUserInfo={true}
+                  />
+                  {/* ✅ CHANGE: Optional extra line under the card for style tags (non-intrusive) */}
+                  {subtitleParts.length ? (
+                    <div className="squadMetaLine">{subtitleParts.join(" • ")}</div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
