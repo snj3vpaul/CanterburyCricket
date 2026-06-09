@@ -1,25 +1,36 @@
+# Dependencies (regenerated with `npm install` — never commit these)
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# Vite / cache
+.vite/
+node_modules/.vite/
+
 # Logs
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
-.env
+logs/
+*.log
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# Editor / OS
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Heavy source originals — keep optimized webp (thumbs/previews) in git instead
+src/assets/Masonry/originals/

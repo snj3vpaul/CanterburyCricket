@@ -11,13 +11,8 @@ import "./Masonry.css";
  * If thumbs/previews don’t exist yet, it will gracefully fallback to originals.
  */
 
-// Originals (required)
-const originals = import.meta.glob(
-  "../assets/Masonry/**/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}",
-  { eager: true, import: "default" }
-);
-
-// Optional thumbs/previews if you create these folders
+// Gallery is built from optimized WebP only (thumbs + previews).
+// The heavy "originals" folder is NOT used and can be safely deleted.
 const thumbs = import.meta.glob(
   "../assets/Masonry/thumbs/**/*.{webp,avif,jpg,jpeg,png,WEBP,AVIF,JPG,JPEG,PNG}",
   { eager: true, import: "default" }
@@ -34,25 +29,24 @@ const toFileName = (path) => path.split("/").pop() || path;
  * Build a stable list from originals, and match thumb/preview by same filename (recommended).
  * e.g. originals/A01.jpg -> thumbs/A01.webp -> previews/A01.webp
  */
-const AUTO_ITEMS = Object.entries(originals)
-  .map(([path, url]) => {
+const AUTO_ITEMS = Object.entries(previews)
+  .map(([path, previewUrl]) => {
     const fileName = toFileName(path);
-    const baseName = fileName.replace(/\.(jpg|jpeg|png|webp)$/i, ""); // name without ext
+    const baseName = fileName.replace(/\.(jpg|jpeg|png|webp|avif)$/i, ""); // name without ext
 
-    // Find matching thumb/preview by base name (works if you keep names consistent)
-    const thumbEntry = Object.entries(thumbs).find(([p]) => toFileName(p).startsWith(baseName));
-    const previewEntry = Object.entries(previews).find(([p]) => toFileName(p).startsWith(baseName));
-
-    const thumbUrl = thumbEntry?.[1] ?? url;     // fallback to original
-    const previewUrl = previewEntry?.[1] ?? url; // fallback to original
+    // Match the matching thumbnail by base name; fall back to the preview.
+    const thumbEntry = Object.entries(thumbs).find(
+      ([p]) => toFileName(p).replace(/\.(jpg|jpeg|png|webp|avif)$/i, "") === baseName
+    );
+    const thumbUrl = thumbEntry?.[1] ?? previewUrl;
 
     return {
       id: baseName,
       fileName,
       alt: baseName,
-      thumb: thumbUrl,
-      preview: previewUrl,
-      full: url // original download
+      thumb: thumbUrl,        // small webp -> fast grid
+      preview: previewUrl,    // medium webp -> lightbox
+      full: previewUrl,       // lightbox uses optimized preview (no heavy original)
     };
   })
   .sort((a, b) => a.fileName.localeCompare(b.fileName));
