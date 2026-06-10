@@ -1,0 +1,70 @@
+/* src/styles/tokens.css */
+/* =============================================================================
+   CANTERBURY CC — DESIGN TOKENS (single source of truth for colour)
+   Import once in main.jsx BEFORE other styles:  import "./styles/tokens.css";
+   -----------------------------------------------------------------------------
+   PRINCIPLE: hierarchy comes from RESTRAINT, not from making everything gold.
+     • GOLD  = primary actions + ONE key highlight per view. Not every border.
+     • RED   = sparing brand energy. Not a default accent.
+     • Decorative borders/dividers = NEUTRAL (white-alpha), never gold.
+     • SEMANTIC colours (win/loss/error/live) are a SEPARATE set from brand,
+       so a real error never looks like the brand and a "win" never looks gold.
+   ============================================================================= */
+
+:root {
+  /* ---------- SURFACES (navy elevations) ---------- */
+  --surface-0: #080b13;   /* page base            */
+  --surface-1: #0d111c;   /* cards / rows         */
+  --surface-2: #141a28;   /* raised / hover       */
+  --surface-glass: rgba(13, 17, 28, 0.72);
+
+  /* Neutral hairlines — use these for decoration instead of gold */
+  --line: rgba(255, 255, 255, 0.09);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  /* ---------- TEXT (warm off-white = friendlier than cool grey) ---------- */
+  --text-strong: #fbf8f1;
+  --text: rgba(251, 248, 241, 0.86);
+  --text-soft: rgba(251, 248, 241, 0.62);
+  --text-faint: rgba(251, 248, 241, 0.42);
+
+  /* ---------- PRIMARY · GOLD (restricted use) ---------- */
+  --gold: #f7b500;
+  --gold-bright: #ffd36a;
+  --gold-deep: #e89a00;
+  --gold-grad: linear-gradient(135deg, #ffe39a 0%, #f7b500 60%, #e89a00 100%);
+  --gold-wash: rgba(247, 181, 0, 0.12); /* tints, badge fills */
+  --gold-line: rgba(247, 181, 0, 0.40);
+  --on-gold: #1b1b1b;                    /* text/icons on gold fills */
+
+  /* ---------- BRAND ENERGY · CREST RED (sparing) ---------- */
+  --red: #e0301e;
+  --red-wash: rgba(224, 48, 30, 0.12);
+
+  /* ---------- SEMANTIC (functional — kept distinct from brand) ---------- */
+  --win: #35c46b;                       /* result: win / positive */
+  --win-wash: rgba(53, 196, 107, 0.16);
+  --loss: #e0473a;                      /* result: loss */
+  --loss-wash: rgba(224, 71, 58, 0.16);
+  --warning: #f5a623;
+  --error: #ff5a7a;                     /* magenta-red: never reads as brand */
+  --error-wash: rgba(255, 90, 122, 0.14);
+  --live: #ff3b5c;                      /* broadcast-style live pulse */
+
+  /* ---------- ROLE CUES (SECONDARY — the icon carries the meaning) ----------
+     Kept warm/on-brand. Because each role also gets a distinct ICON, the hue
+     no longer has to do the heavy lifting of telling roles apart. */
+  --role-bat: 247, 181, 0;    /* gold   */
+  --role-bowl: 224, 48, 30;   /* red    */
+  --role-allr: 245, 130, 31;  /* amber  */
+  --role-wk: 255, 211, 106;   /* light gold */
+
+  /* ---------- FOCUS ---------- */
+  --focus: var(--gold);
+
+  /* ---------- RADIUS ---------- */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --r-pill: 999px;
+}

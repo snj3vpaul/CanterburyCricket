@@ -41,7 +41,7 @@ color: #ffffff;
 .orb1 {
   top: 15%;
   left: 10%;
-  background: radial-gradient(circle, rgba(79,82,255,0.75), transparent 60%);
+  background: radial-gradient(circle, rgba(247,181,0,0.75), transparent 60%);
 }
 
 .orb2 {
@@ -113,7 +113,7 @@ color: #ffffff;
 }
 
 .future-primary {
-  background: linear-gradient(90deg, rgba(79,82,255,1), rgba(247,181,0,1));
+  background: linear-gradient(90deg, rgba(247,181,0,1), rgba(247,181,0,1));
   color: #0b0d16;
   border: none;
 }

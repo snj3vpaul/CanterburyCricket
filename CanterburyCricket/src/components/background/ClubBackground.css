@@ -15,7 +15,7 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 18% 20%, rgba(79, 82, 255, 0.35), transparent 55%),
+    radial-gradient(circle at 18% 20%, rgba(247, 181, 0, 0.35), transparent 55%),
     radial-gradient(circle at 80% 30%, rgba(247, 181, 0, 0.22), transparent 52%),
     radial-gradient(circle at 70% 82%, rgba(220, 38, 38, 0.16), transparent 55%),
     linear-gradient(180deg, #070912 0%, #050615 55%, #070912 100%);
@@ -36,7 +36,7 @@
 .orb-indigo {
   top: 8%;
   left: 10%;
-  background: radial-gradient(circle, rgba(79, 82, 255, 0.65), transparent 60%);
+  background: radial-gradient(circle, rgba(247, 181, 0, 0.65), transparent 60%);
 }
 
 .orb-gold {
@@ -68,7 +68,7 @@
     transparent,
     rgba(255, 255, 255, 0.08),
     rgba(247, 181, 0, 0.14),
-    rgba(79, 82, 255, 0.12),
+    rgba(247, 181, 0, 0.12),
     transparent
   );
   filter: blur(14px);
@@ -89,13 +89,13 @@
 
   background:
     radial-gradient(circle at center, transparent 56%, rgba(247, 181, 0, 0.12) 57%, transparent 60%),
-    radial-gradient(circle at center, transparent 70%, rgba(79, 82, 255, 0.10) 71%, transparent 74%),
+    radial-gradient(circle at center, transparent 70%, rgba(247, 181, 0, 0.10) 71%, transparent 74%),
     conic-gradient(
       from 90deg,
       rgba(247, 181, 0, 0.0),
       rgba(247, 181, 0, 0.10),
       rgba(220, 38, 38, 0.10),
-      rgba(79, 82, 255, 0.10),
+      rgba(247, 181, 0, 0.10),
       rgba(247, 181, 0, 0.0)
     );
 }
