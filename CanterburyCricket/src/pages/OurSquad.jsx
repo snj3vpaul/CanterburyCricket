@@ -2,8 +2,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import "./OurSquadFlip.css";
 
-// ✅ CHANGE: Replaced ChromaGrid import with ProfileCard
-import ProfileCard from "../components/ProfileCard/ProfileCard"; // <-- adjust path if your ProfileCard lives elsewhere
+// Ranked, tap-to-expand squad list (jersey order)
+import SquadRanking from "../components/SquadRanking/SquadRanking";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DEFAULT_BIOS = [
@@ -130,12 +130,20 @@ function makeHandle(name) {
 }
 
 // ✅ CHANGE: new helper to style inner gradient per role (keeps it “club themed”)
-function innerGradientForRole(role) {
+function roleAccentRGB(role) {
   const r = normalized(role);
-  if (r.includes("wicket")) return "linear-gradient(145deg, rgba(34,197,94,0.22) 0%, rgba(8,12,22,0.92) 100%)";
-  if (r.includes("bowl")) return "linear-gradient(145deg, rgba(6,182,212,0.22) 0%, rgba(8,12,22,0.92) 100%)";
-  if (r.includes("bat")) return "linear-gradient(145deg, rgba(245,158,11,0.22) 0%, rgba(8,12,22,0.92) 100%)";
-  return "linear-gradient(145deg, rgba(139,92,246,0.22) 0%, rgba(8,12,22,0.92) 100%)";
+  if (r.includes("wicket")) return "255, 211, 106"; // light gold
+  if (r.includes("bowl")) return "224, 48, 30";     // crest red
+  if (r.includes("bat")) return "247, 181, 0";       // gold
+  return "245, 130, 31";                             // amber (all-rounder)
+}
+
+function innerGradientForRole(role) {
+  return `linear-gradient(145deg, rgba(${roleAccentRGB(role)}, 0.26) 0%, rgba(8,12,22,0.94) 100%)`;
+}
+
+function behindGlowForRole(role) {
+  return `rgba(${roleAccentRGB(role)}, 0.5)`;
 }
 
 export default function OurSquad() {
@@ -216,9 +224,9 @@ export default function OurSquad() {
 
         {/* ✅ CHANGE: Loading UI updated to match ProfileCard sizing */}
         {loading ? (
-          <div className="squadCards">
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div className="skeletonProfile" key={`sk-${i}`} />
+          <div className="sr-skeletonList">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div className="sr-skeletonRow" key={`sk-${i}`} />
             ))}
           </div>
         ) : filteredPlayers.length === 0 ? (
@@ -228,52 +236,7 @@ export default function OurSquad() {
           </div>
         ) : (
           // ✅ CHANGE: Replaced <ChromaGrid /> with a simple responsive grid of <ProfileCard />
-          <div className="squadCards">
-            {filteredPlayers.map((p) => {
-              const fallbackBio = DEFAULT_BIOS[stableIndexFromString(p.id || p.name, DEFAULT_BIOS.length)];
-              const bio = (p.bio?.trim() || fallbackBio).slice(0, 60) + ((p.bio || fallbackBio).length > 60 ? "…" : "");
-
-              const titleParts = [
-                p.role || "All-rounder",
-                p.jersey ? `• #${p.jersey}` : null,
-              ].filter(Boolean);
-
-              const subtitleParts = [
-                p.batting ? `Bat: ${p.batting}` : null,
-                p.bowling ? `Bowl: ${p.bowling}` : null,
-              ].filter(Boolean);
-
-              return (
-                <div className="squadCardItem" key={p.id}>
-                  <ProfileCard
-                    // ✅ CHANGE: ProfileCard expects avatarUrl (+ optional miniAvatarUrl)
-                    avatarUrl={p.image || fallbackImage}
-                    miniAvatarUrl={p.image || fallbackImage}
-                    name={p.name}
-                    title={titleParts.join(" ")}
-                    handle={makeHandle(p.name)}
-                    status={bio} // ✅ CHANGE: Using “status” slot as a short bio line
-                    contactText="Details"
-                    // ✅ CHANGE: Keeps effect consistent per role with gradient + glow
-                    innerGradient={innerGradientForRole(p.role)}
-                    behindGlowEnabled={true}
-                    enableTilt={true}
-                    enableMobileTilt={false}
-                    // ✅ CHANGE: Make button do something non-breaking (easy to swap later)
-                    onContactClick={() => {
-                      // you can replace this with a modal / route later
-                      console.log("Player:", p);
-                    }}
-                    showUserInfo={true}
-                  />
-                  {/* ✅ CHANGE: Optional extra line under the card for style tags (non-intrusive) */}
-                  {subtitleParts.length ? (
-                    <div className="squadMetaLine">{subtitleParts.join(" • ")}</div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
+          <SquadRanking players={filteredPlayers} fallbackImage={fallbackImage} />
         )}
       </div>
     </div>
