@@ -33,8 +33,8 @@
   --gold-bright: #ffd36a;
   --gold-deep: #e89a00;
   --gold-grad: linear-gradient(135deg, #ffe39a 0%, #f7b500 60%, #e89a00 100%);
-  --gold-wash: rgba(247, 181, 0, 0.12); /* tints, badge fills */
-  --gold-line: rgba(247, 181, 0, 0.40);
+  --gold-wash: rgba(247, 181, 0, 0.09); /* tints, badge fills */
+  --gold-line: rgba(247, 181, 0, 0.26);
   --on-gold: #1b1b1b;                    /* text/icons on gold fills */
 
   /* ---------- BRAND ENERGY · CREST RED (sparing) ---------- */
@@ -67,4 +67,20 @@
   --r-md: 16px;
   --r-lg: 22px;
   --r-pill: 999px;
+}
+
+/* =============================================================================
+   GLOBAL BASE — gentle, inherited defaults. Components can still override.
+   This is what carries the warm off-white + navy baseline across the whole site
+   without having to touch every legacy stylesheet.
+   ============================================================================= */
+body {
+  background-color: var(--surface-0);
+  color: var(--text);
+}
+
+/* Warm, on-brand text selection everywhere */
+::selection {
+  background: var(--gold-wash);
+  color: var(--text-strong);
 }
