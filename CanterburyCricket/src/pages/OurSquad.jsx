@@ -4,6 +4,12 @@ import "./OurSquadFlip.css";
 
 // Ranked, tap-to-expand squad list (jersey order)
 import SquadRanking from "../components/SquadRanking/SquadRanking";
+// Rotating featured player panel (auto-rotates daily among players who have a photo)
+import SquadSpotlight from "../components/SquadSpotlight/SquadSpotlight";
+
+// Optional: pin a specific player to the spotlight (player of the month, debut, etc.).
+// Leave "" for automatic daily rotation. Must exactly match a player's Full Name.
+const SPOTLIGHT_PIN = "";
 
 const ROLE_OPTIONS = ["All", "Batter", "Bowler", "All-rounder", "Wicket-keeper"];
 const DEFAULT_BIOS = [
@@ -223,6 +229,14 @@ export default function OurSquad() {
         ) : null}
 
         {/* ✅ CHANGE: Loading UI updated to match ProfileCard sizing */}
+        {!loading && players.length > 0 ? (
+          <SquadSpotlight
+            players={players}
+            fallbackImage={fallbackImage}
+            pinnedName={SPOTLIGHT_PIN}
+          />
+        ) : null}
+
         {loading ? (
           <div className="sr-skeletonList">
             {Array.from({ length: 8 }).map((_, i) => (
