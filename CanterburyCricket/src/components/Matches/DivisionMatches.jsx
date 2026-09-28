@@ -11,8 +11,8 @@ export default function DivisionMatches() {
         <h2 className="dmTitle">2026 Fixtures &amp; Results — Live on CricHeroes</h2>
       </div>
       <p className="dmSub">
-        The 2026 season is underway. Tap a division for live scores, scorecards
-        and results, updated ball-by-ball.
+        The 2026 season is completed. Tap a division for scorecards
+        and results.
       </p>
 
       <div className="dmGrid">

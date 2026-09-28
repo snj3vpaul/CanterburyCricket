@@ -98,7 +98,7 @@ export default function HistorySummary() {
           <DivisionCard
             division="CHG Division"
             seasons={21}
-            range="2004–2025"
+            range="2004–2026"
             finals={11}
             winners={6}
             semis={5}
@@ -115,7 +115,7 @@ export default function HistorySummary() {
           <DivisionCard
             division="CTZ Division"
             seasons={21}
-            range="2004–2025"
+            range="2004–2026"
             finals={5}
             winners={2}
             semis={4}
@@ -128,8 +128,8 @@ export default function HistorySummary() {
           <DivisionCard
             division="T20 Division"
             seasons={17}
-            range="2008–2025"
-            finals={3}
+            range="2008–2026"
+            finals={5}
             winners={2}
             semis={6}
             playoffsPct={53}

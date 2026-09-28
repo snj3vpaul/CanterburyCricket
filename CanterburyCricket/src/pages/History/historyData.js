@@ -8,6 +8,24 @@ import ZainImg from "../../assets/Zain.png";
 // ✅ Timeline = finals/titles only (Golden Era moved to top highlight component)
 export const championships = [
   {
+    id: "c-2026-t20",
+    year: 2026,
+    division: "T20",
+    placement: "runner-up",
+    title: "T20 Runner-Up",
+    subtitle: "Blinder By Shahzeb Took the victory away",
+    description:
+      "An unforgettable final with individual brilliance overshadowed by Shahzeb's 74 in 28 balls to Take Capitals to championship.",
+    scoreboardUrl:
+      "https://cricheroes.com/scorecard/27241856/t20-division-2026/canterbury-t20-vs-capital-t20/summary",
+    highlights: [
+      "Final lost by 4 wickets",
+           
+    ],
+    keyPerformers: ["Amir Abbas", "Anant Garg", "Mustaqim Rahman"],
+  },
+
+  {
     id: "c-2025-t20",
     year: 2025,
     division: "T20",
