@@ -11,7 +11,7 @@
   place-items: start center;
 
   background:
-    radial-gradient(900px 420px at 20% 0%, rgba(79, 82, 255, 0.18), transparent 60%),
+    radial-gradient(900px 420px at 20% 0%, rgba(247, 181, 0, 0.18), transparent 60%),
     radial-gradient(900px 420px at 85% 10%, rgba(255, 215, 0, 0.12), transparent 60%),
     #070912;
   color: #faf9f5;
@@ -103,8 +103,8 @@
 
 .git__input:focus,
 .git__textarea:focus {
-  border-color: rgba(79, 82, 255, 0.55);
-  box-shadow: 0 0 0 4px rgba(79, 82, 255, 0.14);
+  border-color: rgba(247, 181, 0, 0.55);
+  box-shadow: 0 0 0 4px rgba(247, 181, 0, 0.14);
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -149,9 +149,9 @@
   letter-spacing: 0.02em;
   cursor: pointer;
 
-  background: linear-gradient(135deg, rgba(79, 82, 255, 0.95), rgba(79, 82, 255, 0.65));
+  background: linear-gradient(135deg, rgba(247, 181, 0, 0.95), rgba(247, 181, 0, 0.65));
   color: #0b0c10;
-  box-shadow: 0 10px 26px rgba(79, 82, 255, 0.25);
+  box-shadow: 0 10px 26px rgba(247, 181, 0, 0.25);
 
   transition: transform 120ms ease, filter 120ms ease, opacity 120ms ease;
 }

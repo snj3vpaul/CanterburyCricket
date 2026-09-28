@@ -150,7 +150,7 @@ function useIsMobile(breakpoint = 520) {
 /**
  * Fallback placeholder (used only when there’s no image)
  */
-function imagePlaceholderDataUri({ emoji = "🏆", accent = "#4f52ff" } = {}) {
+function imagePlaceholderDataUri({ emoji = "🏆", accent = "#f7b500" } = {}) {
   const svg = `
   <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900">
     <defs>
@@ -182,11 +182,11 @@ function imagePlaceholderDataUri({ emoji = "🏆", accent = "#4f52ff" } = {}) {
 }
 
 function accentByDivision(div) {
-  if (div === "T20") return "#4f52ff";
-  if (div === "CTZ") return "#f7b500";
-  if (div === "CHG") return "#7c3aed";
-  if (div === "CLUB") return "#22c55e";
-  return "#4f52ff";
+  if (div === "T20") return "#e0301e";  // crest red
+  if (div === "CTZ") return "#f5821f";  // amber
+  if (div === "CHG") return "#f7b500";  // gold
+  if (div === "CLUB") return "#ffd36a"; // bright gold
+  return "#f7b500";
 }
 
 function buildAwards(season = SEASON) {

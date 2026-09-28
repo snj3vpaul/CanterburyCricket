@@ -84,7 +84,7 @@
 }
 
 .card-1-page #summary :is(var, h3) {
-  color: #3b82f6;
+  color: #f7b500;
 }
 
 .card-1-page #overdue :is(var, h3) {

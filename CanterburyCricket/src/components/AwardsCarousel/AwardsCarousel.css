@@ -163,7 +163,7 @@
   position: absolute;
   inset: -40%;
   background:
-    radial-gradient(closest-side, rgba(79, 82, 255, 0.24), transparent 60%),
+    radial-gradient(closest-side, rgba(247, 181, 0, 0.24), transparent 60%),
     radial-gradient(closest-side, rgba(247, 181, 0, 0.20), transparent 62%);
   filter: blur(16px);
   transform: translateZ(-1px);
@@ -256,8 +256,8 @@
 }
 
 .chipDiv {
-  background: rgba(79, 82, 255, 0.14) !important;
-  border: 1px solid rgba(79, 82, 255, 0.22) !important;
+  background: rgba(247, 181, 0, 0.14) !important;
+  border: 1px solid rgba(247, 181, 0, 0.22) !important;
   color: #fff !important;
   font-weight: 900 !important;
 }
@@ -399,8 +399,8 @@
   letter-spacing: 0.02em;
   padding: 8px 10px;
   border-radius: 999px;
-  background: rgba(79, 82, 255, 0.14);
-  border: 1px solid rgba(79, 82, 255, 0.22);
+  background: rgba(247, 181, 0, 0.14);
+  border: 1px solid rgba(247, 181, 0, 0.22);
 }
 
 .awardHint {
@@ -449,5 +449,3 @@
     transform: scale(0.78);
   }
 }
-
-

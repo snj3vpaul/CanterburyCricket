@@ -1,7 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import "./styles/motion.css";
 import App from "./App.jsx";
 
 
@@ -13,7 +12,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 const theme = createTheme({
   palette: {
     mode: "dark",
-    primary: { main: "#4f52ff" },
+    primary: { main: "#f7b500" },
     secondary: { main: "#f7b500" },
     background: {
       default: "#070912",
