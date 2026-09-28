@@ -11,13 +11,28 @@ import t20Stats2024 from "../../assets/T20_division_stats_2024.json";
 import ctzStats2024 from "../../assets/CTZ_division_stats_2024.json";
 import chgStats2024 from "../../assets/CHG_division_stats_2024.json";
 
+import t20Stats2026 from "../../assets/T20_division_stats_2026.json";
+import ctzStats2026 from "../../assets/CTZ_division_stats_2026.json";
+import chgStats2026 from "../../assets/CHG_division_stats_2026.json";
+
 import styles from "./SeasonTable.module.css";
 
 const PAGE_SIZE = 10;
 
+const SEASONS = ["2024", "2025", "2026"];
+const DIVISIONS = ["T20", "CTZ", "CHG"];
+
+// Dataset lookup: season -> division -> data
+// (2025 files keep their original, un-suffixed names)
+const DATASETS = {
+  "2024": { T20: t20Stats2024, CTZ: ctzStats2024, CHG: chgStats2024 },
+  "2025": { T20: t20Stats, CTZ: ctzStats, CHG: chgStats },
+  "2026": { T20: t20Stats2026, CTZ: ctzStats2026, CHG: chgStats2026 },
+};
+
 export default function SeasonTable() {
-  // Season year toggle
-  const [seasonYear, setSeasonYear] = useState("2025"); // "2024" | "2025" | "2026"
+  // Season year toggle — defaults to the latest completed season
+  const [seasonYear, setSeasonYear] = useState("2026"); // "2024" | "2025" | "2026"
 
   // Division toggle
   const [division, setDivision] = useState("T20"); // "T20" | "CTZ" | "CHG"
@@ -32,46 +47,25 @@ export default function SeasonTable() {
   const [sortKey, setSortKey] = useState("runs"); // changes by tab
   const [sortDir, setSortDir] = useState("desc"); // "asc" | "desc"
 
-  // Year flags
-  const is2024 = seasonYear === "2024";
-  const isMvpYear = seasonYear === "2026"; // placeholder / banner year
-  const is2025 = seasonYear === "2025";
-
   const onYearChange = (_, next) => {
     if (!next) return;
     setSeasonYear(next);
   };
 
   // Pick dataset by year + division
-  const rawStats = useMemo(() => {
-    if (isMvpYear) return [];
-
-    if (is2024) {
-      if (division === "T20") return t20Stats2024;
-      if (division === "CTZ") return ctzStats2024;
-      if (division === "CHG") return chgStats2024;
-      return [];
-    }
-
-    // 2025
-    if (is2025) {
-      if (division === "T20") return t20Stats;
-      if (division === "CTZ") return ctzStats;
-      if (division === "CHG") return chgStats;
-      return [];
-    }
-
-    return [];
-  }, [division, is2024, is2025, isMvpYear]);
+  const rawStats = useMemo(
+    () => DATASETS[seasonYear]?.[division] ?? [],
+    [seasonYear, division]
+  );
 
   const hasData = Array.isArray(rawStats) && rawStats.length > 0;
 
-  // Normalize players (works for both 2024 + 2025 shapes)
+  // Normalize players (works for 2024 + 2025 + 2026 shapes)
   const players = useMemo(() => {
     const arr = Array.isArray(rawStats) ? rawStats : [];
 
     return arr.map((p) => {
-      // Batting (2025 vs 2024)
+      // Batting (2025/2026 vs 2024)
       const runs = p?.total_runs_bat ?? p?.total_runs ?? 0;
       const highestRun = p?.highest_run_bat ?? p?.highest_run ?? 0;
       const average = p?.average_bat ?? p?.average ?? 0;
@@ -80,10 +74,10 @@ export default function SeasonTable() {
       const fours = p?.bat_4s ?? p?.["4s"] ?? 0;
       const sixes = p?.bat_6s ?? p?.["6s"] ?? 0;
 
-      // Bowling (2025 uses SR, 2024 uses sr)
+      // Bowling (2025/2026 use SR, 2024 uses sr)
       const sr = p?.SR ?? p?.sr ?? 0;
 
-      // Fielding (2025 uses total_catches, 2024 often uses catches)
+      // Fielding (2025/2026 use total_catches, 2024 often uses catches)
       const catches = p?.total_catches ?? p?.catches ?? 0;
 
       return {
@@ -210,9 +204,6 @@ export default function SeasonTable() {
 
   const arrow = (key) => (sortKey === key ? (sortDir === "desc" ? "▼" : "▲") : "");
 
-  // ✅ Only disable division selector for 2026
-  const divisionDisabled = isMvpYear;
-
   return (
     <section className={styles.wrapper}>
       {/* HEADER */}
@@ -226,7 +217,7 @@ export default function SeasonTable() {
               onChange={onYearChange}
               className={styles.yearToggle}
             >
-              {["2024", "2025", "2026"].map((y) => (
+              {SEASONS.map((y) => (
                 <ToggleButton key={y} value={y} className={styles.yearBtn}>
                   {y}
                 </ToggleButton>
@@ -238,18 +229,14 @@ export default function SeasonTable() {
           <div className={styles.center}>
             <div className={styles.segmented} data-active={division}>
               <span className={styles.activePill} aria-hidden="true" />
-              {["T20", "CTZ", "CHG"].map((d) => (
+              {DIVISIONS.map((d) => (
                 <button
                   key={d}
                   type="button"
                   onClick={() => setDivision(d)}
-                  disabled={divisionDisabled}
                   className={`${styles.segBtn} ${division === d ? styles.segActive : ""}`}
-                  aria-disabled={divisionDisabled}
-                  title={divisionDisabled ? "Division selector is disabled for 2026" : undefined}
                 >
                   <span className={styles.segText}>{d} Division</span>
-                  {divisionDisabled}
                 </button>
               ))}
             </div>
@@ -260,25 +247,8 @@ export default function SeasonTable() {
         </div>
       </header>
 
-      {/* 2026 MVP Banner */}
-      {isMvpYear && (
-        <motion.div
-          className={styles.mvpBanner}
-          initial={{ opacity: 0, y: 10, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
-        >
-          <motion.div
-            className={styles.mvpGlow}
-            animate={{ scale: [1, 1.06, 1], opacity: [0.35, 0.6, 0.35] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-            aria-hidden="true"
-          />
-        </motion.div>
-      )}
-
-      {/* TOP PERFORMERS (for 2024 + 2025 when data exists) */}
-      {!isMvpYear && hasData && (
+      {/* TOP PERFORMERS + CATEGORY TABS (when data exists) */}
+      {hasData && (
         <div className={styles.topSection}>
           <div className={styles.leadersGrid}>
             <LeaderCard
@@ -363,19 +333,8 @@ export default function SeasonTable() {
         </div>
       )}
 
-      {/* TABLE / PLACEHOLDERS */}
-      {isMvpYear ? (
-        <div className={styles.placeholderCard}>
-          <div className={styles.placeholderHeader}>
-            <span className={styles.pulseDot} />
-            <h3 className={styles.placeholderTitle}>2026 Season</h3>
-          </div>
-          <p className={styles.placeholderText}>Stats will appear as matches are played 🏏</p>
-          <div className={styles.progressBar} aria-hidden="true">
-            <div className={styles.progressFill} />
-          </div>
-        </div>
-      ) : !hasData ? (
+      {/* TABLE / PLACEHOLDER */}
+      {!hasData ? (
         <div className={styles.placeholderCard}>
           <div className={styles.placeholderHeader}>
             <span className={styles.pulseDot} />
@@ -562,7 +521,7 @@ function LeaderCard({ title, badge, player, primaryLabel, primaryValue, lines })
 
 /* Helpers */
 function toNum(v) {
-  // ✅ also safely handles NaN if it ever sneaks in again
+  // Safely handles null / "" / NaN
   if (v === null || v === undefined) return 0;
   if (typeof v === "number") return Number.isFinite(v) ? v : 0;
   const s = String(v).trim();
