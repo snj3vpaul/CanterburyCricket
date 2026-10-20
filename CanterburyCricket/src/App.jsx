@@ -10,6 +10,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import ClubBackground from "./components/background/ClubBackground";
 import Navbar from "./components/Navbars/Navbar1";
 import Footer from "./components/Footer/Footer";
+import SeoHead from "./seo/SeoHead";
+import EditorialContent from "./seo/EditorialContent";
 
 // Home loads eagerly so the landing page paints instantly.
 import Home from "./pages/home";
@@ -25,6 +27,8 @@ const Masonry = lazy(() => import("./pages/Masonry"));
 const Sponsors = lazy(() => import("./pages/Sponsors"));
 const Contact = lazy(() => import("./pages/Contact"));
 const MemberLogin = lazy(() => import("./pages/MemberLogin"));
+const CricketGuidesIndex = lazy(() => import("./pages/CricketGuides").then((m) => ({ default: m.CricketGuidesIndex })));
+const CricketGuide = lazy(() => import("./pages/CricketGuides").then((m) => ({ default: m.CricketGuide })));
 
 // Lightweight branded loader shown while a split chunk loads.
 function PageLoader() {
@@ -65,6 +69,9 @@ function AnimatedRoutes() {
             <Route path="/sponsors" element={<Sponsors />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/member-login" element={<MemberLogin />} />
+            <Route path="/guides" element={<CricketGuidesIndex />} />
+            <Route path="/guides/:slug" element={<CricketGuide />} />
+            <Route path="*" element={<main style={{ padding: "14rem 2rem 6rem", color: "#fff", minHeight: "65vh" }}><h1>Page not found</h1><p>That cricket club page could not be found.</p></main>} />
           </Routes>
         </Suspense>
       </motion.div>
@@ -76,6 +83,7 @@ export default function App() {
   return (
     <Router>
       <ScrollToTop />
+      <SeoHead />
       {/* ✅ Global animated background for all pages */}
       <ClubBackground />
 
@@ -84,6 +92,8 @@ export default function App() {
 
       {/* Page routing (code-split + smooth transitions) */}
       <AnimatedRoutes />
+
+      <EditorialContent />
 
       {/* ✅ Footer appears on ALL pages */}
       <Footer />
