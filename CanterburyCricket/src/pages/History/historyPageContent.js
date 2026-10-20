@@ -1,0 +1,47 @@
+// Division overview figures carried over from the former HistorySummary component.
+// These are club-level summaries, not counts derived from the featured finals archive.
+export const divisionSummaries = [
+  {
+    id: 'CHG',
+    name: 'Challenge division',
+    shortName: 'CHG',
+    seasons: 22,
+    range: '2004–2026',
+    finals: 11,
+    titles: 6,
+    semiFinals: 5,
+    playoffRate: 84,
+    lastWin: '2018',
+    notes: [
+      'Qualified for CHG playoffs in 14 consecutive seasons (2004–2017)',
+      'Won CHG division four times in five seasons (2006–2010)',
+      'No season in 2020; half season in 2021',
+    ],
+  },
+  {
+    id: 'CTZ',
+    name: 'Citizen division',
+    shortName: 'CTZ',
+    seasons: 22,
+    range: '2004–2026',
+    finals: 5,
+    titles: 2,
+    semiFinals: 4,
+    playoffRate: 42,
+    lastWin: '2018',
+    notes: ['A platform for young stars to shine'],
+  },
+  {
+    id: 'T20',
+    name: 'Twenty20 division',
+    shortName: 'T20',
+    seasons: 18,
+    range: '2008–2026',
+    finals: 5,
+    titles: 2,
+    semiFinals: 6,
+    playoffRate: 53,
+    lastWin: '2018',
+    notes: ['League toppers in the 2025 season'],
+  },
+];

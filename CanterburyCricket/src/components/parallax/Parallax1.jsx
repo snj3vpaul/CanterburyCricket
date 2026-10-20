@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./parallax.css";
 
 export const Parallax1 = () => {
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const bannerRef = useRef(null);
 
   // Dive animation state (KEEP)
   const [isDiving, setIsDiving] = useState(false);
@@ -14,11 +14,30 @@ export const Parallax1 = () => {
 
   const navigate = useNavigate();
 
-  const handleScroll = () => setScrollPosition(window.scrollY);
-
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const banner = bannerRef.current;
+    if (!banner) return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+
+    const update = () => {
+      frame = 0;
+      banner.style.backgroundPositionY = media.matches
+        ? "center"
+        : `${window.scrollY * 0.5}px`;
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    media.addEventListener?.("change", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      media.removeEventListener?.("change", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   // ✅ Now navigates to /history, but still plays the dive animation first
@@ -42,12 +61,7 @@ export const Parallax1 = () => {
 
   return (
     <div className="page parallax-1-page">
-      <section
-        style={{
-          backgroundPositionY: `${scrollPosition * 0.5}px`,
-        }}
-        className="parallax-banner"
-      >
+      <section ref={bannerRef} className="parallax-banner">
          <div className={`parallax-heroContent ${isDiving ? "isDiving" : ""}`}>
     <div className="heroOverlay heroSplit">
       {/* LEFT: copy */}

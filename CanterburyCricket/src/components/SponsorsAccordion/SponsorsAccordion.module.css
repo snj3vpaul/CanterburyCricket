@@ -123,3 +123,9 @@
     font-size: 16px;
   }
 }
+
+/* Keyboard users must be able to locate the focused sponsor card. */
+.card:focus-visible {
+  outline: 3px solid #e54b2f;
+  outline-offset: 4px;
+}

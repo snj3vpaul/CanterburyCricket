@@ -3,18 +3,6 @@ import { motion } from "framer-motion";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
-import t20Stats from "../../assets/T20_division_stats.json";
-import ctzStats from "../../assets/CTZ_division_stats.json";
-import chgStats from "../../assets/CHG_division_stats.json";
-
-import t20Stats2024 from "../../assets/T20_division_stats_2024.json";
-import ctzStats2024 from "../../assets/CTZ_division_stats_2024.json";
-import chgStats2024 from "../../assets/CHG_division_stats_2024.json";
-
-import t20Stats2026 from "../../assets/T20_division_stats_2026.json";
-import ctzStats2026 from "../../assets/CTZ_division_stats_2026.json";
-import chgStats2026 from "../../assets/CHG_division_stats_2026.json";
-
 import styles from "./SeasonTable.module.css";
 
 const PAGE_SIZE = 10;
@@ -22,13 +10,16 @@ const PAGE_SIZE = 10;
 const SEASONS = ["2024", "2025", "2026"];
 const DIVISIONS = ["T20", "CTZ", "CHG"];
 
-// Dataset lookup: season -> division -> data
-// (2025 files keep their original, un-suffixed names)
-const DATASETS = {
-  "2024": { T20: t20Stats2024, CTZ: ctzStats2024, CHG: chgStats2024 },
-  "2025": { T20: t20Stats, CTZ: ctzStats, CHG: chgStats },
-  "2026": { T20: t20Stats2026, CTZ: ctzStats2026, CHG: chgStats2026 },
-};
+// Vite creates separate chunks for each dataset rather than bundling all nine eagerly.
+const DATASET_MODULES = import.meta.glob("../../assets/*division_stats*.json", {
+  import: "default",
+});
+const datasetCache = new Map();
+
+function datasetPath(year, division) {
+  const suffix = year === "2025" ? "" : `_${year}`;
+  return `../../assets/${division}_division_stats${suffix}.json`;
+}
 
 export default function SeasonTable() {
   // Season year toggle — defaults to the latest completed season
@@ -52,12 +43,40 @@ export default function SeasonTable() {
     setSeasonYear(next);
   };
 
-  // Pick dataset by year + division
-  const rawStats = useMemo(
-    () => DATASETS[seasonYear]?.[division] ?? [],
-    [seasonYear, division]
-  );
+  // Load only the selected season/division; ignore stale responses on rapid switching.
+  const [datasetState, setDatasetState] = useState({ key: "", data: [], error: null });
+  const datasetKey = `${seasonYear}-${division}`;
+  useEffect(() => {
+    const key = `${seasonYear}-${division}`;
+    const path = datasetPath(seasonYear, division);
+    let cancelled = false;
+    const cached = datasetCache.get(path);
+    if (cached) {
+      // Keep the existing selection cache while cancelling stale updates.
+      Promise.resolve().then(() => {
+        if (!cancelled) setDatasetState({ key, data: cached, error: null });
+      });
+      return () => { cancelled = true; };
+    }
+    const load = DATASET_MODULES[path];
+    if (!load) {
+      Promise.resolve().then(() => {
+        if (!cancelled) setDatasetState({ key, data: [], error: "Dataset unavailable" });
+      });
+      return () => { cancelled = true; };
+    }
+    load().then(data => {
+      if (cancelled) return;
+      datasetCache.set(path, data);
+      setDatasetState({ key, data, error: null });
+    }).catch(() => {
+      if (!cancelled) setDatasetState({ key, data: [], error: "Unable to load statistics" });
+    });
+    return () => { cancelled = true; };
+  }, [seasonYear, division]);
 
+  const loading = datasetState.key !== datasetKey;
+  const rawStats = loading ? [] : datasetState.data;
   const hasData = Array.isArray(rawStats) && rawStats.length > 0;
 
   // Normalize players (works for 2024 + 2025 + 2026 shapes)
@@ -342,7 +361,7 @@ export default function SeasonTable() {
               {seasonYear} • {division} Division Stats
             </h3>
           </div>
-          <p className={styles.placeholderText}>No data found for this division.</p>
+          <p className={styles.placeholderText} role="status">{loading ? "Loading division statistics…" : (datasetState.error || "No data found for this division.")}</p>
           <div className={styles.progressBar} aria-hidden="true">
             <div className={styles.progressFill} />
           </div>

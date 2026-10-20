@@ -35,9 +35,20 @@ export default function SponsorsAccordion() {
         key={card.header}
         className={`${styles.card} ${isActive ? styles.active : ""}`}
         onClick={() => setActive(index)}
+        role="button"
+        tabIndex={0}
+        aria-pressed={isActive}
+        aria-label={`Select sponsor ${card.header}`}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            setActive(index);
+          }
+        }}
       >
         <div className={styles.media}>
-          <img className={styles.image} src={card.image} alt={card.header} />
+          <img className={styles.image} src={card.image} alt={card.header} loading="lazy" decoding="async" />
         </div>
 
         <div className={styles.body}>

@@ -1,7 +1,7 @@
 // src/pages/History/historyData.js
 
 import AmeerImg from "../../assets/Ameer.png";
-import PaulImg from "../../assets/Sanjeev.jpg";
+import PaulImg from "../../assets/Sanjeev.webp";
 import HarisImg from "../../assets/Haris.png";
 import ZainImg from "../../assets/Zain.png";
 
