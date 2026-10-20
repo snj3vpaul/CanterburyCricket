@@ -4,11 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
+  "dev": "vite",
+  "build": "npm run build:client && node scripts/prerender.mjs && node scripts/check-seo.mjs",
+  "build:client": "vite build",
+  "seo:check": "node scripts/check-seo.mjs",
+  "lint": "eslint .",
+  "preview": "vite preview"
+},
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
