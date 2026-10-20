@@ -33,7 +33,7 @@ export default function Contact() {
               <span>in Ottawa?</span>
             </h1>
             <p className={styles.lead}>
-              Whether you're looking for a cricket club in Ottawa or simply
+              Whether you're looking for a cricket club in Ottawa  or the suburban areas surrounding Ottaa (Nepean, Barrhaven,Riverside South, Orleans, Kanata, Sttisville) or simply
               want to learn about Canterbury, we'd be happy to hear from you.
               Tell us a little about your cricket experience and what you'd
               like to know.
