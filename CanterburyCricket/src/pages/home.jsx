@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import matchPhoto from "../assets/Sanjeev.webp";
-import trophyPhoto from "../assets/Masonry/previews/IMG_1490.webp";
-import clubPhoto from "../assets/Masonry/previews/IMG_1373.webp";
+import matchPhoto from "../assets/CburyLogo.png";
+import trophyPhoto from "../assets/Masonry/previews/IMG_1383.webp";
+import clubPhoto from "../assets/Masonry/previews/IMG_1477.webp";
 import styles from "./home.module.css";
 
 const pathways = [
