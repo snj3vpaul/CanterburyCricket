@@ -6,11 +6,11 @@ export const GUIDE_ARTICLES = {
     published: '2026-10-20',
     sections: [
       {heading: 'Start with the type of cricket you want to play', paragraphs: [
-        'If you are searching for a cricket club in Ottawa, begin by thinking about your goals rather than immediately comparing team names. Some players are interested in regular competitive fixtures. Others are returning after a few years away, are adjusting to cricket in Canada, or simply want to discover a supportive local sporting community. Your recent experience, preferred format and availability will influence which opportunities are suitable. Keeping those details in mind makes it easier to ask a club informed questions.',
+        'If you are searching for a cricket club in Ottawa, Kanata, Barrhaven, Riverside South, Orleans, Nepean or Stittsville, begin by thinking about your goals rather than immediately comparing team names. Some players are interested in regular competitive fixtures. Others are returning after a few years away, are adjusting to cricket in Canada, or simply want to discover a supportive local sporting community. Your recent experience, preferred format and availability will influence which opportunities are suitable. Keeping those details in mind makes it easier to ask a club informed questions.',
         'Ottawa cricket includes people who enjoy different formats and playing roles. You may be happiest as a specialist bowler, an opening batter, a wicketkeeper or someone who contributes in several ways. You do not have to define your entire cricketing identity before sending an enquiry. A brief summary of your recent playing experience is usually more useful than a lengthy list of achievements.'
       ]},
       {heading: 'Contact the club with useful information', paragraphs: [
-        'A good first message is clear and friendly. Say that you are based in Ottawa, explain whether you are looking for league cricket or other involvement, mention your age category where relevant, and describe your availability. You might also note whether you have played organized cricket previously and which role you enjoy. Ask how new players are assessed and whether there is an opportunity to meet someone from the club. Avoid assuming that an online enquiry is an automatic registration or a confirmed squad placement.',
+        'A good first message is clear and friendly. Say that you are based in Ottawa or one of the surrounding areas, explain whether you are looking for league cricket or other involvement, mention your age category where relevant, and describe your availability. You might also note whether you have played organized cricket previously and which role you enjoy. Ask how new players are assessed and whether there is an opportunity to meet someone from the club. Avoid assuming that an online enquiry is an automatic registration or a confirmed squad placement.',
         'Canterbury Cricket Club has a long local history and publishes information about its players, divisions and club activities. You can review the squad, season and history pages before contacting us. To discuss current opportunities, use Canterbury\'s website contact page or its official Instagram and Facebook accounts. The club has not published a confirmed automatic-registration process. Exact team capacity, participation requirements and match arrangements should be confirmed by club representatives.'
       ]},
       {heading: 'Consider travel and the local season', paragraphs: [
@@ -24,7 +24,7 @@ export const GUIDE_ARTICLES = {
     ]
   },
   '/guides/first-cricket-match-ottawa': {
-    title: 'Preparing for Your First Club Cricket Match in Ottawa',
+    title: 'Preparing for Your First Club Cricket Leather Ball Match in Ottawa',
     description: 'A first-match checklist for Ottawa cricketers covering equipment, fielding, communication, weather and match-day planning.',
     published: '2026-10-20',
     sections: [

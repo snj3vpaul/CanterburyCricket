@@ -64,6 +64,7 @@ export default function Home() {
               <p className={styles.heroDescription}>
                 A club with a past. A game with a future. Canterbury Cricket Club
                 brings competitive cricket and genuine community together in Ottawa.
+                Living in Kanata, Nepean, Barrhaven, Orleans or Riverside South? We’d love to still have you join us on the pitch. Whether you’re new to cricket or a seasoned player, we’ll help you find your place in the game.
               </p>
               <div className={styles.heroActions}>
                 <Link className={styles.primaryAction} to="/contact">
@@ -152,7 +153,7 @@ export default function Home() {
           <nav className={styles.guideTrail} aria-label="Cricket in Ottawa resources">
             <span>NEW TO OTTAWA CRICKET?</span>
             <Link to="/guides/join-cricket-club-ottawa">How to join a cricket club <Arrow diagonal /></Link>
-            <Link to="/guides/ottawa-cricket-leagues-explained">Understand Ottawa cricket leagues <Arrow diagonal /></Link>
+            <Link to="/guides/ottawa-cricket-leagues-explained">Understand Ottawa Valley Cricket Council <Arrow diagonal /></Link>
           </nav>
         </div>
       </section>
