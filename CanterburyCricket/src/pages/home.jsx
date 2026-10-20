@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import matchPhoto from "../assets/CburyLogo.png";
-import trophyPhoto from "../assets/Masonry/previews/IMG_1383.webp";
-import clubPhoto from "../assets/Masonry/previews/IMG_1477.webp";
+import matchPhoto from "../assets/Sanjeev.webp";
+import trophyPhoto from "../assets/Masonry/previews/IMG_1490.webp";
+import clubPhoto from "../assets/Masonry/previews/IMG_1373.webp";
 import styles from "./home.module.css";
 
 const pathways = [
@@ -58,16 +58,16 @@ export default function Home() {
             <div className={styles.heroCopy}>
               <p className={styles.eyebrow}><span className={styles.eyebrowDot} /> CANTERBURY CRICKET CLUB · OTTAWA</p>
               <h1 id="home-hero-heading" className={styles.heroTitle}>
-                A club with a past.<br />
-                <span>A game with a future.</span>
+                Cricket in Ottawa.<br />
+                <span>A legacy since 1983.</span>
               </h1>
               <p className={styles.heroDescription}>
-                Competitive cricket, genuine community and a legacy that runs
-                through Ottawa. Since 1983, Canterbury has been more than a team.
+                A club with a past. A game with a future. Canterbury Cricket Club
+                brings competitive cricket and genuine community together in Ottawa.
               </p>
               <div className={styles.heroActions}>
                 <Link className={styles.primaryAction} to="/contact">
-                  Join Canterbury <Arrow />
+                  Ask about joining <Arrow />
                 </Link>
                 <Link className={styles.secondaryAction} to="/history">
                   Discover our story <Arrow diagonal />
@@ -149,6 +149,11 @@ export default function Home() {
               </Link>
             ))}
           </div>
+          <nav className={styles.guideTrail} aria-label="Cricket in Ottawa resources">
+            <span>NEW TO OTTAWA CRICKET?</span>
+            <Link to="/guides/join-cricket-club-ottawa">How to join a cricket club <Arrow diagonal /></Link>
+            <Link to="/guides/ottawa-cricket-leagues-explained">Understand Ottawa cricket leagues <Arrow diagonal /></Link>
+          </nav>
         </div>
       </section>
 
@@ -215,11 +220,11 @@ export default function Home() {
           <div className={styles.joinPanel}>
             <div className={styles.joinContent}>
               <p className={styles.eyebrow}>YOUR NEXT INNINGS</p>
-              <h2 id="join-heading">There's a place for you<br /><em>at Canterbury.</em></h2>
-              <p>Want to play, support the club or simply get in touch? We'd love to hear from you.</p>
+              <h2 id="join-heading">Your next innings<br /><em>could start here.</em></h2>
+              <p>Interested in playing cricket in Ottawa or supporting the club? Send us an enquiry and we'll help you find the right information.</p>
             </div>
             <div className={styles.joinActions}>
-              <Link className={styles.primaryAction} to="/contact">Get in touch <Arrow /></Link>
+              <Link className={styles.primaryAction} to="/contact">Ask about playing <Arrow /></Link>
               <Link className={styles.joinSecondary} to="/sponsors">Our supporters <Arrow diagonal /></Link>
             </div>
           </div>

@@ -1,0 +1,47 @@
+/* Contact / joining enquiries — matches Canterbury's navy, gold and glass design. */
+.contact {
+  --contact-gold: #e8c37a;
+  --contact-muted: #b9c5d5;
+  color: #f6f7fa;
+  background: #0a101b;
+  font-family: var(--font-body, Inter, system-ui, sans-serif);
+}
+.contact * { box-sizing: border-box; }
+.contact :is(h1, h2, h3, p) { margin: 0; }
+.contact :is(h1, h2, h3) { font-family: var(--font-display, Poppins, sans-serif); }
+.contact :is(a, button):focus-visible { outline: 3px solid var(--contact-gold); outline-offset: 3px; }
+.shell { width: min(1200px, calc(100% - 48px)); margin-inline: auto; }
+.intro { padding: clamp(50px, 7vw, 110px) 0 clamp(38px, 5vw, 72px); background: radial-gradient(ellipse 700px 420px at 82% 15%,rgba(218,170,82,.10),transparent 75%),linear-gradient(165deg,#101a2a,#080d17); }
+.introLayout { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(300px, .92fr); gap: clamp(28px, 5vw, 78px); align-items: center; }
+.eyebrow, .stepsEyebrow { color: var(--contact-gold); font-size: .74rem; font-weight: 800; letter-spacing: .13em; line-height: 1.65; }
+.introCopy h1 { font-size: clamp(2.35rem, 5vw, 4.3rem); line-height: 1.1; letter-spacing: -.045em; font-weight: 800; margin-top: 20px; text-wrap: balance; }
+.introCopy h1 span { color: var(--contact-gold); }
+.lead { color: #e0e6ef; line-height: 1.8; font-size: clamp(.98rem, 1.5vw, 1.1rem); margin-top: 24px !important; max-width: 570px; }
+.disclaimer { color: var(--contact-muted); line-height: 1.7; font-size: .89rem; margin-top: 15px !important; max-width: 560px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }
+.actions a { min-height: 48px; display: inline-flex; justify-content: center; align-items: center; gap: 14px; padding: 12px 20px; border-radius: 999px; font-weight: 750; font-size: .9rem; text-decoration: none; transition: background .2s ease, border-color .2s ease; }
+.primaryAction { background: linear-gradient(130deg,#f5cb7b,#dbae59); color: #17191c !important; border: 1px solid transparent; }
+.primaryAction:hover { background: #f8d99d; }
+.secondaryAction { background: rgba(255,255,255,.03); color: #f8e1b7 !important; border: 1px solid rgba(226,190,119,.38); }
+.secondaryAction:hover { background: rgba(226,190,119,.1); }
+.steps { border: 1px solid rgba(229,193,124,.24); border-radius: 24px; padding: clamp(24px,3.8vw,42px); background: linear-gradient(150deg,rgba(255,255,255,.055),rgba(255,255,255,.014)); box-shadow: 0 18px 48px rgba(0,0,0,.16); }
+.steps h2 { font-size: clamp(1.5rem,2.4vw,2.1rem); letter-spacing: -.03em; line-height: 1.25; margin-top: 10px !important; }
+.stepList { list-style: none; padding: 0; margin: 24px 0 0; display: grid; gap: 0; }
+.stepList li { display: grid; grid-template-columns: 36px 1fr; gap: 13px; padding: 17px 0; border-top: 1px solid rgba(255,255,255,.11); }
+.stepNumber { color: var(--contact-gold); font-weight: 850; font-size: .9rem; }
+.stepList h3 { font-size: .99rem; font-weight: 750; }
+.stepList p { margin-top: 6px !important; color: var(--contact-muted); line-height: 1.65; font-size: .86rem; }
+.formSection { scroll-margin-top: calc(var(--nav-h, 90px) + 22px); padding: clamp(20px,3vw,44px) 0 clamp(42px,5vw,75px); background: #080c15; }
+/* Reuse the existing contact form without its old full-bleed section background. */
+.formSection :global(.git) { padding: 0; background: transparent; }
+.formSection :global(.git__inner) { width: min(860px, 100%); }
+.socialSection { padding: clamp(25px,4vw,48px) 0 clamp(52px,6vw,80px); border-top: 1px solid rgba(255,255,255,.08); background: #0a101b; }
+.socialLayout { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.socialLayout h2 { font-size: 1.4rem; letter-spacing: -.02em; }
+.socialLayout p { color: var(--contact-muted); margin-top: 8px !important; line-height: 1.6; }
+.socialLinks { display: flex; gap: 12px; flex-wrap: wrap; }
+.socialLinks a { min-height: 44px; display: inline-flex; gap: 12px; align-items: center; color: #f0d39e; text-decoration: none; border: 1px solid rgba(229,193,124,.33); border-radius: 999px; padding: 10px 18px; }
+.socialLinks a:hover { background: rgba(229,193,124,.1); }
+@media (max-width: 900px) { .introLayout { grid-template-columns: 1fr; } .steps { max-width: 720px; } }
+@media (max-width: 640px) { .shell { width: calc(100% - 36px); } .intro { padding-top: 36px; } .introCopy h1 { font-size: clamp(2rem, 9vw, 3.05rem); } .actions { flex-direction: column; } .actions a { width: 100%; justify-content: space-between; } .socialLayout { flex-direction: column; align-items: flex-start; } .socialLinks { width: 100%; } .socialLinks a { flex: 1; justify-content: center; } }
+@media (prefers-reduced-motion: reduce) { .actions a { transition: none; } }

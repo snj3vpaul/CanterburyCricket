@@ -2,6 +2,21 @@ import { Link, useParams } from 'react-router-dom';
 import { GUIDE_ARTICLES } from '../seo/guides';
 import styles from './CricketGuides.module.css';
 const items = Object.entries(GUIDE_ARTICLES);
+// Guide-to-club links help readers reach the relevant page after learning more.
+const RELATED_GUIDES = {
+  'join-cricket-club-ottawa': [
+    ['/squad', 'Meet our squad'],
+    ['/season', 'Explore the current season'],
+  ],
+  'first-cricket-match-ottawa': [
+    ['/season', 'Explore Canterbury season records'],
+    ['/guides/join-cricket-club-ottawa', 'How to approach a cricket club'],
+  ],
+  'ottawa-cricket-leagues-explained': [
+    ['/season', 'See Canterbury divisions and statistics'],
+    ['/history', 'Discover Canterbury club history'],
+  ],
+};
 export function CricketGuidesIndex() {
   return <main className={styles.page}>
     <div className={styles.shell}>
@@ -32,7 +47,13 @@ export function CricketGuide() {
       {article.sections.map(({ heading, paragraphs }) => <section key={heading} className={styles.chapter}>
         <h2>{heading}</h2>{paragraphs.map((text) => <p key={text}>{text}</p>)}
       </section>)}
-      <div className={styles.bottom}><p>Interested in getting involved with cricket in Ottawa?</p><Link to="/contact">Contact Canterbury Cricket Club →</Link></div>
+      <div className={styles.bottom}><p>Interested in getting involved with cricket in Ottawa?</p><Link to="/contact">Ask Canterbury Cricket Club about joining →</Link></div>
+      <nav className={styles.relatedReads} aria-label="Related Canterbury information">
+        <span>EXPLORE THE CLUB</span>
+        {(RELATED_GUIDES[slug] || []).map(([to, label]) => (
+          <Link to={to} key={to}>{label} <span aria-hidden="true">↗</span></Link>
+        ))}
+      </nav>
       <Link to="/guides">← See more Ottawa cricket guides</Link>
     </article>
   </main>;

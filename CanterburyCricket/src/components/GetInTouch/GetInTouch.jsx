@@ -408,7 +408,7 @@ const payload = {
               name="message"
               rows={5}
               className="git__textarea"
-              placeholder="Write your message…"
+              placeholder="Tell us about your cricket experience, availability and what you’d like to ask…"
               onBlur={handleBlur}
               onChange={handleChange}
               aria-invalid={!!errors.message}
@@ -435,7 +435,7 @@ const payload = {
           />
 
           <button type="submit" className="git__btn" disabled={loading} aria-busy={loading}>
-            {loading ? "Sending..." : "Submit Message"}
+            {loading ? "Sending..." : "Send Enquiry"}
           </button>
 
           {/* Global Status */}

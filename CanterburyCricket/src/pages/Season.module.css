@@ -75,3 +75,14 @@
   .sectionRule { margin: 50px 0; }
 }
 @media (prefers-reduced-motion: reduce) { .season *, .season *::before, .season *::after { transition: none !important; scroll-behavior: auto !important; } }
+
+/* Lightweight contextual links below the season statistics. */
+.seasonGuide { display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap; margin: clamp(40px,5vw,70px) 0; padding: clamp(24px,4vw,38px); border: 1px solid rgba(220,181,105,.3); border-radius: 22px; background: linear-gradient(130deg,rgba(213,166,81,.09),rgba(255,255,255,.025)); }
+.seasonGuide > div:first-child { max-width: 630px; }
+.seasonGuideEyebrow { color: #e7c580; font-size: .72rem; letter-spacing: .13em; font-weight: 800; margin-bottom: 11px; }
+.seasonGuide h2 { font-family: var(--font-display,Poppins,sans-serif); font-size: clamp(1.4rem,2.6vw,2rem); color: #fff; line-height: 1.2; margin: 0 0 11px; }
+.seasonGuide p:not(.seasonGuideEyebrow) { color: #bec9d6; line-height: 1.7; font-size: .95rem; margin: 0; }
+.seasonGuideLinks { display: flex; flex-direction: column; gap: 10px; min-width: 220px; }
+.seasonGuideLinks a { display: flex; gap: 16px; justify-content: space-between; align-items: center; border: 1px solid rgba(220,181,105,.35); border-radius: 999px; min-height: 44px; padding: 10px 17px; color: #edd4a0; text-decoration: none; font-weight: 700; font-size: .84rem; }
+.seasonGuideLinks a:hover, .seasonGuideLinks a:focus-visible { background: rgba(220,181,105,.13); outline-color: #edd4a0; }
+@media(max-width:640px) { .seasonGuideLinks { width: 100%; } }

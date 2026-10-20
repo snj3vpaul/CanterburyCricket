@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Captaincy2026 from "../components/Captaincy/Captaincy2026";
 import DivisionMatches from "../components/Matches/DivisionMatches";
 import SeasonTable from "../components/SeasonTable/SeasonTable";
@@ -71,6 +72,17 @@ export default function Season() {
           <div id="season-statistics" className={styles.sectionAnchor}>
             <SeasonTable />
           </div>
+          <aside className={styles.seasonGuide} aria-label="Understanding Ottawa cricket competitions">
+            <div>
+              <p className={styles.seasonGuideEyebrow}>NEW TO OTTAWA CLUB CRICKET?</p>
+              <h2>Explore the formats behind the numbers.</h2>
+              <p>Learn how local divisions and match statistics work, then ask Canterbury about current playing opportunities.</p>
+            </div>
+            <div className={styles.seasonGuideLinks}>
+              <Link to="/guides/ottawa-cricket-leagues-explained">Ottawa cricket league guide <span aria-hidden="true">↗</span></Link>
+              <Link to="/contact">Ask about joining <span aria-hidden="true">→</span></Link>
+            </div>
+          </aside>
         </div>
       </div>
     </main>

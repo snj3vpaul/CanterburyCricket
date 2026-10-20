@@ -22,3 +22,10 @@
 .bottom a {display:inline-block;color:#e6bd72;margin-top:10px;font-weight:700;}
 .article>a {color:#e2bd74;}
 @media(max-width:900px) { .grid {grid-template-columns:1fr;} .page {padding-top:120px;} }
+
+/* Relevant on-site next steps rather than a generic block of repeated links. */
+.relatedReads { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 14px 0 35px; padding: 18px 0; border-block: 1px solid rgba(225,191,119,.2); }
+.relatedReads > span { color: #b9c6d5; font-size: .72rem; letter-spacing: .12em; font-weight: 800; }
+.relatedReads a { display: inline-flex; gap: 7px; align-items: center; color: #e6bd72; font-weight: 700; font-size: .88rem; text-decoration: none; }
+.relatedReads a:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 620px) { .relatedReads { align-items: flex-start; flex-direction: column; } }

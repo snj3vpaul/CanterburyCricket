@@ -75,8 +75,8 @@ export const SEO = {
     description: 'Discover the community partners and supporters of Canterbury Cricket Club in Ottawa, and learn how to support local cricket.',
   },
   '/contact': {
-    title: 'Join a Cricket Club in Ottawa | Contact Canterbury CC',
-    description: 'Interested in joining cricket in Ottawa? Reach Canterbury Cricket Club through our website or social media. Find Lynda Lane Park location details.',
+    title: 'Join Cricket in Ottawa | Contact Canterbury Cricket Club',
+    description: 'Want to play cricket in Ottawa? Contact Canterbury Cricket Club to ask about joining, current opportunities and local playing arrangements.',
   },
   '/guides': {
     title: 'Ottawa Cricket Guides | Canterbury Cricket Club',
