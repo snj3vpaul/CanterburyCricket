@@ -18,7 +18,27 @@ let browser;
 try {
   server = await preview({ preview: { host: '127.0.0.1', port: 4173, strictPort: false } });
   const port = server.httpServer.address().port;
-  browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+  if (process.env.VERCEL) {
+    // Vercel's build image may not include the Linux shared libraries required
+    // by Puppeteer's downloaded Google Chrome (for example libnspr4.so).
+    // Use a serverless-compatible Chromium with its bundled libraries instead.
+    const [{ default: chromium }, { default: puppeteerCore }] = await Promise.all([
+      import('@sparticuz/chromium'),
+      import('puppeteer-core'),
+    ]);
+    chromium.setGraphicsMode = false;
+    browser = await puppeteerCore.launch({
+      executablePath: await chromium.executablePath(),
+      args: [...chromium.args, '--disable-dev-shm-usage'],
+      headless: true,
+    });
+  } else {
+    // Keep the existing Windows/macOS/Linux local development behavior.
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-dev-shm-usage'],
+    });
+  }
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 900, deviceScaleFactor: 1 });
   await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);

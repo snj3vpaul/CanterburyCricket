@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "vite",
-  "build": "npm run build:client && node scripts/prerender.mjs && node scripts/check-seo.mjs",
-  "build:client": "vite build",
-  "seo:check": "node scripts/check-seo.mjs",
-  "lint": "eslint .",
-  "preview": "vite preview"
-},
+    "dev": "vite",
+    "build": "npm run build:client && node scripts/prerender.mjs && node scripts/check-seo.mjs",
+    "build:client": "vite build",
+    "seo:check": "node scripts/check-seo.mjs",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@sparticuz/chromium": "^153.0.0",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
@@ -47,6 +48,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "puppeteer": "^25.15.0",
+    "puppeteer-core": "^25.15.0",
     "sharp": "^0.35.5",
     "vite": "^7.2.4"
   }
