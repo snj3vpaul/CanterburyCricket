@@ -1,0 +1,77 @@
+/* Canterbury Season — scoped to the existing navy / gold design system. */
+.season {
+  --season-gold: var(--gold-bright, #ffd36a);
+  --season-gold-deep: var(--gold, #f7b500);
+  --season-copy: var(--text-strong, #fbf8f1);
+  --season-muted: var(--text-soft, rgba(251, 248, 241, .62));
+  --season-line: var(--line, rgba(255, 255, 255, .09));
+  width: 100%;
+  min-width: 0;
+  color: var(--season-copy);
+  font-family: var(--font-body, Inter, system-ui, sans-serif);
+  overflow: clip;
+}
+.season, .season *, .season *::before, .season *::after { box-sizing: border-box; }
+.season :is(h1, h2, h3, p) { margin: 0; }
+.season :is(h1, h2, h3) { font-family: var(--font-display, Poppins, Inter, sans-serif); }
+.season a { text-decoration: none; }
+.season :is(a, button):focus-visible { outline: 2px solid var(--season-gold); outline-offset: 4px; }
+.shell { width: min(1200px, calc(100% - 48px)); margin-inline: auto; }
+.hero {
+  position: relative;
+  padding: clamp(60px, 7.5vw, 112px) 0 0;
+  background: radial-gradient(ellipse 550px 400px at 92% 40%, rgba(247, 181, 0, .075), transparent 75%),
+              linear-gradient(180deg, rgba(8, 11, 19, .75), rgba(8, 11, 19, .20));
+}
+.heroGrid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .78fr); align-items: center; gap: clamp(40px, 6vw, 98px); }
+.heroCopy { max-width: 700px; padding: 12px 0 28px; }
+.eyebrow { display: inline-flex; align-items: center; gap: 11px; font-size: 11px; letter-spacing: .18em; font-weight: 800; color: var(--season-gold); }
+.eyebrowDot { width: 7px; height: 7px; background: var(--season-gold-deep); border-radius: 50%; }
+.heroTitle { font-size: clamp(39px, 5vw, 70px); line-height: 1.12; font-weight: 800; letter-spacing: -.045em; margin-top: 23px !important; }
+.heroTitle span { color: var(--season-gold); }
+.heroDescription { max-width: 590px; margin-top: 23px !important; font-size: clamp(15px, 1.4vw, 17px); line-height: 1.83; color: var(--season-muted); }
+.heroActions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 32px; }
+.primaryAction, .secondaryAction { display: inline-flex; justify-content: center; align-items: center; gap: 24px; min-height: 48px; padding: 12px 19px; border-radius: 999px; font-weight: 800; font-size: 12px; letter-spacing: .015em; transition: transform .2s, background .2s, border-color .2s; }
+.primaryAction { background: var(--season-gold-deep); color: #10121a; border: 1px solid var(--season-gold-deep); }
+.secondaryAction { background: rgba(255,255,255,.035); color: var(--season-copy); border: 1px solid rgba(255,255,255,.17); }
+.primaryAction:hover, .secondaryAction:hover { transform: translateY(-2px); }
+.primaryAction:hover { background: var(--season-gold); }
+.secondaryAction:hover { border-color: rgba(255,255,255,.32); background: rgba(255,255,255,.065); }
+.competitionPanel { border: 1px solid var(--season-line); border-radius: 22px; padding: clamp(20px, 3.2vw, 36px); background: linear-gradient(145deg, rgba(23, 28, 42, .94), rgba(9, 13, 23, .88)); box-shadow: 0 24px 76px rgba(0,0,0,.2); }
+.panelHeading, .panelFoot { display: flex; align-items: center; justify-content: space-between; gap: 15px; font-size: 10px; font-weight: 800; letter-spacing: .17em; color: var(--season-muted); }
+.panelYear { color: var(--season-gold); letter-spacing: .07em; }
+.divisionList { margin: 26px 0 25px; }
+.divisionItem { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 13px; padding: 16px 0; border-bottom: 1px solid var(--season-line); }
+.divisionItem:first-child { border-top: 1px solid var(--season-line); }
+.divisionNumber { font-size: 11px; color: var(--season-muted); font-variant-numeric: tabular-nums; }
+.divisionName { font-size: clamp(14px, 1.5vw, 17px); font-weight: 750; letter-spacing: -.02em; }
+.divisionKey { font-size: 11px; color: var(--season-gold); border: 1px solid rgba(247,181,0,.2); border-radius: 6px; padding: 6px 8px; background: rgba(247,181,0,.06); }
+.panelFoot { justify-content: flex-start; font-size: 9px; }
+.panelMark { display: block; width: 18px; height: 1px; background: var(--season-gold-deep); }
+.sectionNav { display: flex; flex-wrap: wrap; gap: 6px 34px; padding: 35px 0 26px; margin-top: clamp(35px, 5.5vw, 70px); border-top: 1px solid var(--season-line); }
+.sectionNav a { color: var(--season-muted); display: inline-flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 12px; font-weight: 700; transition: color .2s; }
+.sectionNav a:hover { color: var(--season-copy); }
+.sectionNav span { color: var(--season-gold); font-size: 10px; }
+.body { background: linear-gradient(180deg, rgba(10, 14, 24, .2), rgba(10, 14, 24, .06)); padding: 12px 0 clamp(70px, 9vw, 120px); }
+.sectionAnchor { scroll-margin-top: calc(var(--nav-h, 84px) + 26px); min-width: 0; }
+.sectionRule { height: 1px; background: var(--season-line); margin: clamp(48px, 6vw, 78px) 0; }
+@media (max-width: 850px) {
+  .heroGrid { grid-template-columns: 1fr; gap: 28px; }
+  .heroCopy { padding-bottom: 0; }
+  .competitionPanel { max-width: 620px; }
+  .hero { padding-top: 54px; }
+  .sectionNav { margin-top: 48px; }
+}
+@media (max-width: 600px) {
+  .shell { width: calc(100% - 36px); }
+  .hero { padding-top: 33px; }
+  .heroTitle { font-size: clamp(34px, 9.6vw, 50px); }
+  .heroDescription { font-size: 14px; line-height: 1.8; }
+  .heroActions { flex-direction: column; align-items: stretch; }
+  .heroActions a { justify-content: space-between; }
+  .competitionPanel { padding: 21px; border-radius: 18px; }
+  .sectionNav { gap: 4px 20px; padding-top: 21px; padding-bottom: 18px; }
+  .sectionNav a { font-size: 11px; }
+  .sectionRule { margin: 50px 0; }
+}
+@media (prefers-reduced-motion: reduce) { .season *, .season *::before, .season *::after { transition: none !important; scroll-behavior: auto !important; } }

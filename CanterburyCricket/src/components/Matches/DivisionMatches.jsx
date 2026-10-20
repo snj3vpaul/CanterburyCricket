@@ -1,50 +1,33 @@
-// src/components/Matches/DivisionMatches.jsx
-import { motion } from "framer-motion";
 import { CRICHEROES_TEAMS } from "../../data/cricheroesTeams";
 import "./DivisionMatches.css";
 
 export default function DivisionMatches() {
   return (
-    <section className="dmWrap" aria-label="Live fixtures and results">
-      <div className="dmHeader">
-        <span className="dmLiveDot" aria-hidden="true" />
-        <h2 className="dmTitle">2026 Fixtures &amp; Results — Live on CricHeroes</h2>
+    <section className="dmWrap" aria-labelledby="division-matches-heading">
+      <div className="dmHead">
+        <div>
+          <p className="dmKicker">02 / THE FIXTURES</p>
+          <h2 className="dmTitle" id="division-matches-heading">The match centre<span>.</span></h2>
+        </div>
+        <p className="dmSub">The 2026 season is complete. Revisit the fixtures, results and scorecards on CricHeroes.</p>
       </div>
-      <p className="dmSub">
-        The 2026 season is completed. Tap a division for scorecards
-        and results.
-      </p>
-
       <div className="dmGrid">
-        {CRICHEROES_TEAMS.map((team, i) => (
-          <motion.a
+        {CRICHEROES_TEAMS.map((team) => (
+          <a
             key={team.key}
             className="dmCard"
             href={team.matchesUrl}
             target="_blank"
-            rel="noreferrer"
-            style={{ "--dm-accent": team.accent }}
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.4, delay: i * 0.08 }}
+            rel="noopener noreferrer"
+            aria-label={`View ${team.name} fixtures and results on CricHeroes (opens in new tab)`}
           >
-            <span className="dmCardGlow" aria-hidden="true" />
-            <div className="dmCardTop">
-              <span className="dmBadge">{team.key}</span>
-              <span className="dmExternal" aria-hidden="true">↗</span>
-            </div>
-            <h3 className="dmCardName">{team.name}</h3>
-            <p className="dmCardDiv">{team.division}</p>
-            <span className="dmCardCta">
-              View matches
-              <span className="dmCardArrow" aria-hidden="true">→</span>
-            </span>
-          </motion.a>
+            <div className="dmCardTop"><span className="dmBadge">{team.key}</span><span className="dmExternal" aria-hidden="true">↗</span></div>
+            <div className="dmCardBody"><p className="dmCardDiv">{team.division}</p><h3 className="dmCardName">{team.name}</h3></div>
+            <span className="dmCardCta">View scorecards <span aria-hidden="true">→</span></span>
+          </a>
         ))}
       </div>
-
-      <p className="dmFootNote">Scores &amp; scorecards powered by CricHeroes.</p>
+      <p className="dmFootNote">External match results are maintained on CricHeroes.</p>
     </section>
   );
 }

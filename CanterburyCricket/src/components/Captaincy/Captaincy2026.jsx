@@ -1,73 +1,47 @@
-// src/components/Captaincy/Captaincy2026.jsx
-import { motion } from "framer-motion";
 import { CAPTAINS_2026 } from "../../data/captains2026";
 import "./Captaincy2026.css";
 
-// "Varun Harish" -> "VH", "Sanjeev K Paul" -> "SP"
 function initials(name = "") {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "CC";
+  return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : parts[0][1] || "")).toUpperCase();
 }
 
-function Avatar({ person, size }) {
+function Person({ person, role, lead = false }) {
   return (
-    <span className={`capAvatar capAvatar--${size}`}>
-      {person.img ? (
-        <img src={person.img} alt={person.name} loading="lazy" />
-      ) : (
-        <span className="capAvatarInitials">{initials(person.name)}</span>
-      )}
-    </span>
+    <div className={`capPerson ${lead ? "capPerson--lead" : ""}`}>
+      <div className="capAvatar" aria-hidden="true">
+        {person.img ? <img src={person.img} alt="" loading="lazy" /> : initials(person.name)}
+      </div>
+      <div className="capPersonText">
+        <span className="capRole">{role}</span>
+        <span className="capName">{person.name}</span>
+      </div>
+    </div>
   );
 }
 
 export default function Captaincy2026() {
   return (
-    <section className="capWrap" aria-label="2026 captaincy announcement">
+    <section className="capWrap" aria-labelledby="captaincy-heading">
       <div className="capHead">
-        <span className="capKicker">Leadership · 2026</span>
-        <h2 className="capTitle">Meet Our 2026 Captains</h2>
-        <p className="capSub">
-          Leading Canterbury across all three divisions this season.
-        </p>
+        <div className="capHeadCopy">
+          <p className="capKicker">01 / THE PEOPLE</p>
+          <h2 id="captaincy-heading" className="capTitle">Leading the way<span>.</span></h2>
+        </div>
+        <p className="capSub">Meet the captains and vice-captains representing Canterbury in the 2026 season.</p>
       </div>
-
       <div className="capGrid">
-        {CAPTAINS_2026.map((team, i) => (
-          <motion.article
-            key={team.key}
-            className="capCard"
-            style={{ "--cap-accent": team.accent }}
-            initial={{ opacity: 0, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.45, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <span className="capCardGlow" aria-hidden="true" />
-            <span className="capBadge">{team.key}</span>
-            <p className="capDivision">{team.division}</p>
-
-            {/* Captain — prominent */}
-            <div className="capPerson capPerson--lead">
-              <Avatar person={team.captain} size="lg" />
-              <div className="capPersonText">
-                <span className="capRole capRole--c">Captain</span>
-                <span className="capName">{team.captain.name}</span>
-              </div>
+        {CAPTAINS_2026.map((team) => (
+          <article key={team.key} className="capCard" style={{ "--cap-accent": team.accent }}>
+            <div className="capCardHead">
+              <span className="capDivision">{team.division}</span>
+              <span className="capBadge">{team.key}</span>
             </div>
-
-            <span className="capDivider" aria-hidden="true" />
-
-            {/* Vice-captain */}
-            <div className="capPerson">
-              <Avatar person={team.viceCaptain} size="sm" />
-              <div className="capPersonText">
-                <span className="capRole capRole--vc">Vice-Captain</span>
-                <span className="capName capName--sm">{team.viceCaptain.name}</span>
-              </div>
-            </div>
-          </motion.article>
+            <Person person={team.captain} role="Captain" lead />
+            <div className="capDivider" aria-hidden="true" />
+            <Person person={team.viceCaptain} role="Vice-captain" />
+          </article>
         ))}
       </div>
     </section>

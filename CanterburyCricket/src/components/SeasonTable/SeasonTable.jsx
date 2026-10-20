@@ -1,573 +1,320 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-
+import { useEffect, useMemo, useState } from "react";
 import styles from "./SeasonTable.module.css";
 
 const PAGE_SIZE = 10;
-
-const SEASONS = ["2024", "2025", "2026"];
+const SEASONS = ["2026", "2025", "2024"];
 const DIVISIONS = ["T20", "CTZ", "CHG"];
+const CATEGORIES = ["batting", "bowling", "fielding"];
+const DEFAULT_SORT = { batting: "runs", bowling: "wickets", fielding: "catches" };
 
-// Vite creates separate chunks for each dataset rather than bundling all nine eagerly.
-const DATASET_MODULES = import.meta.glob("../../assets/*division_stats*.json", {
-  import: "default",
-});
+// Dataset files are loaded only when a visitor selects a season and division.
+const DATASET_MODULES = import.meta.glob("../../assets/*division_stats*.json", { import: "default" });
 const datasetCache = new Map();
 
+const COLUMNS = {
+  batting: [
+    { key: "runs", label: "Runs" },
+    { key: "highestRun", label: "HS", full: "Highest score" },
+    { key: "average", label: "Avg", full: "Batting average" },
+    { key: "strikeRate", label: "SR", full: "Strike rate" },
+  ],
+  bowling: [
+    { key: "wickets", label: "Wkts", full: "Wickets" },
+    { key: "best", label: "Best", full: "Best bowling" },
+    { key: "economy", label: "Econ", full: "Economy" },
+    { key: "avg", label: "Avg", full: "Bowling average" },
+    { key: "overs", label: "Overs" },
+  ],
+  fielding: [
+    { key: "catches", label: "Catches" },
+    { key: "stumpings", label: "Stumpings" },
+    { key: "runOuts", label: "Run outs" },
+  ],
+};
+
 function datasetPath(year, division) {
-  const suffix = year === "2025" ? "" : `_${year}`;
-  return `../../assets/${division}_division_stats${suffix}.json`;
+  return `../../assets/${division}_division_stats${year === "2025" ? "" : `_${year}`}.json`;
+}
+
+function toNum(value) {
+  if (value == null || value === "") return 0;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function valOrDash(value) {
+  if (value == null || String(value).trim() === "") return "—";
+  const cleaned = String(value).trim();
+  return cleaned.toLowerCase() === "nan" || cleaned.toLowerCase() === "null" ? "—" : cleaned;
+}
+
+function fmt(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.round(n * 100) / 100 : "—";
+}
+
+function normalize(player) {
+  return {
+    name: player?.name || "Unknown",
+    team: player?.team_name || "",
+    batting: {
+      runs: toNum(player?.total_runs_bat ?? player?.total_runs),
+      highestRun: toNum(player?.highest_run_bat ?? player?.highest_run),
+      average: toNum(player?.average_bat ?? player?.average),
+      strikeRate: toNum(player?.strike_rate_bat ?? player?.strike_rate),
+      innings: toNum(player?.innings_bat ?? player?.innings),
+      fours: toNum(player?.bat_4s ?? player?.["4s"]),
+      sixes: toNum(player?.bat_6s ?? player?.["6s"]),
+    },
+    bowling: {
+      wickets: toNum(player?.total_wickets),
+      best: valOrDash(player?.highest_wicket),
+      economy: toNum(player?.economy),
+      avg: toNum(player?.avg),
+      sr: toNum(player?.SR ?? player?.sr),
+      overs: valOrDash(player?.overs),
+      maidens: toNum(player?.maidens),
+    },
+    fielding: {
+      catches: toNum(player?.total_catches ?? player?.catches),
+      stumpings: toNum(player?.stumpings),
+      runOuts: toNum(player?.run_outs),
+      dismissals: toNum(player?.total_dismissal),
+      matches: toNum(player?.total_match_field),
+    },
+  };
+}
+
+function sortValue(player, category, key) {
+  if (key === "name") return player.name.toLowerCase();
+  const value = player[category]?.[key];
+  if (key === "best" || key === "overs") {
+    const parsed = Number(String(value ?? "").replace(/[^\d.]/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return value ?? 0;
+}
+
+function initials(name) {
+  const parts = name.trim().split(/\s+/);
+  return (parts.length > 1 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : parts[0].slice(0, 2)).toUpperCase();
+}
+
+function LeaderCard({ index, label, person, stat, statLabel, detail }) {
+  return (
+    <article className={styles.leaderCard}>
+      <div className={styles.leaderTop}><span className={styles.leaderIndex}>0{index} / {label}</span><span className={styles.leaderStar} aria-hidden="true">✦</span></div>
+      <div className={styles.leaderMain}>
+        <div className={styles.leaderIdentity}>
+          <span className={styles.leaderAvatar} aria-hidden="true">{person ? initials(person.name) : "—"}</span>
+          <div className={styles.leaderText}><h3 className={styles.leaderName}>{person?.name || "Not available"}</h3><p className={styles.leaderTeam}>{person?.team || "No statistics yet"}</p></div>
+        </div>
+        <div className={styles.leaderScore}><strong>{person ? stat : "—"}</strong><span>{statLabel}</span></div>
+      </div>
+      <p className={styles.leaderDetail}>{person ? detail : "Awaiting division data"}</p>
+    </article>
+  );
 }
 
 export default function SeasonTable() {
-  // Season year toggle — defaults to the latest completed season
-  const [seasonYear, setSeasonYear] = useState("2026"); // "2024" | "2025" | "2026"
-
-  // Division toggle
-  const [division, setDivision] = useState("T20"); // "T20" | "CTZ" | "CHG"
-
-  // Category tabs
-  const [activeTab, setActiveTab] = useState("batting"); // "batting" | "bowling" | "fielding"
-
-  // Pagination
+  const [seasonYear, setSeasonYear] = useState("2026");
+  const [division, setDivision] = useState("T20");
+  const [activeTab, setActiveTab] = useState("batting");
+  const [sortKey, setSortKey] = useState("runs");
+  const [sortDir, setSortDir] = useState("desc");
+  const [search, setSearch] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
-
-  // Sorting
-  const [sortKey, setSortKey] = useState("runs"); // changes by tab
-  const [sortDir, setSortDir] = useState("desc"); // "asc" | "desc"
-
-  const onYearChange = (_, next) => {
-    if (!next) return;
-    setSeasonYear(next);
-  };
-
-  // Load only the selected season/division; ignore stale responses on rapid switching.
   const [datasetState, setDatasetState] = useState({ key: "", data: [], error: null });
   const datasetKey = `${seasonYear}-${division}`;
+
   useEffect(() => {
     const key = `${seasonYear}-${division}`;
     const path = datasetPath(seasonYear, division);
     let cancelled = false;
     const cached = datasetCache.get(path);
-    if (cached) {
-      // Keep the existing selection cache while cancelling stale updates.
+    const loader = cached ? Promise.resolve(cached) : DATASET_MODULES[path]?.();
+    if (!loader) {
       Promise.resolve().then(() => {
-        if (!cancelled) setDatasetState({ key, data: cached, error: null });
+        if (!cancelled) setDatasetState({ key, data: [], error: "Statistics are not available for this selection." });
       });
-      return () => { cancelled = true; };
-    }
-    const load = DATASET_MODULES[path];
-    if (!load) {
-      Promise.resolve().then(() => {
-        if (!cancelled) setDatasetState({ key, data: [], error: "Dataset unavailable" });
+    } else {
+      loader.then((data) => {
+        if (cancelled) return;
+        datasetCache.set(path, data);
+        setDatasetState({ key, data, error: null });
+      }).catch(() => {
+        if (!cancelled) setDatasetState({ key, data: [], error: "Could not load player statistics. Please try again." });
       });
-      return () => { cancelled = true; };
     }
-    load().then(data => {
-      if (cancelled) return;
-      datasetCache.set(path, data);
-      setDatasetState({ key, data, error: null });
-    }).catch(() => {
-      if (!cancelled) setDatasetState({ key, data: [], error: "Unable to load statistics" });
-    });
     return () => { cancelled = true; };
   }, [seasonYear, division]);
 
-  const loading = datasetState.key !== datasetKey;
-  const rawStats = loading ? [] : datasetState.data;
-  const hasData = Array.isArray(rawStats) && rawStats.length > 0;
+  const isLoading = datasetState.key !== datasetKey;
+  const rawStats = isLoading ? [] : datasetState.data;
+  const players = useMemo(() => (Array.isArray(rawStats) ? rawStats.map(normalize) : []), [rawStats]);
+  const columns = COLUMNS[activeTab];
 
-  // Normalize players (works for 2024 + 2025 + 2026 shapes)
-  const players = useMemo(() => {
-    const arr = Array.isArray(rawStats) ? rawStats : [];
-
-    return arr.map((p) => {
-      // Batting (2025/2026 vs 2024)
-      const runs = p?.total_runs_bat ?? p?.total_runs ?? 0;
-      const highestRun = p?.highest_run_bat ?? p?.highest_run ?? 0;
-      const average = p?.average_bat ?? p?.average ?? 0;
-      const strikeRate = p?.strike_rate_bat ?? p?.strike_rate ?? 0;
-      const innings = p?.innings_bat ?? p?.innings ?? 0;
-      const fours = p?.bat_4s ?? p?.["4s"] ?? 0;
-      const sixes = p?.bat_6s ?? p?.["6s"] ?? 0;
-
-      // Bowling (2025/2026 use SR, 2024 uses sr)
-      const sr = p?.SR ?? p?.sr ?? 0;
-
-      // Fielding (2025/2026 use total_catches, 2024 often uses catches)
-      const catches = p?.total_catches ?? p?.catches ?? 0;
-
-      return {
-        name: p?.name ?? "Unknown",
-        team: p?.team_name ?? "",
-        batting: {
-          runs: toNum(runs),
-          highestRun: toNum(highestRun),
-          average: toNum(average),
-          strikeRate: toNum(strikeRate),
-          innings: toNum(innings),
-          fours: toNum(fours),
-          sixes: toNum(sixes),
-        },
-        bowling: {
-          wickets: toNum(p?.total_wickets),
-          best: valOrDash(p?.highest_wicket),
-          economy: toNum(p?.economy),
-          avg: toNum(p?.avg),
-          sr: toNum(sr),
-          overs: valOrDash(p?.overs),
-          maidens: toNum(p?.maidens),
-        },
-        fielding: {
-          catches: toNum(catches),
-          stumpings: toNum(p?.stumpings),
-          runOuts: toNum(p?.run_outs),
-          dismissals: toNum(p?.total_dismissal),
-          matches: toNum(p?.total_match_field),
-        },
-      };
-    });
-  }, [rawStats]);
-
-  // Top performers
   const top = useMemo(() => {
     if (!players.length) return { batter: null, bowler: null, fielder: null };
-
     const batter = [...players].sort((a, b) => b.batting.runs - a.batting.runs)[0];
     const bowler = [...players].sort((a, b) => b.bowling.wickets - a.bowling.wickets)[0];
     const fielder = [...players].sort((a, b) => b.fielding.catches - a.fielding.catches)[0];
-
     return {
-      batter: batter?.batting?.runs > 0 ? batter : null,
-      bowler: bowler?.bowling?.wickets > 0 ? bowler : null,
-      fielder: fielder?.fielding?.catches > 0 ? fielder : null,
+      batter: batter.batting.runs > 0 ? batter : null,
+      bowler: bowler.bowling.wickets > 0 ? bowler : null,
+      fielder: fielder.fielding.catches > 0 ? fielder : null,
     };
   }, [players]);
 
-  // Default sort per tab
-  useEffect(() => {
-    if (activeTab === "batting") setSortKey("runs");
-    if (activeTab === "bowling") setSortKey("wickets");
-    if (activeTab === "fielding") setSortKey("catches");
-    setSortDir("desc");
-  }, [activeTab]);
-
-  // Sorting getter
-  const getSortValue = (p, key) => {
-    if (key === "name") return (p.name || "").toLowerCase();
-
-    if (activeTab === "batting") {
-      if (key === "runs") return p.batting.runs;
-      if (key === "highestRun") return p.batting.highestRun;
-      if (key === "average") return p.batting.average;
-      if (key === "strikeRate") return p.batting.strikeRate;
-      return p.batting.runs;
-    }
-
-    if (activeTab === "bowling") {
-      if (key === "wickets") return p.bowling.wickets;
-      if (key === "best") return parseBest(p.bowling.best);
-      if (key === "economy") return p.bowling.economy;
-      if (key === "avg") return p.bowling.avg;
-      if (key === "overs") return parseOvers(p.bowling.overs);
-      return p.bowling.wickets;
-    }
-
-    // fielding
-    if (key === "catches") return p.fielding.catches;
-    if (key === "stumpings") return p.fielding.stumpings;
-    if (key === "runOuts") return p.fielding.runOuts;
-    return p.fielding.catches;
-  };
-
   const sorted = useMemo(() => {
-    const copy = [...players];
-
-    copy.sort((a, b) => {
-      const av = getSortValue(a, sortKey);
-      const bv = getSortValue(b, sortKey);
-
-      // string sort for name
+    const q = search.trim().toLocaleLowerCase();
+    const result = players.filter((player) => !q || player.name.toLocaleLowerCase().includes(q) || player.team.toLocaleLowerCase().includes(q));
+    result.sort((a, b) => {
+      const av = sortValue(a, activeTab, sortKey);
+      const bv = sortValue(b, activeTab, sortKey);
       if (typeof av === "string" || typeof bv === "string") {
-        const res = String(av).localeCompare(String(bv));
-        return sortDir === "desc" ? -res : res;
+        const diff = String(av).localeCompare(String(bv));
+        return sortDir === "asc" ? diff : -diff;
       }
-
-      const diff = (bv ?? 0) - (av ?? 0);
-      return sortDir === "desc" ? diff : -diff;
+      return sortDir === "desc" ? bv - av : av - bv;
     });
+    return result;
+  }, [players, activeTab, sortKey, sortDir, search]);
 
-    return copy;
-  }, [players, activeTab, sortKey, sortDir]);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const currentPage = Math.min(pageNumber, totalPages);
+  const pageSlice = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  // Pagination
-  const totalRows = sorted.length;
-  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
-  const start = (pageNumber - 1) * PAGE_SIZE;
-  const pageSlice = sorted.slice(start, start + PAGE_SIZE);
+  function changeYear(year) { setSeasonYear(year); setPageNumber(1); }
+  function changeDivision(nextDivision) { setDivision(nextDivision); setPageNumber(1); }
+  function changeCategory(category) {
+    setActiveTab(category);
+    setSortKey(DEFAULT_SORT[category]);
+    setSortDir("desc");
+    setPageNumber(1);
+  }
+  function changeSearch(query) { setSearch(query); setPageNumber(1); }
+  function changeSort(key) {
+    if (sortKey === key) setSortDir((current) => current === "desc" ? "asc" : "desc");
+    else { setSortKey(key); setSortDir("desc"); }
+    setPageNumber(1);
+  }
 
-  useEffect(() => setPageNumber(1), [seasonYear, division, activeTab, sortKey, sortDir]);
-
-  const goToPage = (n) => setPageNumber(Math.min(Math.max(1, n), totalPages));
-
-  const onSort = (key) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
-    } else {
-      setSortKey(key);
-      setSortDir("desc");
-    }
-  };
-
-  const arrow = (key) => (sortKey === key ? (sortDir === "desc" ? "▼" : "▲") : "");
-
+  const showData = !isLoading && players.length > 0;
   return (
-    <section className={styles.wrapper}>
-      {/* HEADER */}
-      <header className={styles.header}>
-        <div className={styles.topRow}>
-          {/* left column */}
-          <div className={styles.left}>
-            <ToggleButtonGroup
-              value={seasonYear}
-              exclusive
-              onChange={onYearChange}
-              className={styles.yearToggle}
-            >
-              {SEASONS.map((y) => (
-                <ToggleButton key={y} value={y} className={styles.yearBtn}>
-                  {y}
-                </ToggleButton>
+    <section className={styles.wrapper} aria-labelledby="season-stats-heading">
+      <div className={styles.sectionHead}>
+        <div className={styles.sectionHeadCopy}>
+          <p className={styles.eyebrow}>03 / THE NUMBERS</p>
+          <h2 id="season-stats-heading" className={styles.sectionTitle}>Player statistics<span>.</span></h2>
+        </div>
+        <p className={styles.sectionDescription}>Explore the performances behind every season. Choose a year and division to discover the leaders and full player records.</p>
+      </div>
+
+      <div className={styles.explorer}>
+        <div className={styles.filterBar}>
+          <div className={styles.filterGroup}>
+            <p className={styles.filterLabel}>SEASON</p>
+            <div className={styles.filterChoices} role="group" aria-label="Select season">
+              {SEASONS.map((year) => (
+                <button key={year} type="button" aria-pressed={seasonYear === year} onClick={() => changeYear(year)} className={`${styles.filterButton} ${seasonYear === year ? styles.filterActive : ""}`}>{year}</button>
               ))}
-            </ToggleButtonGroup>
+            </div>
+          </div>
+          <div className={styles.filterGroup}>
+            <p className={styles.filterLabel}>DIVISION</p>
+            <div className={styles.filterChoices} role="group" aria-label="Select division">
+              {DIVISIONS.map((item) => (
+                <button key={item} type="button" aria-pressed={division === item} onClick={() => changeDivision(item)} className={`${styles.filterButton} ${division === item ? styles.filterActive : ""}`}>{item}</button>
+              ))}
+            </div>
+          </div>
+          <span className={styles.currentSelection}>{seasonYear} <span aria-hidden="true">/</span> {division}</span>
+        </div>
+
+        {showData && (
+          <div className={styles.leadersGrid} aria-label={`Top performers — ${seasonYear} ${division}`}>
+            <LeaderCard index={1} label="Leading batter" person={top.batter} stat={top.batter?.batting.runs} statLabel="runs" detail={top.batter ? `Avg ${fmt(top.batter.batting.average)} · Strike rate ${fmt(top.batter.batting.strikeRate)}` : ""} />
+            <LeaderCard index={2} label="Leading bowler" person={top.bowler} stat={top.bowler?.bowling.wickets} statLabel="wickets" detail={top.bowler ? `Economy ${fmt(top.bowler.bowling.economy)} · Best ${top.bowler.bowling.best}` : ""} />
+            <LeaderCard index={3} label="Leading fielder" person={top.fielder} stat={top.fielder?.fielding.catches} statLabel="catches" detail={top.fielder ? `${top.fielder.fielding.runOuts} run outs · ${top.fielder.fielding.stumpings} stumpings` : ""} />
+          </div>
+        )}
+
+        <div className={styles.recordsPanel}>
+          <div className={styles.recordsHeader}>
+            <div className={styles.recordsHeading}>
+              <h3>Season records</h3>
+              <p>{seasonYear} · {division} Division</p>
+            </div>
+            {showData && <span className={styles.playerCount}>{players.length} players</span>}
           </div>
 
-          {/* center column */}
-          <div className={styles.center}>
-            <div className={styles.segmented} data-active={division}>
-              <span className={styles.activePill} aria-hidden="true" />
-              {DIVISIONS.map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => setDivision(d)}
-                  className={`${styles.segBtn} ${division === d ? styles.segActive : ""}`}
-                >
-                  <span className={styles.segText}>{d} Division</span>
+          <div className={styles.recordsToolbar}>
+            <div className={styles.categoryTabs} role="group" aria-label="Statistic category">
+              {CATEGORIES.map((category) => (
+                <button key={category} type="button" aria-pressed={activeTab === category} className={`${styles.categoryButton} ${activeTab === category ? styles.categoryActive : ""}`} onClick={() => changeCategory(category)}>
+                  {category[0].toUpperCase() + category.slice(1)}
                 </button>
               ))}
             </div>
+            <label className={styles.searchBox}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 4.5 4.5"/></svg>
+              <span className={styles.srOnly}>Search players</span>
+              <input type="search" value={search} onChange={(event) => changeSearch(event.target.value)} placeholder="Search player" autoComplete="off" />
+            </label>
           </div>
 
-          {/* right column spacer */}
-          <div className={styles.right} />
-        </div>
-      </header>
-
-      {/* TOP PERFORMERS + CATEGORY TABS (when data exists) */}
-      {hasData && (
-        <div className={styles.topSection}>
-          <div className={styles.leadersGrid}>
-            <LeaderCard
-              title="Top Batter"
-              badge={division}
-              player={top.batter}
-              primaryLabel="Runs"
-              primaryValue={top.batter ? top.batter.batting.runs : "—"}
-              lines={
-                top.batter
-                  ? [
-                      `Avg: ${fmt(top.batter.batting.average)} • SR: ${fmt(top.batter.batting.strikeRate)}`,
-                      `HS: ${top.batter.batting.highestRun} • Inns: ${top.batter.batting.innings}`,
-                      `4s: ${top.batter.batting.fours} • 6s: ${top.batter.batting.sixes}`,
-                    ]
-                  : ["No batting data yet"]
-              }
-            />
-
-            <LeaderCard
-              title="Top Bowler"
-              badge={division}
-              player={top.bowler}
-              primaryLabel="Wickets"
-              primaryValue={top.bowler ? top.bowler.bowling.wickets : "—"}
-              lines={
-                top.bowler
-                  ? [
-                      `Econ: ${fmt(top.bowler.bowling.economy)} • Avg: ${fmt(top.bowler.bowling.avg)}`,
-                      `Best: ${top.bowler.bowling.best} • SR: ${fmt(top.bowler.bowling.sr)}`,
-                      `Overs: ${top.bowler.bowling.overs} • Maidens: ${top.bowler.bowling.maidens}`,
-                    ]
-                  : ["No bowling data yet"]
-              }
-            />
-
-            <LeaderCard
-              title="Top Fielder"
-              badge={division}
-              player={top.fielder}
-              primaryLabel="Catches"
-              primaryValue={top.fielder ? top.fielder.fielding.catches : "—"}
-              lines={
-                top.fielder
-                  ? [
-                      `Run Outs: ${top.fielder.fielding.runOuts} • Stumpings: ${top.fielder.fielding.stumpings}`,
-                      `Dismissals: ${top.fielder.fielding.dismissals} • Matches: ${top.fielder.fielding.matches}`,
-                    ]
-                  : ["No fielding data yet"]
-              }
-            />
-          </div>
-
-          {/* Category tabs */}
-          <div className={styles.tabsRow}>
-            <div className={styles.tabsWide}>
-              <button
-                type="button"
-                onClick={() => setActiveTab("batting")}
-                className={`${styles.tabBtnWide} ${activeTab === "batting" ? styles.tabActiveWide : ""}`}
-              >
-                Batting
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("bowling")}
-                className={`${styles.tabBtnWide} ${activeTab === "bowling" ? styles.tabActiveWide : ""}`}
-              >
-                Bowling
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab("fielding")}
-                className={`${styles.tabBtnWide} ${activeTab === "fielding" ? styles.tabActiveWide : ""}`}
-              >
-                Fielding
-              </button>
+          {showData ? (
+            <>
+              <p className={styles.mobileScrollHint}>Swipe horizontally to see more stats <span aria-hidden="true">→</span></p>
+              <div className={styles.tableScroll} role="region" tabIndex={0} aria-label={`${seasonYear} ${division} ${activeTab} statistics; scroll horizontally if needed`}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col" className={styles.rankHeader}>#</th>
+                      <th scope="col" aria-sort={sortKey === "name" ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                        <button type="button" className={styles.sortButton} onClick={() => changeSort("name")}>Player <span aria-hidden="true" className={styles.sortIcon}>{sortKey === "name" ? (sortDir === "asc" ? "↑" : "↓") : "↕"}</span></button>
+                      </th>
+                      {columns.map((column) => (
+                        <th scope="col" key={column.key} title={column.full || column.label} aria-sort={sortKey === column.key ? (sortDir === "asc" ? "ascending" : "descending") : "none"}>
+                          <button type="button" className={styles.sortButton} onClick={() => changeSort(column.key)}>{column.label}<span aria-hidden="true" className={styles.sortIcon}>{sortKey === column.key ? (sortDir === "asc" ? "↑" : "↓") : "↕"}</span></button>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pageSlice.map((player, index) => (
+                      <tr key={`${player.team}-${player.name}-${index}`}>
+                        <td className={styles.rankCell}>{(currentPage - 1) * PAGE_SIZE + index + 1 < 10 ? `0${(currentPage - 1) * PAGE_SIZE + index + 1}` : (currentPage - 1) * PAGE_SIZE + index + 1}</td>
+                        <td className={styles.playerCell}><div className={styles.playerName}>{player.name}</div>{player.team && <div className={styles.playerTeam}>{player.team}</div>}</td>
+                        {columns.map((column) => (
+                          <td className={`${styles.statCell} ${sortKey === column.key ? styles.highlightStat : ""}`} key={column.key}>
+                            {typeof player[activeTab][column.key] === "number" ? fmt(player[activeTab][column.key]) : player[activeTab][column.key]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                    {pageSlice.length === 0 && <tr><td colSpan={columns.length + 2} className={styles.emptySearch}>No players match “{search}”. Try another name.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+              <div className={styles.pagination}>
+                <p>{sorted.length === 0 ? "0 results" : `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(sorted.length, currentPage * PAGE_SIZE)} of ${sorted.length} players`}</p>
+                <div className={styles.pageControls}>
+                  <button type="button" onClick={() => setPageNumber((page) => Math.max(1, page - 1))} disabled={currentPage <= 1} aria-label="Previous page">←</button>
+                  <span>Page {currentPage} of {totalPages}</span>
+                  <button type="button" onClick={() => setPageNumber((page) => Math.min(totalPages, page + 1))} disabled={currentPage >= totalPages} aria-label="Next page">→</button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className={styles.statusCard} role="status">
+              <span className={styles.statusIndicator} aria-hidden="true" />
+              <div><strong>{isLoading ? "Loading season records" : "No statistics available"}</strong><p>{isLoading ? "Fetching the selected division's data…" : (datasetState.error || "No player statistics have been recorded for this selection.")}</p></div>
             </div>
-          </div>
+          )}
         </div>
-      )}
-
-      {/* TABLE / PLACEHOLDER */}
-      {!hasData ? (
-        <div className={styles.placeholderCard}>
-          <div className={styles.placeholderHeader}>
-            <span className={styles.pulseDot} />
-            <h3 className={styles.placeholderTitle}>
-              {seasonYear} • {division} Division Stats
-            </h3>
-          </div>
-          <p className={styles.placeholderText} role="status">{loading ? "Loading division statistics…" : (datasetState.error || "No data found for this division.")}</p>
-          <div className={styles.progressBar} aria-hidden="true">
-            <div className={styles.progressFill} />
-          </div>
-        </div>
-      ) : (
-        <>
-          <div
-            className={styles.tableWrapFull}
-            key={`${seasonYear}-${division}-${activeTab}-${sortKey}-${sortDir}`}
-          >
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.sortable} onClick={() => onSort("name")}>
-                    Player {arrow("name")}
-                  </th>
-
-                  {activeTab === "batting" && (
-                    <>
-                      <th className={styles.sortable} onClick={() => onSort("runs")}>
-                        Runs {arrow("runs")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("highestRun")}>
-                        HS {arrow("highestRun")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("average")}>
-                        Avg {arrow("average")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("strikeRate")}>
-                        SR {arrow("strikeRate")}
-                      </th>
-                    </>
-                  )}
-
-                  {activeTab === "bowling" && (
-                    <>
-                      <th className={styles.sortable} onClick={() => onSort("wickets")}>
-                        Wkts {arrow("wickets")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("best")}>
-                        Best {arrow("best")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("economy")}>
-                        Econ {arrow("economy")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("avg")}>
-                        Avg {arrow("avg")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("overs")}>
-                        Overs {arrow("overs")}
-                      </th>
-                    </>
-                  )}
-
-                  {activeTab === "fielding" && (
-                    <>
-                      <th className={styles.sortable} onClick={() => onSort("catches")}>
-                        Catches {arrow("catches")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("stumpings")}>
-                        Stumpings {arrow("stumpings")}
-                      </th>
-                      <th className={styles.sortable} onClick={() => onSort("runOuts")}>
-                        Run Outs {arrow("runOuts")}
-                      </th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-
-              <tbody>
-                {pageSlice.map((p, idx) => (
-                  <tr key={`${p.name}-${idx}`}>
-                    <td className={styles.playerCell}>
-                      <div className={styles.playerName}>{p.name}</div>
-                      {!!p.team && <div className={styles.playerTeam}>{p.team}</div>}
-                    </td>
-
-                    {activeTab === "batting" && (
-                      <>
-                        <td>{p.batting.runs}</td>
-                        <td>{p.batting.highestRun}</td>
-                        <td>{fmt(p.batting.average)}</td>
-                        <td>{fmt(p.batting.strikeRate)}</td>
-                      </>
-                    )}
-
-                    {activeTab === "bowling" && (
-                      <>
-                        <td>{p.bowling.wickets}</td>
-                        <td>{p.bowling.best}</td>
-                        <td>{fmt(p.bowling.economy)}</td>
-                        <td>{fmt(p.bowling.avg)}</td>
-                        <td>{p.bowling.overs}</td>
-                      </>
-                    )}
-
-                    {activeTab === "fielding" && (
-                      <>
-                        <td>{p.fielding.catches}</td>
-                        <td>{p.fielding.stumpings}</td>
-                        <td>{p.fielding.runOuts}</td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className={styles.pagination}>
-            <button
-              type="button"
-              className={styles.pageBtn}
-              onClick={() => goToPage(pageNumber - 1)}
-              disabled={pageNumber === 1}
-            >
-              Prev
-            </button>
-
-            <div className={styles.pageInfo}>
-              Page <strong>{pageNumber}</strong> / {totalPages}
-            </div>
-
-            <button
-              type="button"
-              className={styles.pageBtn}
-              onClick={() => goToPage(pageNumber + 1)}
-              disabled={pageNumber === totalPages}
-            >
-              Next
-            </button>
-          </div>
-        </>
-      )}
+      </div>
     </section>
   );
-}
-
-/* Leader Card */
-function LeaderCard({ title, badge, player, primaryLabel, primaryValue, lines }) {
-  return (
-    <motion.div
-      className={styles.leaderCard}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      whileHover={{ y: -2 }}
-    >
-      <div className={styles.leaderTop}>
-        <div className={styles.leaderTitleRow}>
-          <h3 className={styles.leaderTitle}>{title}</h3>
-          <span className={styles.leaderBadge}>{badge}</span>
-        </div>
-
-        <div className={styles.leaderPrimary}>
-          <div className={styles.leaderPrimaryValue}>{primaryValue}</div>
-          <div className={styles.leaderPrimaryLabel}>{primaryLabel}</div>
-        </div>
-      </div>
-
-      <div className={styles.leaderBody}>
-        <div className={styles.leaderName}>{player?.name ?? "—"}</div>
-        {player?.team ? <div className={styles.leaderTeam}>{player.team}</div> : null}
-
-        <ul className={styles.leaderLines}>
-          {lines.map((t, i) => (
-            <li key={i}>{t}</li>
-          ))}
-        </ul>
-      </div>
-    </motion.div>
-  );
-}
-
-/* Helpers */
-function toNum(v) {
-  // Safely handles null / "" / NaN
-  if (v === null || v === undefined) return 0;
-  if (typeof v === "number") return Number.isFinite(v) ? v : 0;
-  const s = String(v).trim();
-  if (!s || s === "-" || s.toLowerCase() === "null" || s.toLowerCase() === "nan") return 0;
-  const n = Number(s);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function valOrDash(v) {
-  if (v === null || v === undefined) return "-";
-  const s = String(v).trim();
-  if (!s || s === "null" || s.toLowerCase() === "nan") return "-";
-  return s;
-}
-
-function fmt(n) {
-  const num = Number(n);
-  if (!Number.isFinite(num)) return "-";
-  return Math.round(num * 100) / 100;
-}
-
-function parseOvers(v) {
-  const n = Number(String(v ?? "").replace(/[^\d.]/g, ""));
-  return Number.isFinite(n) ? n : 0;
-}
-
-function parseBest(v) {
-  const n = Number(String(v ?? "").replace(/[^\d.]/g, ""));
-  return Number.isFinite(n) ? n : 0;
 }
