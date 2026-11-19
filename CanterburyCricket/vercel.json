@@ -4,25 +4,92 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/fantasy",
+      "destination": "/member-login.html"
+    },
+    {
+      "source": "/fantasy/:path*",
+      "destination": "/member-login.html"
+    }
+  ],
   "redirects": [
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.canterburycricketclub.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.canterburycricketclub.com"
+        }
+      ],
       "destination": "https://canterburycricketclub.com/:path*",
       "permanent": true
     }
   ],
   "headers": [
     {
+      "source": "/api/fantasy",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/fantasy/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
       "source": "/assets/:path*",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     },
     {
       "source": "/:path*",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "source": "/api/fantasy",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-store"
+            }
+          ]
+        },
+        {
+          "source": "/fantasy/:path*",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex"
+            }
+          ]
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/fantasy.js": {
+      "maxDuration": 60
+    }
+  }
 }

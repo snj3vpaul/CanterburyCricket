@@ -4,6 +4,7 @@ import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import "./Navbar1.css";
 import CburyLogo from "../../assets/CburyLogo.png";
+import { useMember } from "../../fantasy/MemberContext";
 
 export default function Navbar1() {
   const [isVisible, setIsVisible] = useState(true);
@@ -19,6 +20,12 @@ export default function Navbar1() {
 
   const prefersReducedMotion = useReducedMotion();
   const { pathname, hash } = useLocation();
+
+  // Signed-in members see the unlocked Fantasy League instead of the login link.
+  const { member } = useMember();
+  const memberLink = member
+    ? { to: "/fantasy", label: "Fantasy League" }
+    : { to: "/member-login", label: "Member Only" };
   const navigate = useNavigate();
 
   const lastYRef = useRef(0);
@@ -276,8 +283,8 @@ export default function Navbar1() {
               Contact Us!
             </NavLink>
 
-            <NavLink to="/member-login" className={linkClass} onClick={closeDesktopDropdowns}>
-              Member Only
+            <NavLink to={memberLink.to} className={linkClass} onClick={closeDesktopDropdowns}>
+              {memberLink.label}
             </NavLink>
           </nav>
 
@@ -447,8 +454,8 @@ export default function Navbar1() {
             Contact Us
           </NavLink>
 
-          <NavLink to="/member-login" className={mobileLinkClass} onClick={closeAll}>
-            Member Only
+          <NavLink to={memberLink.to} className={mobileLinkClass} onClick={closeAll}>
+            {memberLink.label}
           </NavLink>
         </nav>
       </aside>
