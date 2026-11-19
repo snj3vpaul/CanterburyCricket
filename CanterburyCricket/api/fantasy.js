@@ -2,9 +2,10 @@
  * /api/fantasy?action=…  — the whole member + fantasy API in ONE Vercel function
  * (keeps the project well under the Hobby plan's function limit).
  *
- * Public:  GET me · POST register · POST login · POST logout
+ * Public:  GET me · GET register-options · POST register · POST login · POST logout
+ *          GET verify · POST verify-email  (signed confirm-your-email link sent to the registrant)
  *          GET decision · POST decide   (signed Approve/Reject links from admin emails)
- * Member:  GET state · POST predict
+ * Member:  GET state · POST predict · POST complete-profile
  * Admin:   GET admin · POST admin-approve-member · admin-reject-member · admin-create-match · admin-set-xi · admin-add-player
  *          · admin-import-squad · admin-allow-emails · admin-results
  *          · admin-read-scorecard (CricHeroes PDF/screenshots → draft stats; saves nothing)
@@ -22,10 +23,11 @@ import {
   predictionSchema,
   registerSchema,
   scorecardUploadSchema,
+  namesMatch,
 } from "../src/fantasy/shared/validation.js";
 import { deriveFantasyStats } from "../src/fantasy/shared/scorecard.js";
 import { extractScorecard } from "./_lib/fantasy/extract.js";
-import { notifyAdminsOfRegistration, notifyMemberApproved } from "./_lib/fantasy/notify.js";
+import { notifyAdminsOfRegistration, notifyMemberApproved, sendVerifyEmail } from "./_lib/fantasy/notify.js";
 import { z } from "zod";
 import { ConflictError, StorageMissingError, getState, mutate } from "./_lib/fantasy/store.js";
 import {
@@ -37,9 +39,11 @@ import {
   hashPassword,
   makeDecisionToken,
   makeToken,
+  makeVerifyToken,
   maskEmail,
   needsRehash,
   parseDecisionToken,
+  parseVerifyToken,
   sessionCookie,
   throttle,
   verifyPassword,
@@ -49,6 +53,9 @@ import {
   addPlayer,
   adminView,
   allowEmails,
+  claimOwner,
+  claimablePlayers,
+  completeProfile,
   createMatch,
   decideMember,
   importPlayers,
@@ -58,6 +65,7 @@ import {
   registerUser,
   setPlayingXI,
   submitPrediction,
+  verifyEmail,
 } from "./_lib/fantasy/ledger.js";
 
 const ctx = () => ({ now: new Date(), newId: () => randomUUID() });
@@ -102,8 +110,11 @@ function siteUrl(req) {
 }
 
 const memberIdSchema = z.object({ userId: z.string().min(1).max(80) });
+const profileSchema = z.object({ playerId: z.string().trim().min(1, "Pick which squad player you are.").max(80), username: z.string().trim().max(20) });
 
 const PENDING_MESSAGE = "Your registration has been sent to the club admins. You can sign in once they approve it.";
+const CHECK_INBOX_MESSAGE =
+  "Almost there: we've emailed you a link to confirm your address. Open it within 48 hours, then a club admin approves your account.";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // Every non-admin registration answers in at least this long, whether or not the email was new.
 const REGISTER_MIN_MS = Number(process.env.FANTASY_REGISTER_MIN_MS ?? 2500);
@@ -111,6 +122,47 @@ const REGISTER_MIN_MS = Number(process.env.FANTASY_REGISTER_MIN_MS ?? 2500);
 async function padTo(startedAt, ms) {
   const left = ms - (Date.now() - startedAt);
   if (left > 0) await sleep(left);
+}
+
+// ── Squad sheet sync ─────────────────────────────────────────────────────────
+
+const SQUAD_STALE_MS = 12 * 60 * 60 * 1000;
+
+/** Players from the club squad sheet (same source as the Squad page): name, role, jersey number. */
+async function fetchSquadRows() {
+  const base = process.env.SQUAD_API_URL;
+  const key = process.env.SQUAD_API_KEY;
+  if (!base || !key) throw new LedgerError("SQUAD_API_URL / SQUAD_API_KEY aren't set.", 500);
+  const url = new URL(base);
+  url.searchParams.set("key", key);
+  const json = await (await fetch(url, { signal: AbortSignal.timeout(10000) })).json();
+  if (!json?.ok || !Array.isArray(json.data)) throw new LedgerError("The squad sheet didn't return any players.", 502);
+  return json.data
+    .map((r) => ({
+      name: String(r["Full Name"] ?? "").replace(/\s+/g, " ").trim(),
+      role: normalizeSheetRole(r["Playing Role"]),
+      jersey: String(r["Jersey Number"] ?? "").trim().slice(0, 3),
+    }))
+    .filter((r) => r.name.length >= 2);
+}
+
+async function importSquad() {
+  const rows = await fetchSquadRows();
+  const next = await mutate((s) => importPlayers(s, rows, () => randomUUID(), { now: new Date() }));
+  return { rows, next };
+}
+
+/** Keep the league's squad in step with the sheet: refresh when empty or older than 12h. Best-effort. */
+async function freshState() {
+  const state = await getState();
+  const stale = !state.squadSyncedAt || Date.now() - new Date(state.squadSyncedAt) > SQUAD_STALE_MS;
+  if (!stale || !process.env.SQUAD_API_URL) return state;
+  try {
+    return (await importSquad()).next;
+  } catch (e) {
+    console.error("[fantasy] squad sync failed:", e.message);
+    return state;
+  }
 }
 
 async function requireMember(req) {
@@ -135,6 +187,21 @@ const GET = {
     return { member: user ? memberSummary(state, user) : null };
   },
 
+  /** For the register form: squad players still free to claim (the Squad page is public already). */
+  async "register-options"() {
+    const state = await freshState();
+    return { players: claimablePlayers(state) };
+  },
+
+  /** What a confirm-your-email link is for. Read-only, so link scanners can't confirm anything. */
+  async verify(req) {
+    const t = parseVerifyToken(req.query?.t);
+    if (t.error) throw new LedgerError(t.error === "expired" ? VERIFY_EXPIRED : VERIFY_INVALID, 400);
+    const user = (await getState()).users.find((u) => u.id === t.userId);
+    if (!user) throw new LedgerError(VERIFY_EXPIRED, 404);
+    return { name: user.name, status: user.status ?? "ACTIVE" };
+  },
+
   async state(req) {
     const { state, user } = await requireMember(req);
     return memberView(state, user, new Date());
@@ -152,15 +219,33 @@ const GET = {
     const state = await getState();
     const user = state.users.find((u) => u.id === t.userId);
     if (!user) throw new LedgerError("That registration no longer exists.", 404);
-    return { decision: t.decision, name: user.name, email: user.email, status: user.status ?? "ACTIVE" };
+    const player = state.players.find((p) => p.id === user.playerId);
+    const owner = user.playerId ? claimOwner(state, user.playerId, user.id) : null;
+    return {
+      decision: t.decision,
+      name: user.name,
+      email: user.email,
+      status: user.status ?? "ACTIVE",
+      username: user.username ?? null,
+      player: player ? { name: player.name.trim(), jersey: player.jersey ?? "", role: player.role } : null,
+      nameMatches: player ? namesMatch(user.name, player.name) : null,
+      claimConflict: owner ? owner.username || owner.name : null,
+    };
   },
 };
 
 const LINK_EXPIRED = "This link has expired (links last 7 days). Decide on the admin page instead.";
 const LINK_INVALID = "This link isn't valid. Decide on the admin page instead.";
+const VERIFY_EXPIRED = "This link has expired. Register again, or sign in to get a new link.";
+const VERIFY_INVALID = "This link isn't valid. Copy the whole link from the email, or sign in to get a new one.";
 
 const POST = {
-  async register(req, res) {
+  /**
+   * Step 1 of joining. Every outcome answers the same "check your inbox" (same timing),
+   * so the form can't reveal who already has an account. Nothing reaches the admins until
+   * the person proves they own the email address.
+   */
+  async register(req) {
     const startedAt = Date.now();
     const input = parse(registerSchema, req.body);
     const ip = clientIp(req);
@@ -173,34 +258,77 @@ const POST = {
     const id = randomUUID();
     let next;
     try {
-      next = await mutate((s) => registerUser(s, { ...input, id, passwordHash }, { ...ctx(), adminEmails: adminEmails() }));
+      next = await mutate((s) => registerUser(s, { ...input, id, passwordHash }, ctx()));
     } catch (e) {
-      // Email already registered: answer exactly like a new registration (same message, same timing),
-      // so this form can't be used to find out who is a member. Nothing is changed or emailed.
-      if (e instanceof LedgerError && e.status === 409) {
+      if (e instanceof LedgerError && e.code === "DUPLICATE_EMAIL") {
         audit("register.duplicate", { email: maskEmail(input.email), ip });
         await padTo(startedAt, REGISTER_MIN_MS);
-        return { pending: true, message: PENDING_MESSAGE };
+        return { verify: true, message: CHECK_INBOX_MESSAGE };
       }
       throw e;
     }
     const user = next.users.find((u) => u.id === id);
-    audit("register", { email: maskEmail(user.email), status: user.status, ip });
+    audit("register", { email: maskEmail(user.email), ip });
+    await sendVerifyEmail({ name: user.name, email: user.email, verifyUrl: `${siteUrl(req)}/fantasy/verify?t=${makeVerifyToken(user.id)}` });
+    await padTo(startedAt, REGISTER_MIN_MS);
+    return { verify: true, message: CHECK_INBOX_MESSAGE };
+  },
+
+  /**
+   * Confirm button on the email link page. Admin and pre-approved emails are signed in;
+   * everyone else goes to the admins for approval, with their squad claim in the email.
+   */
+  async "verify-email"(req, res) {
+    if (!(await throttle(`verify:${clientIp(req)}`, 30))) throw new LedgerError("Too many attempts. Try again in a few minutes.", 429);
+    const t = parseVerifyToken(req.body?.t);
+    if (t.error) throw new LedgerError(t.error === "expired" ? VERIFY_EXPIRED : VERIFY_INVALID, 400);
+    const before = (await getState()).users.find((u) => u.id === t.userId);
+    if (!before) throw new LedgerError(VERIFY_EXPIRED, 404);
+    const next = await mutate((s) => verifyEmail(s, t.userId, { ...ctx(), adminEmails: adminEmails() }));
+    const user = next.users.find((u) => u.id === t.userId);
+    const firstTime = (before.status ?? "ACTIVE") === "UNVERIFIED";
+    if (firstTime) audit("register.verified", { email: maskEmail(user.email), status: user.status });
+
     if (user.status === "PENDING") {
-      const base = siteUrl(req);
-      await notifyAdminsOfRegistration({
-        admins: adminEmails(),
-        name: user.name,
-        email: user.email,
-        approveUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "APPROVE")}`,
-        rejectUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "REJECT")}`,
-        adminUrl: `${base}/fantasy/admin`,
-      });
-      await padTo(startedAt, REGISTER_MIN_MS);
-      return { pending: true, message: PENDING_MESSAGE };
+      if (firstTime) {
+        const base = siteUrl(req);
+        const player = next.players.find((p) => p.id === user.playerId);
+        const owner = user.playerId ? claimOwner(next, user.playerId, user.id) : null;
+        await notifyAdminsOfRegistration({
+          admins: adminEmails(),
+          name: user.name,
+          email: user.email,
+          claim: player
+            ? {
+                playerName: player.name,
+                jersey: player.jersey,
+                username: user.username,
+                nameMatches: namesMatch(user.name, player.name),
+                conflict: owner ? owner.username || owner.name : null,
+              }
+            : null,
+          approveUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "APPROVE")}`,
+          rejectUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "REJECT")}`,
+          adminUrl: `${base}/fantasy/admin`,
+        });
+      }
+      return { ok: true, status: "PENDING", message: PENDING_MESSAGE };
     }
-    res.setHeader("Set-Cookie", sessionCookie(makeToken(user), user));
-    return { member: memberSummary(next, user) };
+    if (user.status === "ACTIVE" && firstTime) {
+      res.setHeader("Set-Cookie", sessionCookie(makeToken(user), user));
+      return { ok: true, status: "ACTIVE", member: memberSummary(next, user) };
+    }
+    return { ok: true, status: user.status, already: true };
+  },
+
+  /** Accounts made before squad claims: claim your squad player and pick a username. */
+  async "complete-profile"(req) {
+    const { user } = await requireMember(req);
+    const input = parse(profileSchema, req.body);
+    const next = await mutate((s) => completeProfile(s, user.id, input, ctx()));
+    const me = next.users.find((u) => u.id === user.id);
+    audit("profile.completed", { email: maskEmail(me.email) });
+    return { ok: true, member: memberSummary(next, me) };
   },
 
   async login(req, res) {
@@ -216,6 +344,13 @@ const POST = {
     if (!user || !ok) {
       audit("login.failed", { email: maskEmail(email), ip });
       throw new LedgerError("Incorrect email or password.", 401);
+    }
+    if (user.status === "UNVERIFIED") {
+      // Right password, so it's safe to say so: send a fresh link (at most 3 an hour).
+      if (await throttle(`resend:${email}`, 3, 3600)) {
+        await sendVerifyEmail({ name: user.name, email: user.email, verifyUrl: `${siteUrl(req)}/fantasy/verify?t=${makeVerifyToken(user.id)}` });
+      }
+      throw new LedgerError("Confirm your email first: we've sent a new link to your inbox (it works for 48 hours).", 403);
     }
     if (user.status === "PENDING") {
       throw new LedgerError("Your registration is waiting for approval by a club admin. You'll get an email once it's approved.", 403);
@@ -317,17 +452,7 @@ const POST = {
 
   async "admin-import-squad"(req) {
     await requireAdmin(req);
-    const base = process.env.SQUAD_API_URL;
-    const key = process.env.SQUAD_API_KEY;
-    if (!base || !key) throw new LedgerError("SQUAD_API_URL / SQUAD_API_KEY aren't set.", 500);
-    const url = new URL(base);
-    url.searchParams.set("key", key);
-    const json = await (await fetch(url)).json();
-    if (!json?.ok || !Array.isArray(json.data)) throw new LedgerError("The squad sheet didn't return any players.", 502);
-    const rows = json.data
-      .map((r) => ({ name: String(r["Full Name"] ?? "").trim(), role: normalizeSheetRole(r["Playing Role"]) }))
-      .filter((r) => r.name.length >= 2);
-    const next = await mutate((s) => importPlayers(s, rows, () => randomUUID()));
+    const { rows, next } = await importSquad();
     return { ok: true, message: `Imported ${rows.length} players from the club squad sheet.`, ...adminView(next) };
   },
 

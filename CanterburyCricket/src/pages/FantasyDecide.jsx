@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fantasyApi } from "../fantasy/api";
 import FormMessages from "../fantasy/components/FormMessages";
+import Jersey from "../fantasy/components/Jersey";
 import "./MemberLogin.css";
 import "../fantasy/fantasy.css";
 
@@ -62,6 +63,27 @@ export default function FantasyDecide() {
               <br />
               <span className="fx-muted">{info.email}</span>
             </p>
+            {info.player && (
+              <div className="fx-claim">
+                <Jersey name={info.player.name} jersey={info.player.jersey} size={56} />
+                <div className="fx-small">
+                  Says they are <strong>{info.player.name}</strong>
+                  {info.player.jersey ? ` #${info.player.jersey}` : ""}
+                  <br />
+                  <span className={info.nameMatches ? "fx-ok" : "fx-error-text"}>
+                    {info.nameMatches ? "✓ Name matches the squad sheet" : "Name does not match the squad sheet"}
+                  </span>
+                  <br />
+                  Leaderboard name: <strong>@{info.username}</strong>
+                  {info.claimConflict && (
+                    <>
+                      <br />
+                      <span className="fx-error-text">⚠ Already belongs to @{info.claimConflict}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
             <p className="fx-small fx-muted">
               {approving
                 ? "They'll be able to sign in and play, and they'll get an email saying they're in."

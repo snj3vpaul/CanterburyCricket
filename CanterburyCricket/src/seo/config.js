@@ -98,6 +98,11 @@ export const SEO = {
     description: 'Approve or reject a Fantasy League registration.',
     noindex: true,
   },
+  '/fantasy/verify': {
+    title: 'Confirm Your Email | Canterbury Cricket Club',
+    description: 'Confirm your email for the Canterbury Cricket Club Fantasy League.',
+    noindex: true,
+  },
   '/fantasy/admin': {
     title: 'Fantasy Admin | Canterbury Cricket Club',
     description: 'Committee tools for the Canterbury Cricket Club Fantasy League.',

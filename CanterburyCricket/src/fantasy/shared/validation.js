@@ -59,6 +59,65 @@ const COMMON_PASSWORDS = new Set(
     .filter(Boolean),
 );
 
+// ── Squad identity ──────────────────────────────────────────────────────────
+
+/** "Jaideep \"JD\" Grover " → ["jaideep", "grover"]  (accents, nicknames in quotes/brackets, punctuation removed) */
+export function personTokens(raw) {
+  return String(raw ?? "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/(^|\s)["“'‘][^"“”'‘’]*["”'’](?=\s|$)/g, " ") // quoted nicknames: 'Jaideep "JD" Grover'
+    .replace(/['’]/g, "") // O'Neill → oneill
+    .replace(/\([^)]*\)/g, " ") // bracketed notes
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/**
+ * Does the name someone typed match the squad sheet? Same first and last name;
+ * middle names/initials can be left out on either side. Case, accents and spacing don't matter.
+ *   "Sanjeev Paul"  ↔ "Sanjeev K Paul"      ✓
+ *   "vikram arora"  ↔ "VIKRAM ARORA"        ✓
+ *   "Jaideep Grover" ↔ 'Jaideep "JD" Grover' ✓
+ *   "Sanjeev Kumar" ↔ "Sanjeev K Paul"      ✗
+ */
+export function namesMatch(typed, squad) {
+  const t = personTokens(typed);
+  const s = personTokens(squad);
+  if (!t.length || !s.length) return false;
+  if (s.length === 1) return t[0] === s[0];
+  if (t.length < 2) return false;
+  return t[0] === s[0] && t[t.length - 1] === s[s.length - 1];
+}
+
+export const USERNAME_RULE = "3–20 letters, numbers, dots, dashes or underscores, starting with a letter or number.";
+const RESERVED_USERNAMES = new Set(
+  "admin administrator moderator mod mods canterbury canterburycc ccc club official staff support system root owner committee captain fantasy league null undefined".split(" "),
+);
+
+/**
+ * Problems with a chosen username. It must not be reserved, and must not spell another
+ * squad player's name (so nobody can pose as a teammate on the leaderboard).
+ */
+export function usernameProblems(username, { otherSquadNames = [] } = {}) {
+  const u = String(username ?? "").trim();
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,19}$/.test(u)) return [`Username: ${USERNAME_RULE}`];
+  const squashed = u.toLowerCase().replace(/[^a-z]/g, "");
+  if (RESERVED_USERNAMES.has(u.toLowerCase()) || RESERVED_USERNAMES.has(squashed) || /admin|moderat|canterbury|official/.test(squashed)) {
+    return ["That username is reserved. Pick another."];
+  }
+  for (const other of otherSquadNames) {
+    const t = personTokens(other);
+    if (t.length >= 2) {
+      const full = t[0] + t[t.length - 1];
+      if (full.length >= 6 && squashed.includes(full)) return ["That username looks like another player's name. Pick another."];
+    }
+  }
+  return [];
+}
+
 export function passwordProblems(password, { email = "", name = "" } = {}) {
   const p = String(password ?? "");
   const lower = p.toLowerCase();
@@ -100,6 +159,9 @@ export const matchResultSchema = z.object({
 
 export const registerSchema = z
   .object({
+    // Required for everyone except the club's moderator account (checked on the server).
+    playerId: z.string().trim().max(80).optional().default(""),
+    username: z.string().trim().max(20, { message: `Username: ${USERNAME_RULE}` }).optional().default(""),
     name: z
       .string()
       .trim()

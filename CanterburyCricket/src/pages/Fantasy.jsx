@@ -5,8 +5,54 @@ import { fantasyApi, formatDay, formatWhen, MATCH_TYPE_LABEL } from "../fantasy/
 import PredictionForm from "../fantasy/components/PredictionForm";
 import LeaderboardTable from "../fantasy/components/LeaderboardTable";
 import FormMessages from "../fantasy/components/FormMessages";
+import Jersey from "../fantasy/components/Jersey";
+import SquadIdentityFields, { useClaimablePlayers } from "../fantasy/components/SquadIdentityFields";
 import { POINTS } from "../fantasy/shared/scoring";
 import "../fantasy/fantasy.css";
+
+/** For accounts made before squad claims: say which squad player you are + pick a username. */
+function CompleteProfile({ me, onDone }) {
+  const squad = useClaimablePlayers();
+  const [form, setForm] = useState({ playerId: "", username: "" });
+  const [errors, setErrors] = useState([]);
+  const [pending, setPending] = useState(false);
+
+  async function save(e) {
+    e.preventDefault();
+    if (!form.playerId) return setErrors(["Pick which squad player you are."]);
+    setPending(true);
+    setErrors([]);
+    try {
+      onDone((await fantasyApi("complete-profile", form)).member);
+    } catch (err) {
+      setErrors(err.errors || [err.message]);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form className="fx-card fx-pad fx-stack fx-mt" onSubmit={save} noValidate>
+      <h2 className="fx-h2">One more step: who are you?</h2>
+      <p className="fx-small fx-muted">
+        Every player in the league is linked to their spot on the squad sheet, so nobody can play as someone else.
+        Your name on file is <strong>{me.fullName}</strong>.
+      </p>
+      <SquadIdentityFields
+        players={squad.players}
+        error={squad.error}
+        fullName={me.fullName}
+        playerId={form.playerId}
+        username={form.username}
+        onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+      />
+      <FormMessages errors={errors} />
+      <button type="submit" className="fx-btn fx-btn-primary fx-btn-block" disabled={pending}>
+        {pending ? "Saving…" : "Join the league"}
+      </button>
+    </form>
+  );
+}
 
 const RESULT_LABEL = { CANTERBURY: "Canterbury won", OPPONENT: "Lost", TIE: "Tie", NO_RESULT: "No result" };
 
@@ -57,7 +103,7 @@ export default function Fantasy() {
         <div>
           <p className="fx-eyebrow">Members only</p>
           <h1 className="fx-title">Fantasy League</h1>
-          <p className="fx-muted">Welcome back, {me.name.split(" ")[0]}.</p>
+          <p className="fx-muted">Welcome back, {me.isClubAccount ? "ADMIN" : `@${me.name}`}.</p>
         </div>
         <div className="fx-hero-actions">
           {member?.role === "ADMIN" && <Link to="/fantasy/admin" className="fx-btn fx-btn-ghost">Admin</Link>}
@@ -65,10 +111,27 @@ export default function Fantasy() {
         </div>
       </header>
 
-      <div className="fx-stats">
+      {me.needsProfile && (
+        <CompleteProfile
+          me={me}
+          onDone={(m) => {
+            setMember(m);
+            fantasyApi("state").then((v) => { setView(v); setMember(v.me); });
+          }}
+        />
+      )}
+
+      {me.isClubAccount ? (
+        <p className="fx-card fx-pad fx-small fx-muted fx-mt">
+          You&apos;re signed in as the club&apos;s moderator account. It runs the league but doesn&apos;t play, so it has no
+          picks or points. Use <strong>Admin</strong> to approve players, set up matches and enter results.
+        </p>
+      ) : (
+            <div className="fx-stats">
         <div className="fx-card fx-stat"><span>Season points</span><strong>{me.totalFantasyPoints}</strong></div>
         <div className="fx-card fx-stat"><span>Rank</span><strong>{me.rank ? `#${me.rank}` : "—"}</strong></div>
       </div>
+      )}
 
       <section className="fx-section">
         <h2 className="fx-h2">Next match</h2>
@@ -85,13 +148,19 @@ export default function Fantasy() {
             <div className="fx-pad fx-stack">
               {mine && !editing && (
                 <div>
-                  <p className="fx-small fx-muted">Your picks</p>
-                  <ul className="fx-chips">
-                    {mine.selectedPlayerIds.map((id) => (
-                      <li key={id} className={`fx-chip ${id === mine.captainId ? "is-captain" : ""} ${xi.has(id) ? "" : "is-dropped"}`}>
-                        {xi.get(id)?.name ?? "Dropped player"}{id === mine.captainId && " (C)"}
-                      </li>
-                    ))}
+                  <p className="fx-small fx-muted">Your Fantasy XI</p>
+                  <ul className="fx-teamsheet">
+                    {mine.selectedPlayerIds.map((id) => {
+                      const p = xi.get(id);
+                      const cap = id === mine.captainId;
+                      return (
+                        <li key={id} className={`${cap ? "is-captain" : ""} ${p ? "" : "is-dropped"}`}>
+                          <Jersey name={p?.name} jersey={p?.jersey} captain={cap} size={44} />
+                          <span className="fx-teamsheet-name">{p?.name ?? "Dropped player"}</span>
+                          {cap && <span className="fx-cap-badge">C ×2</span>}
+                        </li>
+                      );
+                    })}
                   </ul>
                   {dropped.length > 0 && nextMatch.isOpen && (
                     <p className="fx-error-text fx-small">A player you picked is no longer in the XI and will score 0. Update your team.</p>
@@ -109,6 +178,10 @@ export default function Fantasy() {
                   />
                   <button type="button" className="fx-btn fx-btn-ghost fx-btn-block" onClick={() => setEditing(false)}>Cancel</button>
                 </>
+              ) : me.needsProfile ? (
+                <p className="fx-muted">Tell us which squad player you are (above) to make your picks.</p>
+              ) : me.isClubAccount ? (
+                <p className="fx-muted">Picks are open for players. As moderator you can set the XI and enter results in Admin.</p>
               ) : nextMatch.isOpen ? (
                 <>
                   <button type="button" className="fx-btn fx-btn-primary fx-btn-block" onClick={() => setEditing(true)}>
@@ -128,6 +201,7 @@ export default function Fantasy() {
         <h2 className="fx-h2">Leaderboard</h2>
         <LeaderboardTable rows={view.leaderboard} currentUserId={me.id} />
       </section>
+
 
       {history.length > 0 && (
         <section className="fx-section">

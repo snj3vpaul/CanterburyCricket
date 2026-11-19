@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { fantasyApi, formatWhen, MATCH_TYPE_LABEL } from "../fantasy/api";
 import AdminMatchUpdate from "../fantasy/components/AdminMatchUpdate";
 import FormMessages from "../fantasy/components/FormMessages";
+import Jersey from "../fantasy/components/Jersey";
 import { PLAYER_ROLES, ROLE_LABEL, addPlayerSchema, allowedEmailsSchema, createMatchSchema, issuesOf } from "../fantasy/shared/validation";
 import { XI_SIZE } from "../fantasy/shared/scoring";
 import "../fantasy/fantasy.css";
@@ -114,7 +115,7 @@ export default function FantasyAdmin() {
       </section>
 
       <CreateMatchForm onCreated={(res) => { setData(res); setPanel({ type: "xi", matchId: res.matchId }); }} />
-      <SquadSection players={data.players} onData={setData} />
+      <SquadSection players={data.players} syncedAt={data.squadSyncedAt} onData={setData} />
       <MembersSection members={data.members} onData={setData} />
       <WhitelistSection data={data} onData={setData} />
     </div>
@@ -125,6 +126,18 @@ const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString("en-CA", { day: "numeric", month: "short", timeZone: "America/Toronto" }) : "";
 
 /** New registrations waiting for an admin. Only Canterbury players should be approved. */
+/** Which squad player a registration claims, and whether it checks out. */
+function ClaimInfo({ m }) {
+  if (!m.player) return <span className="fx-small fx-muted">No squad player{m.name === "ADMIN" ? " (club account)" : " claimed yet"}</span>;
+  return (
+    <span className="fx-small">
+      Claims <strong>{m.player.name}</strong>{m.player.jersey ? ` #${m.player.jersey}` : ""} as <strong>@{m.username}</strong> ·{" "}
+      <span className={m.nameMatches ? "fx-ok" : "fx-error-text"}>{m.nameMatches ? "name matches ✓" : `typed name “${m.fullName}” doesn't match`}</span>
+      {m.claimConflict && <span className="fx-error-text"> · ⚠ already belongs to @{m.claimConflict}</span>}
+    </span>
+  );
+}
+
 function ApprovalQueue({ members, onData }) {
   const { run, errors, message, pending } = useAdminAction(onData);
   const waiting = members.filter((m) => m.status === "PENDING").sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
@@ -132,13 +145,15 @@ function ApprovalQueue({ members, onData }) {
   return (
     <section className={`fx-card fx-pad fx-section ${waiting.length ? "fx-approval" : ""}`}>
       <h2 className="fx-h2">Waiting for approval{waiting.length ? ` (${waiting.length})` : ""}</h2>
-      {!waiting.length && <p className="fx-small fx-muted">No one is waiting. New registrations appear here, and admins get an email.</p>}
+      {!waiting.length && <p className="fx-small fx-muted">No one is waiting. Registrations appear here once they confirm their email, and admins get an email.</p>}
       <ul className="fx-stack">
         {waiting.map((m) => (
           <li key={m.id} className="fx-approval-row">
+            {m.player && <Jersey name={m.player.name} jersey={m.player.jersey} size={40} />}
             <div className="fx-grow">
-              <strong className="fx-ellipsis">{m.name}</strong>
+              <strong className="fx-ellipsis">{m.fullName}</strong>
               <span className="fx-small fx-muted fx-ellipsis">{m.email} · registered {fmtDate(m.createdAt)}</span>
+              <ClaimInfo m={m} />
             </div>
             <div className="fx-admin-actions">
               <button type="button" className="fx-btn fx-btn-ghost" disabled={pending}
@@ -158,7 +173,7 @@ function ApprovalQueue({ members, onData }) {
   );
 }
 
-const STATUS_LABEL = { ACTIVE: "approved", PENDING: "waiting", REJECTED: "rejected" };
+const STATUS_LABEL = { ACTIVE: "approved", PENDING: "waiting", REJECTED: "rejected", UNVERIFIED: "email not confirmed" };
 
 /** Everyone who has registered, with a way to undo a rejection or remove a member later. */
 function MembersSection({ members, onData }) {
@@ -173,11 +188,13 @@ function MembersSection({ members, onData }) {
         {decided.map((m) => (
           <li key={m.id}>
             <span className="fx-grow">
-              <span className="fx-ellipsis">{m.name}{m.role === "ADMIN" && m.name !== "ADMIN" && " (admin)"}</span>
-              <small className="fx-muted fx-ellipsis">{m.email}</small>
+              <span className="fx-ellipsis">{m.name === "ADMIN" ? "ADMIN" : `@${m.name}`}{m.role === "ADMIN" && m.name !== "ADMIN" && " (admin)"} · {m.fullName}</span>
+              <small className="fx-muted fx-ellipsis">{m.email}{m.player ? ` · ${m.player.name}` : ""}</small>
             </span>
             {m.role === "ADMIN" ? (
               <span className="fx-ok">admin</span>
+            ) : m.status === "UNVERIFIED" ? (
+              <span className="fx-small fx-muted">email not confirmed</span>
             ) : m.status === "REJECTED" ? (
               <button type="button" className="fx-link-btn" disabled={pending} onClick={() => run("admin-approve-member", { userId: m.id })}>
                 Rejected · approve
@@ -230,7 +247,7 @@ function CreateMatchForm({ onCreated }) {
   );
 }
 
-function SquadSection({ players, onData }) {
+function SquadSection({ players, syncedAt, onData }) {
   const [form, setForm] = useState({ name: "", role: "BATTER" });
   const add = useAdminAction(onData);
   const sync = useAdminAction(onData);
@@ -243,9 +260,12 @@ function SquadSection({ players, onData }) {
   return (
     <section className="fx-card fx-pad fx-section">
       <h2 className="fx-h2">Squad ({players.length})</h2>
-      <p className="fx-small fx-muted">Import names and roles from the club squad sheet (the one behind the Our Squad page), or add players by hand.</p>
+      <p className="fx-small fx-muted">
+        Synced automatically from the club squad sheet (the one behind the Our Squad page) every 12 hours
+        {syncedAt ? `, last on ${fmtDate(syncedAt)}` : ""}. Players register by claiming their name from this list.
+      </p>
       <button type="button" className="fx-btn fx-btn-ghost fx-btn-block" disabled={sync.pending} onClick={() => sync.run("admin-import-squad", {})}>
-        {sync.pending ? "Importing…" : "Import from club squad sheet"}
+        {sync.pending ? "Importing…" : "Sync now from club squad sheet"}
       </button>
       <FormMessages errors={sync.errors} message={sync.message} />
 
@@ -265,7 +285,7 @@ function SquadSection({ players, onData }) {
 
       {players.length > 0 && (
         <ul className="fx-chips fx-mt">
-          {players.map((p) => <li key={p.id} className="fx-chip">{p.name} · {ROLE_LABEL[p.role]}</li>)}
+          {players.map((p) => <li key={p.id} className="fx-chip">{p.jersey ? `#${p.jersey} ` : ""}{p.name} · {ROLE_LABEL[p.role]}</li>)}
         </ul>
       )}
     </section>

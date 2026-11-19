@@ -23,25 +23,41 @@ No new npm dependencies.
 
 Folders under `api/` that start with `_` aren't deployed as functions, so this adds exactly one function.
 
-## Who can join (admin approval)
+## Who can join (squad claim, email confirmation, admin approval)
 
-Anyone can register at /member-login, but the account stays **pending** until an admin approves it, so only
-Canterbury players get into the league.
+Players are shown in a simple **Canterbury jersey** (navy with gold trim and their squad-sheet jersey number, or
+their initial if there's no number). Your Fantasy XI appears as a small team sheet of jerseys; the captain wears
+gold. The squad syncs from the club squad sheet automatically (when the league is empty, then at most every
+12 hours), and Admin → Squad → **Sync now** forces it.
 
-- The emails in `ADMIN_EMAILS` (the club Gmail and one backup) are admins and are active as soon as they register.
-  The first one (the club Gmail) is the club's shared account: it's shown as **ADMIN** everywhere and stays off
-  the leaderboard unless it makes picks.
-- Everyone else lands in **/fantasy/admin → Waiting for approval**, and both admins get an email
-  (sent with the same SMTP settings as the Contact form) with **Approve** and **Reject** buttons.
-  **Approve** lets them in and emails them; **Reject** blocks sign-in.
-- The email buttons open a short confirm page (one tap). Email link-scanners in Gmail/Outlook open links
-  automatically, so a link alone never changes anything. Each link is signed for that one registration, works
-  for 7 days, and only acts while the person is still waiting: whoever decides first wins, and the other
-  button then just shows "Already decided".
-- A pending or rejected person can't sign in, open /fantasy, or appear on the leaderboard.
-- Changed your mind? Admin → Members lets you approve a rejected person, or remove an approved one
-  (which signs them out).
-- Optional: "Pre-approve emails" lets known players skip the queue.
+Registering at /member-login:
+
+1. **Which squad player are you?** Pick yourself from the squad list (players who already have an approved account
+   aren't listed).
+2. **Full name must match the squad sheet**: same first and last name; middle names/initials are optional,
+   case, accents, apostrophes and quoted nicknames (`Ehsan "Easy" Khan`) are ignored. The form checks as you type;
+   the server enforces it.
+3. **Pick a username** (3–20 letters/numbers/`.`/`-`/`_`). It's what shows on the leaderboard.
+   It must be unique, can't be reserved (admin, moderator, canterbury, official, …) and can't spell another squad
+   player's name.
+4. **Confirm your email** from the link we send (48 hours; unconfirmed registrations are deleted after that).
+   Nothing reaches the admins until this happens, so nobody can register someone else's address.
+5. **Admin approval**: both admins get an email showing the claimed squad player, whether the name matches, the
+   username, and a warning if that player already belongs to someone. **Approve** / **Reject** buttons open a
+   one-tap confirm page (link scanners can't trigger them; signed, 7 days, first decision wins).
+
+Anti-impersonation rules: one approved account per squad player; approving a second claim on the same player is
+refused until one is rejected; the claim can't be changed afterwards except by an admin rejecting the account.
+
+- `ADMIN_EMAILS`: the first one (the club Gmail) is the **moderator** account: no squad player, no username, shown
+  as **ADMIN**, can't make picks. It registers via "Registering the club's admin account?" and is signed in as
+  soon as it confirms its email. The backup admin claims their squad player like everyone else, is an admin as
+  soon as they confirm, and plays.
+- "Pre-approve emails" skips step 5 (but never overrides a squad player someone else already holds).
+- Accounts created before squad claims are asked "who are you?" (squad player + username) on /fantasy before
+  they can make picks.
+- Signing in before confirming sends a fresh link (max 3 an hour). Pending or rejected people can't sign in.
+- Admin → Members: approve a rejected person, or remove an approved one (which signs them out).
 
 ## Security (OWASP Top 10 review, Nov 19, 2026)
 
@@ -51,7 +67,7 @@ Canterbury players get into the league.
 | A01 CSRF | SameSite=Lax cookie + writes must be JSON + browser `Sec-Fetch-Site`/`Origin` must be this site |
 | A02 Cryptographic failures | scrypt N=2^17, r=8, p=1 (OWASP), unique salt; older hashes upgrade at next sign-in; HMAC-SHA256 signed sessions; HTTPS + HSTS |
 | A03 Injection | All input validated with zod; names limited to letters/space/'.-; React escapes output; email HTML escaped; no SQL |
-| A04 Insecure design | Registering an existing email looks identical to a new one (no member enumeration); same timing; generic "Incorrect email or password" |
+| A04 Insecure design | Registering an existing email looks identical to a new one (no member enumeration); same timing; generic "Incorrect email or password"; email ownership proven before an admin sees a registration; one account per squad player |
 | A05 Security misconfiguration | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` (no clickjacking), COOP, Permissions-Policy, nosniff; generic error messages |
 | A06 Vulnerable components | `npm audit`: 0 known vulnerabilities; no new dependencies |
 | A07 Authentication failures | Rate limits (8 tries per email / 30 per IP per 10 min); common, name-based and email-based passwords refused; `__Host-` Secure HttpOnly cookie; admin sessions 7 days, members 30; sign-out revokes the session on the server |

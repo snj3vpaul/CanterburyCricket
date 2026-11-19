@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useMember } from "../fantasy/MemberContext";
 import FormMessages from "../fantasy/components/FormMessages";
+import SquadIdentityFields, { useClaimablePlayers } from "../fantasy/components/SquadIdentityFields";
 import { loginSchema, registerSchema, issuesOf } from "../fantasy/shared/validation";
 
 import "./MemberLogin.css";
@@ -21,17 +22,28 @@ export default function MemberLogin() {
   const { member, signIn, signOut } = useMember();
 
   const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const EMPTY = { name: "", email: "", password: "", playerId: "", username: "" };
+  const [form, setForm] = useState(EMPTY);
+  const [clubAccount, setClubAccount] = useState(false); // the club's moderator account claims no player
   const [errors, setErrors] = useState([]);
   const [pending, setPending] = useState(false);
   const [awaiting, setAwaiting] = useState(null); // registration sent, waiting for an admin
 
   const isLogin = mode === "login";
+  const squad = useClaimablePlayers();
   const update = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   async function submit(e) {
     e.preventDefault();
-    const input = isLogin ? { email: form.email, password: form.password } : form;
+    const input = isLogin
+      ? { email: form.email, password: form.password }
+      : clubAccount
+        ? { name: form.name, email: form.email, password: form.password }
+        : form;
+    if (!isLogin && !clubAccount && !form.playerId) {
+      setErrors(["Pick which Canterbury squad player you are."]);
+      return;
+    }
     const parsed = (isLogin ? loginSchema : registerSchema).safeParse(input);
     if (!parsed.success) {
       setErrors(issuesOf(parsed.error));
@@ -43,7 +55,7 @@ export default function MemberLogin() {
       const res = await signIn(mode, input);
       if (res.pending) {
         setAwaiting({ name: form.name.trim().split(" ")[0], message: res.message });
-        setForm({ name: "", email: "", password: "" });
+        setForm(EMPTY);
         return;
       }
       navigate(safeNext(params.get("next")), { replace: true });
@@ -89,7 +101,7 @@ export default function MemberLogin() {
               Thanks{awaiting.name ? `, ${awaiting.name}` : ""}! {awaiting.message}
             </p>
             <p className="fx-muted fx-small">
-              Only Canterbury players are approved. You&apos;ll get an email when your account is ready.
+              Check your spam folder if it hasn&apos;t arrived in a few minutes. Only Canterbury players are approved.
             </p>
             <button
               type="button"
@@ -129,7 +141,7 @@ export default function MemberLogin() {
             <form className="fx-stack" onSubmit={submit} noValidate>
               {!isLogin && (
                 <label className="fx-field">
-                  <span>Full name</span>
+                  <span>Full name {clubAccount ? "" : "(as on the squad sheet)"}</span>
                   <input name="name" autoComplete="name" value={form.name} onChange={update} required />
                 </label>
               )}
@@ -149,15 +161,33 @@ export default function MemberLogin() {
                 />
               </label>
 
+              {!isLogin && !clubAccount && (
+                <SquadIdentityFields
+                  players={squad.players}
+                  error={squad.error}
+                  fullName={form.name}
+                  playerId={form.playerId}
+                  username={form.username}
+                  onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+                />
+              )}
+
               <FormMessages errors={errors} />
 
               <button type="submit" className="fx-btn fx-btn-primary fx-btn-block" disabled={pending}>
                 {pending ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
               </button>
               {!isLogin && (
-                <p className="fx-muted fx-small">
-                  New accounts are approved by a club admin, so only Canterbury players can join the league.
-                </p>
+                <>
+                  <p className="fx-muted fx-small">
+                    You&apos;ll confirm your email, then a club admin approves you, so only Canterbury players can join the league.
+                  </p>
+                  <p className="fx-muted fx-small">
+                    <button type="button" className="fx-link-btn" onClick={() => { setClubAccount((v) => !v); setErrors([]); }}>
+                      {clubAccount ? "I'm a squad player" : "Registering the club's admin account?"}
+                    </button>
+                  </p>
+                </>
               )}
             </form>
           </>

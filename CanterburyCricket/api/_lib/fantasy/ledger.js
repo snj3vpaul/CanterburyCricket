@@ -5,11 +5,12 @@
  * rules that need the current state (whitelist, Playing XI, lock time, …).
  */
 import { PICK_COUNT, XI_SIZE, scorePrediction } from "../../../src/fantasy/shared/scoring.js";
-import { compositionErrors } from "../../../src/fantasy/shared/validation.js";
+import { compositionErrors, namesMatch, usernameProblems } from "../../../src/fantasy/shared/validation.js";
 
 export class LedgerError extends Error {
-  constructor(errors, status = 400) {
+  constructor(errors, status = 400, code = undefined) {
     super(Array.isArray(errors) ? errors[0] : errors);
+    this.code = code;
     this.errors = Array.isArray(errors) ? errors : [errors];
     this.status = status;
   }
@@ -26,44 +27,129 @@ function findMatch(state, matchId) {
 }
 
 // ── Members ──────────────────────────────────────────────────────────────────
+//
+// Account lifecycle:  UNVERIFIED --(clicks email link)--> PENDING --(admin approves)--> ACTIVE
+//                                                     \--> ACTIVE   (ADMIN_EMAILS / pre-approved)
+//                     PENDING/ACTIVE --(admin rejects / removes)--> REJECTED
+// Every member except the club moderator account claims exactly one squad player. A squad
+// player can belong to only one approved account, and the typed full name must match the sheet.
 
 /**
  * The club's shared admin account is the FIRST address in ADMIN_EMAILS (cricketcanterbury@gmail.com).
- * It isn't a player, so it's shown as "ADMIN" everywhere instead of the name typed at sign-up.
+ * It moderates and doesn't play: shown as "ADMIN", no squad player, no username.
  */
 const clubAccountEmail = () => (process.env.ADMIN_EMAILS || "").split(",")[0].trim().toLowerCase();
-export const isClubAccount = (user) => Boolean(clubAccountEmail()) && user.email === clubAccountEmail();
-export const displayName = (user) => (isClubAccount(user) ? "ADMIN" : user.name);
+export const isClubAccountEmail = (email) => Boolean(clubAccountEmail()) && email === clubAccountEmail();
+export const isClubAccount = (user) => isClubAccountEmail(user.email);
+/** What other members see: "ADMIN" for the club account, otherwise the chosen username. */
+export const displayName = (user) => (isClubAccount(user) ? "ADMIN" : user.username || user.name);
 
 /** Account status. Older records without a status are treated as ACTIVE. */
 export const statusOf = (user) => user.status ?? "ACTIVE";
 export const isActive = (user) => statusOf(user) === "ACTIVE";
+const counts = (user) => statusOf(user) !== "REJECTED"; // holds its username / can hold a claim
+
+const UNVERIFIED_TTL_MS = 48 * 60 * 60 * 1000;
+/** Registrations never confirmed by email are dropped after 48h (frees the username and email). */
+const purgeStale = (state, now) => ({
+  ...state,
+  users: state.users.filter((u) => statusOf(u) !== "UNVERIFIED" || now - new Date(u.createdAt) < UNVERIFIED_TTL_MS),
+});
+
+/** The approved account (if any) that owns this squad player, other than `exceptUserId`. */
+export const claimOwner = (state, playerId, exceptUserId) =>
+  state.users.find((u) => u.playerId === playerId && u.id !== exceptUserId && isActive(u)) ?? null;
+
+/** Squad players nobody has claimed with an approved account yet. */
+export const claimablePlayers = (state) =>
+  state.players
+    .filter((p) => p.isActive && !claimOwner(state, p.id))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((p) => ({ id: p.id, name: p.name.trim(), role: p.role, jersey: p.jersey ?? "" }));
+
+/** Validate a squad claim + username for `userId` (null for a new account). Returns the player. */
+function checkIdentity(state, { name, playerId, username }, userId) {
+  const player = state.players.find((p) => p.id === playerId && p.isActive);
+  if (!player) throw new LedgerError("Pick which Canterbury squad player you are.");
+  if (!namesMatch(name, player.name)) {
+    throw new LedgerError(
+      `Your full name doesn't match the squad sheet for that player. Use the name the club has for you (middle names optional).`,
+    );
+  }
+  if (claimOwner(state, player.id, userId)) {
+    throw new LedgerError("That squad player already has an account. If that's you, contact the club.", 409);
+  }
+  const others = state.players.filter((p) => p.id !== player.id).map((p) => p.name);
+  const problems = usernameProblems(username, { otherSquadNames: others });
+  if (problems.length) throw new LedgerError(problems);
+  const lower = username.toLowerCase();
+  if (state.users.some((u) => u.id !== userId && counts(u) && u.username?.toLowerCase() === lower)) {
+    throw new LedgerError("That username is taken. Pick another.", 409);
+  }
+  return player;
+}
 
 /**
- * Anyone can register. The account is ACTIVE straight away only for the ADMIN_EMAILS
- * and for emails an admin pre-approved; everyone else is PENDING until an admin
- * approves them, so only Canterbury players get in.
+ * Anyone can register, but nothing happens until they confirm their email (UNVERIFIED).
+ * Players must claim their squad player (name must match the sheet) and pick a unique
+ * username. The club moderator account (first ADMIN_EMAILS address) doesn't play.
  */
-export function registerUser(state, { id, name, email, passwordHash }, { adminEmails, now }) {
+export function registerUser(state, { id, name, email, passwordHash, playerId, username }, { now }) {
+  state = purgeStale(state, now);
+  // Identity first, so its errors say nothing about whether the email is registered.
+  const club = isClubAccountEmail(email);
+  const player = club ? null : checkIdentity(state, { name, playerId, username }, null);
   if (state.users.some((u) => u.email === email)) {
-    throw new LedgerError("An account with this email already exists. Try signing in.", 409);
+    throw new LedgerError("An account with this email already exists. Try signing in.", 409, "DUPLICATE_EMAIL");
   }
-  const preApproved = state.allowedEmails.find((a) => a.email === email);
-  const isBootstrapAdmin = adminEmails.includes(email);
-  const active = isBootstrapAdmin || Boolean(preApproved);
   const user = {
     id,
     name,
     email,
     passwordHash,
-    role: isBootstrapAdmin ? "ADMIN" : preApproved?.role || "MEMBER",
-    status: active ? "ACTIVE" : "PENDING",
+    username: club ? null : username,
+    playerId: player?.id ?? null,
+    role: "MEMBER", // decided when the email is confirmed
+    status: "UNVERIFIED",
     totalFantasyPoints: 0,
     sessionVersion: 1,
     createdAt: now.toISOString(),
-    ...(active ? { approvedAt: now.toISOString(), approvedBy: isBootstrapAdmin ? "admin-email" : "pre-approved" } : {}),
   };
   return { ...state, users: [...state.users, user] };
+}
+
+/**
+ * The owner clicked the link in their inbox. ADMIN_EMAILS and pre-approved emails become
+ * ACTIVE now; everyone else waits for an admin (PENDING). No-op if already confirmed.
+ */
+export function verifyEmail(state, userId, { adminEmails, now }) {
+  const user = state.users.find((u) => u.id === userId);
+  if (!user) throw new LedgerError("That registration no longer exists. Please register again.", 404);
+  if (statusOf(user) !== "UNVERIFIED") return state;
+  const isAdmin = adminEmails.includes(user.email);
+  const preApproved = state.allowedEmails.some((a) => a.email === user.email);
+  // A pre-approval never overrides a squad player someone else already holds.
+  const conflict = user.playerId && claimOwner(state, user.playerId, user.id);
+  const active = isAdmin || (preApproved && !conflict);
+  const stamp = now.toISOString();
+  const next = {
+    ...user,
+    emailVerifiedAt: stamp,
+    role: isAdmin ? "ADMIN" : "MEMBER",
+    status: active ? "ACTIVE" : "PENDING",
+    ...(active ? { approvedAt: stamp, approvedBy: isAdmin ? "admin-email" : "pre-approved" } : {}),
+  };
+  return { ...state, users: state.users.map((u) => (u.id === userId ? next : u)) };
+}
+
+/** For accounts created before squad claims existed: claim a squad player and a username. */
+export function completeProfile(state, userId, { playerId, username }, { now }) {
+  const user = state.users.find((u) => u.id === userId);
+  if (!user) throw new LedgerError("Account not found.", 404);
+  if (isClubAccount(user)) throw new LedgerError("The club moderator account doesn't claim a squad player.");
+  const player = checkIdentity(state, { name: user.name, playerId, username }, user.id);
+  const next = { ...user, playerId: player.id, username, profileCompletedAt: now.toISOString() };
+  return { ...state, users: state.users.map((u) => (u.id === userId ? next : u)) };
 }
 
 /** Admin decision on a registration: APPROVE → ACTIVE, REJECT → REJECTED (can be approved later). */
@@ -71,6 +157,14 @@ export function decideMember(state, userId, decision, { now, adminId }) {
   const user = state.users.find((u) => u.id === userId);
   if (!user) throw new LedgerError("Member not found.", 404);
   if (user.role === "ADMIN") throw new LedgerError("Admin accounts can't be approved or rejected here.");
+  if (statusOf(user) === "UNVERIFIED") throw new LedgerError("They haven't confirmed their email yet.", 409);
+  if (decision === "APPROVE" && user.playerId) {
+    const owner = claimOwner(state, user.playerId, user.id);
+    if (owner) {
+      const who = state.players.find((p) => p.id === user.playerId)?.name ?? "this squad player";
+      throw new LedgerError(`${who} already belongs to @${owner.username ?? owner.name}. Reject one of them first.`, 409);
+    }
+  }
   const stamp = now.toISOString();
   const next =
     decision === "APPROVE"
@@ -95,21 +189,22 @@ export function addPlayer(state, { id, name, role }) {
 }
 
 /** Merge players from the club squad sheet by name: new names are added, existing roles refreshed. */
-export function importPlayers(state, rows, newId) {
+export function importPlayers(state, rows, newId, { now } = {}) {
   const players = state.players.map((p) => ({ ...p }));
   const index = new Map(players.map((p) => [p.name.toLowerCase(), p]));
-  for (const { name, role } of rows) {
+  for (const { name, role, jersey = "" } of rows) {
     const hit = index.get(name.toLowerCase());
     if (hit) {
       hit.role = role;
+      hit.jersey = jersey;
       hit.isActive = true;
     } else {
-      const p = { id: newId(), name, role, isActive: true };
+      const p = { id: newId(), name, role, jersey, isActive: true };
       players.push(p);
       index.set(name.toLowerCase(), p);
     }
   }
-  return { ...state, players };
+  return { ...state, players, ...(now ? { squadSyncedAt: now.toISOString() } : {}) };
 }
 
 export function createMatch(state, { id, opponent, venue, date, matchType }, { now }) {
@@ -139,6 +234,13 @@ export function setPlayingXI(state, { matchId, playerIds }) {
 // ── Predictions ──────────────────────────────────────────────────────────────
 
 export function submitPrediction(state, userId, { matchId, selectedPlayerIds, captainId }, { now, newId }) {
+  const player = state.users.find((u) => u.id === userId);
+  if (player && isClubAccount(player)) {
+    throw new LedgerError("The club ADMIN account moderates the league and can't make picks.", 403);
+  }
+  if (player && !(player.playerId && player.username)) {
+    throw new LedgerError("Tell us which squad player you are and pick a username first.", 403);
+  }
   const match = findMatch(state, matchId);
   if (!isPredictionOpen(match, now)) throw new LedgerError("Predictions for this match are closed.", 409);
   if (match.playingXI.length !== XI_SIZE) throw new LedgerError("The Playing XI hasn't been announced yet.", 409);
@@ -208,7 +310,8 @@ export function processMatchResults(state, { matchId, winningTeam, motmPlayerId,
 
 // ── Read models (never include password hashes) ──────────────────────────────
 
-const publicPlayer = (p) => ({ id: p.id, name: p.name, role: p.role });
+const publicPlayer = (p) => ({ id: p.id, name: p.name.trim(), role: p.role, jersey: p.jersey ?? "" });
+const playerOf = (state, user) => (user.playerId ? state.players.find((p) => p.id === user.playerId) ?? null : null);
 
 function rankOf(users, userId) {
   const sorted = users.filter((u) => isActive(u) && !isClubAccount(u)).sort((a, b) => b.totalFantasyPoints - a.totalFantasyPoints);
@@ -220,7 +323,12 @@ export function memberSummary(state, user) {
   return {
     id: user.id,
     name: displayName(user),
+    username: user.username ?? null,
+    fullName: user.name,
     isClubAccount: isClubAccount(user),
+    // Accounts made before squad claims existed must claim a player + username first.
+    needsProfile: !isClubAccount(user) && !(user.playerId && user.username),
+    player: playerOf(state, user) ? publicPlayer(playerOf(state, user)) : null,
     email: user.email,
     role: user.role,
     totalFantasyPoints: user.totalFantasyPoints,
@@ -258,10 +366,11 @@ export function memberView(state, user, now) {
   // Others' picks are only revealed once a match is scored.
   const hasScoredPick = (u) => state.predictions.some((p) => p.userId === u.id && matchById.get(p.matchId)?.status === "COMPLETED");
   const leaderboard = state.users
-    .filter((u) => isActive(u) && (!isClubAccount(u) || hasScoredPick(u)))
+    .filter((u) => isActive(u) && (!isClubAccount(u) || hasScoredPick(u))) // club account can't pick, so it's never listed
     .map((u) => ({
     userId: u.id,
     name: displayName(u),
+    player: playerOf(state, u) ? publicPlayer(playerOf(state, u)) : null,
     totalPoints: u.totalFantasyPoints,
     matches: state.predictions
       .filter((p) => p.userId === u.id && matchById.get(p.matchId)?.status === "COMPLETED")
@@ -279,6 +388,12 @@ export function memberView(state, user, now) {
   return { me: memberSummary(state, user), matches, leaderboard };
 }
 
+/** Username of an approved account that already holds this user's squad player, if any. */
+function conflictName(state, user) {
+  const owner = user.playerId ? claimOwner(state, user.playerId, user.id) : null;
+  return owner ? displayName(owner) : null;
+}
+
 export function adminView(state) {
   const resultOf = new Map(state.results.map((r) => [r.matchId, r]));
   return {
@@ -292,11 +407,18 @@ export function adminView(state) {
         predictionCount: state.predictions.filter((p) => p.matchId === m.id).length,
         result: resultOf.get(m.id) ?? null,
       })),
+    squadSyncedAt: state.squadSyncedAt ?? null,
     allowedEmails: [...state.allowedEmails].sort((a, b) => a.email.localeCompare(b.email)),
     members: state.users
       .map((u) => ({
         id: u.id,
         name: displayName(u),
+        fullName: u.name,
+        username: u.username ?? null,
+        player: playerOf(state, u) ? publicPlayer(playerOf(state, u)) : null,
+        // Typed name vs squad sheet, and whether someone else already holds that player.
+        nameMatches: playerOf(state, u) ? namesMatch(u.name, playerOf(state, u).name) : null,
+        claimConflict: conflictName(state, u),
         email: u.email,
         role: u.role,
         status: statusOf(u),

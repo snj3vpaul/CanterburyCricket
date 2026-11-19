@@ -131,6 +131,29 @@ export function parseDecisionToken(token, now = Date.now()) {
   return { userId, decision };
 }
 
+// ── Email confirmation links (sent to the person registering) ────────────────
+
+export const VERIFY_TTL_MS = 48 * 60 * 60 * 1000;
+const signVerify = (body) => createHmac("sha256", secret()).update(`verify:${body}`).digest("base64url");
+
+/** Proves the registrant controls the inbox. Domain-separated from sessions and admin links. */
+export function makeVerifyToken(userId, now = Date.now()) {
+  const body = `${userId}.VERIFY.${now + VERIFY_TTL_MS}`;
+  return `${body}.${signVerify(body)}`;
+}
+
+/** → { userId } or { error: "invalid" | "expired" } */
+export function parseVerifyToken(token, now = Date.now()) {
+  const raw = String(token ?? "");
+  if (raw.length > 300) return { error: "invalid" };
+  const parts = raw.split(".");
+  if (parts.length !== 4 || parts[1] !== "VERIFY") return { error: "invalid" };
+  const [userId, kind, exp, sig] = parts;
+  if (!safeEqual(sig, signVerify(`${userId}.${kind}.${exp}`))) return { error: "invalid" };
+  if (!(Number(exp) > now)) return { error: "expired" };
+  return { userId };
+}
+
 // ── Cookies ──────────────────────────────────────────────────────────────────
 
 export function readCookie(req, name = cookieName()) {
