@@ -29,6 +29,8 @@ Anyone can register at /member-login, but the account stays **pending** until an
 Canterbury players get into the league.
 
 - The emails in `ADMIN_EMAILS` (the club Gmail and one backup) are admins and are active as soon as they register.
+  The first one (the club Gmail) is the club's shared account: it's shown as **ADMIN** everywhere and stays off
+  the leaderboard unless it makes picks.
 - Everyone else lands in **/fantasy/admin → Waiting for approval**, and both admins get an email
   (sent with the same SMTP settings as the Contact form) with **Approve** and **Reject** buttons.
   **Approve** lets them in and emails them; **Reject** blocks sign-in.
@@ -40,6 +42,24 @@ Canterbury players get into the league.
 - Changed your mind? Admin → Members lets you approve a rejected person, or remove an approved one
   (which signs them out).
 - Optional: "Pre-approve emails" lets known players skip the queue.
+
+## Security (OWASP Top 10 review, Nov 19, 2026)
+
+| OWASP 2021 | What protects the login, registration and email flows |
+|---|---|
+| A01 Broken access control | Every admin action re-checks the role on the server; pending/rejected accounts get no session; email Approve/Reject links are signed per person and decision, expire in 7 days, and only act while the person is still waiting |
+| A01 CSRF | SameSite=Lax cookie + writes must be JSON + browser `Sec-Fetch-Site`/`Origin` must be this site |
+| A02 Cryptographic failures | scrypt N=2^17, r=8, p=1 (OWASP), unique salt; older hashes upgrade at next sign-in; HMAC-SHA256 signed sessions; HTTPS + HSTS |
+| A03 Injection | All input validated with zod; names limited to letters/space/'.-; React escapes output; email HTML escaped; no SQL |
+| A04 Insecure design | Registering an existing email looks identical to a new one (no member enumeration); same timing; generic "Incorrect email or password" |
+| A05 Security misconfiguration | `X-Frame-Options: DENY` + CSP `frame-ancestors 'none'` (no clickjacking), COOP, Permissions-Policy, nosniff; generic error messages |
+| A06 Vulnerable components | `npm audit`: 0 known vulnerabilities; no new dependencies |
+| A07 Authentication failures | Rate limits (8 tries per email / 30 per IP per 10 min); common, name-based and email-based passwords refused; `__Host-` Secure HttpOnly cookie; admin sessions 7 days, members 30; sign-out revokes the session on the server |
+| A08 Integrity failures | Atomic compare-and-set writes; signed tokens; lockfile-pinned dependencies |
+| A09 Logging & monitoring | `fantasy-audit` events in Vercel logs (sign-ins, failures, throttles, approvals, blocked requests; emails masked, no secrets). Note: the Hobby plan keeps logs 1 hour. Approvals are also stored on each member (`approvedBy`/`rejectedBy`) |
+| A10 SSRF / host-header | Email links come from Vercel's site URL, never the request's Host header; no user-supplied URLs are fetched |
+
+Not built yet: password reset ("forgot password"). An admin can't reset a password today.
 
 ## Rules
 Pick 5 from the official Playing XI (≥2 batters/keepers, ≥2 bowlers/all-rounders) and one captain (×2).
