@@ -23,6 +23,7 @@ export default function MemberLogin() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState([]);
   const [pending, setPending] = useState(false);
+  const [awaiting, setAwaiting] = useState(null); // registration sent, waiting for an admin
 
   const isLogin = mode === "login";
   const update = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -38,7 +39,12 @@ export default function MemberLogin() {
     setErrors([]);
     setPending(true);
     try {
-      await signIn(mode, input);
+      const res = await signIn(mode, input);
+      if (res.pending) {
+        setAwaiting({ name: form.name.trim().split(" ")[0], message: res.message });
+        setForm({ name: "", email: "", password: "" });
+        return;
+      }
       navigate(safeNext(params.get("next")), { replace: true });
     } catch (err) {
       setErrors(err.errors || [err.message]);
@@ -76,7 +82,23 @@ export default function MemberLogin() {
         <p className="fx-eyebrow">Canterbury Cricket Club</p>
         <h1 className="future-title">Member Login</h1>
 
-        {member ? (
+        {awaiting ? (
+          <div className="fx-stack" role="status">
+            <p className="future-sub">
+              Thanks{awaiting.name ? `, ${awaiting.name}` : ""}! {awaiting.message}
+            </p>
+            <p className="fx-muted fx-small">
+              Only Canterbury players are approved. You&apos;ll get an email when your account is ready.
+            </p>
+            <button
+              type="button"
+              className="fx-btn fx-btn-ghost fx-btn-block"
+              onClick={() => { setAwaiting(null); setMode("login"); }}
+            >
+              Back to sign in
+            </button>
+          </div>
+        ) : member ? (
           <div className="fx-stack">
             <p className="future-sub">
               Signed in as <strong>{member.name}</strong>. The Fantasy League is unlocked.
@@ -133,7 +155,7 @@ export default function MemberLogin() {
               </button>
               {!isLogin && (
                 <p className="fx-muted fx-small">
-                  Registration is open to club members. If your email isn&apos;t recognised, ask a committee member to add it.
+                  New accounts are approved by a club admin, so only Canterbury players can join the league.
                 </p>
               )}
             </form>

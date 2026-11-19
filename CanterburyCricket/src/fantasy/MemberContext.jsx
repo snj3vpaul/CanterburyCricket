@@ -23,10 +23,12 @@ export function MemberProvider({ children }) {
     refresh();
   }, [refresh]);
 
+  /** Returns { member } when signed in, or { pending, message } for a registration awaiting approval. */
   const signIn = useCallback(async (mode, form) => {
-    const { member: m } = await fantasyApi(mode === "register" ? "register" : "login", form);
-    setMember(m);
-    return m;
+    const res = await fantasyApi(mode === "register" ? "register" : "login", form);
+    if (res.pending) return { pending: true, message: res.message };
+    setMember(res.member);
+    return { member: res.member };
   }, []);
 
   const signOut = useCallback(async () => {

@@ -13,7 +13,8 @@ No new npm dependencies.
 | API (one Vercel function, `?action=` router) | `api/fantasy.js` |
 | Storage — one JSON doc in Upstash Redis, atomic compare-and-set writes | `api/_lib/fantasy/store.js` |
 | Auth — scrypt passwords, signed HttpOnly cookie, rate limiting | `api/_lib/fantasy/auth.js` |
-| Game rules as pure state transitions (whitelist, picks, scoring) | `api/_lib/fantasy/ledger.js` |
+| Approval emails (reuses the Contact form's SMTP settings) | `api/_lib/fantasy/notify.js` |
+| Game rules as pure state transitions (approvals, picks, scoring) | `api/_lib/fantasy/ledger.js` |
 | Scoring matrix + zod schemas (shared by browser and API) | `src/fantasy/shared/` |
 | Session context, route guard, API client | `src/fantasy/MemberContext.jsx`, `RequireMember.jsx`, `api.js` |
 | CricHeroes scorecard → stats (dismissal parsing, name matching, result) | `src/fantasy/shared/scorecard.js` |
@@ -21,6 +22,20 @@ No new npm dependencies.
 | UI | `src/pages/MemberLogin.jsx`, `Fantasy.jsx`, `FantasyAdmin.jsx`, `src/fantasy/components/*` |
 
 Folders under `api/` that start with `_` aren't deployed as functions, so this adds exactly one function.
+
+## Who can join (admin approval)
+
+Anyone can register at /member-login, but the account stays **pending** until an admin approves it, so only
+Canterbury players get into the league.
+
+- The emails in `ADMIN_EMAILS` (the club Gmail and one backup) are admins and are active as soon as they register.
+- Everyone else lands in **/fantasy/admin → Waiting for approval**, and the admins get an email
+  (sent with the same SMTP settings as the Contact form). **Approve** lets them in and emails them;
+  **Reject** blocks sign-in.
+- A pending or rejected person can't sign in, open /fantasy, or appear on the leaderboard.
+- Changed your mind? Admin → Members lets you approve a rejected person, or remove an approved one
+  (which signs them out).
+- Optional: "Pre-approve emails" lets known players skip the queue.
 
 ## Rules
 Pick 5 from the official Playing XI (≥2 batters/keepers, ≥2 bowlers/all-rounders) and one captain (×2).
@@ -61,7 +76,7 @@ check, so a server can't fetch scorecard pages reliably. The app's PDF/screensho
      (one short request per match — a few cents). Optional `FANTASY_EXTRACT_MODEL` (default `claude-sonnet-5-5`).
    - `SQUAD_API_URL` / `SQUAD_API_KEY` — already set for the Our Squad page; reused for "Import from club squad sheet"
 3. **Deploy.** Then register with an admin email at /member-login and open **/fantasy/admin**:
-   whitelist member emails → import the squad → create a match → tick the Playing XI.
+   approve waiting players → import the squad → create a match → tick the Playing XI.
 4. **After each game**, follow "How points get added" above.
 
 ## Local development

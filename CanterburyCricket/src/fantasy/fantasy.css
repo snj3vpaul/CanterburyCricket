@@ -428,3 +428,22 @@
   font: inherit;
   font-size: 15px;
 }
+
+/* ---------- Registration approvals ---------- */
+.fx-approval { border-color: var(--gold-line); box-shadow: 0 0 0 1px var(--gold-wash); }
+.fx-approval-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.fx-approval-row:last-child { border-bottom: 0; }
+.fx-link-btn {
+  flex: none;
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--gold-bright);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.fx-link-muted { color: var(--text-soft); }
+.fx-link-btn:disabled { opacity: 0.5; cursor: not-allowed; }

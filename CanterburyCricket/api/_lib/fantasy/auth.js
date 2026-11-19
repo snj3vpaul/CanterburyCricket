@@ -93,7 +93,8 @@ export function currentUser(req, state) {
   const t = parseToken(readCookie(req));
   if (!t) return null;
   const user = state.users.find((u) => u.id === t.id);
-  return user && user.sessionVersion === t.version ? user : null;
+  // Only approved (ACTIVE) members have a session; legacy records without a status count as ACTIVE.
+  return user && user.sessionVersion === t.version && (user.status ?? "ACTIVE") === "ACTIVE" ? user : null;
 }
 
 export function adminEmails() {

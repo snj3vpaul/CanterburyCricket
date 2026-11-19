@@ -51,9 +51,37 @@ describe("fantasy API", () => {
     adminCookie = r.cookie;
   });
 
-  it("refuses emails that aren't whitelisted", async () => {
-    const r = await call("POST", "register", { body: { name: "Stranger", email: "x@y.test", password: "supersecret1" } });
-    assert.equal(r.status, 403);
+  it("puts unknown registrations on hold until an admin approves them", async () => {
+    const r = await call("POST", "register", { body: { name: "New Player", email: "newbie@club.test", password: "supersecret1" } });
+    assert.equal(r.status, 200);
+    assert.equal(r.body.pending, true);
+    assert.equal(r.cookie, undefined); // no session while pending
+    const login = await call("POST", "login", { body: { email: "newbie@club.test", password: "supersecret1" } });
+    assert.equal(login.status, 403);
+    assert.match(login.body.errors[0], /waiting for approval/);
+    // wrong password still says "incorrect", so pending status isn't revealed to strangers
+    assert.equal((await call("POST", "login", { body: { email: "newbie@club.test", password: "nope-nope" } })).status, 401);
+
+    const admin = await call("GET", "admin", { cookie: adminCookie });
+    const newbie = admin.body.members.find((m) => m.email === "newbie@club.test");
+    assert.equal(newbie.status, "PENDING");
+
+    assert.equal((await call("POST", "admin-approve-member", { cookie: adminCookie, body: { userId: newbie.id } })).status, 200);
+    const ok = await call("POST", "login", { body: { email: "newbie@club.test", password: "supersecret1" } });
+    assert.equal(ok.status, 200);
+    assert.match(ok.cookie, /^ccc_member=/);
+  });
+
+  it("rejected registrations can't sign in, and admin accounts can't be rejected", async () => {
+    await call("POST", "register", { body: { name: "Random Person", email: "random@else.test", password: "supersecret1" } });
+    const admin = await call("GET", "admin", { cookie: adminCookie });
+    const random = admin.body.members.find((m) => m.email === "random@else.test");
+    const self = admin.body.members.find((m) => m.role === "ADMIN");
+    assert.equal((await call("POST", "admin-reject-member", { cookie: adminCookie, body: { userId: random.id } })).status, 200);
+    const login = await call("POST", "login", { body: { email: "random@else.test", password: "supersecret1" } });
+    assert.equal(login.status, 403);
+    assert.match(login.body.errors[0], /wasn't approved/);
+    assert.equal((await call("POST", "admin-reject-member", { cookie: adminCookie, body: { userId: self.id } })).status, 400);
   });
 
   it("lets an admin whitelist a member, who can then register", async () => {
@@ -72,6 +100,7 @@ describe("fantasy API", () => {
 
   it("blocks members from admin actions, tampered cookies, and cross-site posts", async () => {
     assert.equal((await call("GET", "admin", { cookie: memberCookie })).status, 403);
+    assert.equal((await call("POST", "admin-approve-member", { cookie: memberCookie, body: { userId: "x" } })).status, 403);
     assert.equal((await call("GET", "state", { cookie: memberCookie.replace(/.$/, "x") })).status, 401);
     assert.equal((await call("GET", "state")).status, 401);
     assert.equal((await call("POST", "logout", { origin: "https://evil.test" })).status, 403);
@@ -137,6 +166,7 @@ describe("fantasy API", () => {
     const view = (await call("GET", "state", { cookie: memberCookie })).body;
     assert.equal(view.me.totalFantasyPoints, 175);
     assert.equal(view.me.rank, 1);
+    assert.ok(!view.leaderboard.some((r) => r.name === "Random Person"), "rejected members stay off the table");
     const row = view.leaderboard.find((r) => r.userId === view.me.id);
     const cap = row.matches[0].breakdown.picks.find((p) => p.isCaptain);
     assert.equal(cap.total, 140);

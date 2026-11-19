@@ -27,29 +27,48 @@ function findMatch(state, matchId) {
 
 // ── Members ──────────────────────────────────────────────────────────────────
 
+/** Account status. Older records without a status are treated as ACTIVE. */
+export const statusOf = (user) => user.status ?? "ACTIVE";
+export const isActive = (user) => statusOf(user) === "ACTIVE";
+
+/**
+ * Anyone can register. The account is ACTIVE straight away only for the ADMIN_EMAILS
+ * and for emails an admin pre-approved; everyone else is PENDING until an admin
+ * approves them, so only Canterbury players get in.
+ */
 export function registerUser(state, { id, name, email, passwordHash }, { adminEmails, now }) {
   if (state.users.some((u) => u.email === email)) {
     throw new LedgerError("An account with this email already exists. Try signing in.", 409);
   }
-  const allowed = state.allowedEmails.find((a) => a.email === email);
+  const preApproved = state.allowedEmails.find((a) => a.email === email);
   const isBootstrapAdmin = adminEmails.includes(email);
-  if (!allowed && !isBootstrapAdmin) {
-    throw new LedgerError(
-      "This email isn't on the club member list yet. Ask a committee member to add you, then try again.",
-      403,
-    );
-  }
+  const active = isBootstrapAdmin || Boolean(preApproved);
   const user = {
     id,
     name,
     email,
     passwordHash,
-    role: isBootstrapAdmin ? "ADMIN" : allowed.role || "MEMBER",
+    role: isBootstrapAdmin ? "ADMIN" : preApproved?.role || "MEMBER",
+    status: active ? "ACTIVE" : "PENDING",
     totalFantasyPoints: 0,
     sessionVersion: 1,
     createdAt: now.toISOString(),
+    ...(active ? { approvedAt: now.toISOString(), approvedBy: isBootstrapAdmin ? "admin-email" : "pre-approved" } : {}),
   };
   return { ...state, users: [...state.users, user] };
+}
+
+/** Admin decision on a registration: APPROVE → ACTIVE, REJECT → REJECTED (can be approved later). */
+export function decideMember(state, userId, decision, { now, adminId }) {
+  const user = state.users.find((u) => u.id === userId);
+  if (!user) throw new LedgerError("Member not found.", 404);
+  if (user.role === "ADMIN") throw new LedgerError("Admin accounts can't be approved or rejected here.");
+  const stamp = now.toISOString();
+  const next =
+    decision === "APPROVE"
+      ? { ...user, status: "ACTIVE", approvedAt: stamp, approvedBy: adminId }
+      : { ...user, status: "REJECTED", rejectedAt: stamp, rejectedBy: adminId, sessionVersion: user.sessionVersion + 1 };
+  return { ...state, users: state.users.map((u) => (u.id === userId ? next : u)) };
 }
 
 export function allowEmails(state, emails, { now }) {
@@ -184,7 +203,7 @@ export function processMatchResults(state, { matchId, winningTeam, motmPlayerId,
 const publicPlayer = (p) => ({ id: p.id, name: p.name, role: p.role });
 
 function rankOf(users, userId) {
-  const sorted = [...users].sort((a, b) => b.totalFantasyPoints - a.totalFantasyPoints);
+  const sorted = users.filter(isActive).sort((a, b) => b.totalFantasyPoints - a.totalFantasyPoints);
   const me = sorted.find((u) => u.id === userId);
   return me ? sorted.findIndex((u) => u.totalFantasyPoints === me.totalFantasyPoints) + 1 : null;
 }
@@ -228,7 +247,7 @@ export function memberView(state, user, now) {
     });
 
   // Others' picks are only revealed once a match is scored.
-  const leaderboard = state.users.map((u) => ({
+  const leaderboard = state.users.filter(isActive).map((u) => ({
     userId: u.id,
     name: u.name,
     totalPoints: u.totalFantasyPoints,
@@ -263,7 +282,15 @@ export function adminView(state) {
       })),
     allowedEmails: [...state.allowedEmails].sort((a, b) => a.email.localeCompare(b.email)),
     members: state.users
-      .map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role, totalFantasyPoints: u.totalFantasyPoints }))
+      .map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: statusOf(u),
+        createdAt: u.createdAt,
+        totalFantasyPoints: u.totalFantasyPoints,
+      }))
       .sort((a, b) => a.name.localeCompare(b.name)),
   };
 }

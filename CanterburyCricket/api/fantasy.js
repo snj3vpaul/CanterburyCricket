@@ -4,7 +4,7 @@
  *
  * Public:  GET me · POST register · POST login · POST logout
  * Member:  GET state · POST predict
- * Admin:   GET admin · POST admin-create-match · admin-set-xi · admin-add-player
+ * Admin:   GET admin · POST admin-approve-member · admin-reject-member · admin-create-match · admin-set-xi · admin-add-player
  *          · admin-import-squad · admin-allow-emails · admin-results
  *          · admin-read-scorecard (CricHeroes PDF/screenshots → draft stats; saves nothing)
  */
@@ -24,6 +24,8 @@ import {
 } from "../src/fantasy/shared/validation.js";
 import { deriveFantasyStats } from "../src/fantasy/shared/scorecard.js";
 import { extractScorecard } from "./_lib/fantasy/extract.js";
+import { notifyAdminsOfRegistration, notifyMemberApproved } from "./_lib/fantasy/notify.js";
+import { z } from "zod";
 import { ConflictError, StorageMissingError, getState, mutate } from "./_lib/fantasy/store.js";
 import {
   adminEmails,
@@ -41,6 +43,7 @@ import {
   adminView,
   allowEmails,
   createMatch,
+  decideMember,
   importPlayers,
   memberSummary,
   memberView,
@@ -68,6 +71,14 @@ function sameOrigin(req) {
     return false;
   }
 }
+
+/** The site's own origin, for links in emails (works on previews and production). */
+function siteUrl(req) {
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  return `${host?.startsWith("localhost") ? "http" : "https"}://${host}`;
+}
+
+const memberIdSchema = z.object({ userId: z.string().min(1).max(80) });
 
 function clientIp(req) {
   return String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
@@ -114,6 +125,13 @@ const POST = {
     const id = randomUUID();
     const next = await mutate((s) => registerUser(s, { ...input, id, passwordHash }, { ...ctx(), adminEmails: adminEmails() }));
     const user = next.users.find((u) => u.id === id);
+    if (user.status === "PENDING") {
+      await notifyAdminsOfRegistration({ admins: adminEmails(), name: user.name, email: user.email, siteUrl: siteUrl(req) });
+      return {
+        pending: true,
+        message: "Your registration has been sent to the club admins. You can sign in once they approve it.",
+      };
+    }
     res.setHeader("Set-Cookie", sessionCookie(makeToken(user)));
     return { member: memberSummary(next, user) };
   },
@@ -127,6 +145,12 @@ const POST = {
     const user = state.users.find((u) => u.email === email);
     const ok = await verifyPassword(password, user?.passwordHash);
     if (!user || !ok) throw new LedgerError("Incorrect email or password.", 401);
+    if (user.status === "PENDING") {
+      throw new LedgerError("Your registration is waiting for approval by a club admin. You'll get an email once it's approved.", 403);
+    }
+    if (user.status === "REJECTED") {
+      throw new LedgerError("This registration wasn't approved. If you play for Canterbury, contact the club.", 403);
+    }
     res.setHeader("Set-Cookie", sessionCookie(makeToken(user)));
     return { member: memberSummary(state, user) };
   },
@@ -141,6 +165,23 @@ const POST = {
     const input = parse(predictionSchema, req.body);
     const next = await mutate((s) => submitPrediction(s, user.id, input, ctx()));
     return { ok: true, message: "Prediction saved. Good luck!", ...memberView(next, next.users.find((u) => u.id === user.id), new Date()) };
+  },
+
+  async "admin-approve-member"(req) {
+    const { user: admin } = await requireAdmin(req);
+    const { userId } = parse(memberIdSchema, req.body);
+    const next = await mutate((s) => decideMember(s, userId, "APPROVE", { ...ctx(), adminId: admin.id }));
+    const member = next.users.find((u) => u.id === userId);
+    await notifyMemberApproved({ name: member.name, email: member.email, siteUrl: siteUrl(req) });
+    return { ok: true, message: `${member.name} approved.`, ...adminView(next) };
+  },
+
+  async "admin-reject-member"(req) {
+    const { user: admin } = await requireAdmin(req);
+    const { userId } = parse(memberIdSchema, req.body);
+    const next = await mutate((s) => decideMember(s, userId, "REJECT", { ...ctx(), adminId: admin.id }));
+    const member = next.users.find((u) => u.id === userId);
+    return { ok: true, message: `${member.name}'s registration was rejected.`, ...adminView(next) };
   },
 
   async "admin-allow-emails"(req) {

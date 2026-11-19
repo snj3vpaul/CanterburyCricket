@@ -80,8 +80,11 @@ export default function FantasyAdmin() {
       <p className="fx-eyebrow">Committee</p>
       <h1 className="fx-title">Fantasy Admin</h1>
       <p className="fx-muted fx-mb">
-        {data.members.length} members · {data.allowedEmails.length} whitelisted emails · {data.players.filter((p) => p.isActive).length} active players
+        {data.members.filter((m) => m.status === "ACTIVE").length} approved members ·{" "}
+        {data.members.filter((m) => m.status === "PENDING").length} waiting · {data.players.filter((p) => p.isActive).length} active players
       </p>
+
+      <ApprovalQueue members={data.members} onData={setData} />
 
       <section className="fx-section">
         <h2 className="fx-h2">Matches</h2>
@@ -112,8 +115,84 @@ export default function FantasyAdmin() {
 
       <CreateMatchForm onCreated={(res) => { setData(res); setPanel({ type: "xi", matchId: res.matchId }); }} />
       <SquadSection players={data.players} onData={setData} />
+      <MembersSection members={data.members} onData={setData} />
       <WhitelistSection data={data} onData={setData} />
     </div>
+  );
+}
+
+const fmtDate = (iso) =>
+  iso ? new Date(iso).toLocaleDateString("en-CA", { day: "numeric", month: "short", timeZone: "America/Toronto" }) : "";
+
+/** New registrations waiting for an admin. Only Canterbury players should be approved. */
+function ApprovalQueue({ members, onData }) {
+  const { run, errors, message, pending } = useAdminAction(onData);
+  const waiting = members.filter((m) => m.status === "PENDING").sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1));
+
+  return (
+    <section className={`fx-card fx-pad fx-section ${waiting.length ? "fx-approval" : ""}`}>
+      <h2 className="fx-h2">Waiting for approval{waiting.length ? ` (${waiting.length})` : ""}</h2>
+      {!waiting.length && <p className="fx-small fx-muted">No one is waiting. New registrations appear here, and admins get an email.</p>}
+      <ul className="fx-stack">
+        {waiting.map((m) => (
+          <li key={m.id} className="fx-approval-row">
+            <div className="fx-grow">
+              <strong className="fx-ellipsis">{m.name}</strong>
+              <span className="fx-small fx-muted fx-ellipsis">{m.email} · registered {fmtDate(m.createdAt)}</span>
+            </div>
+            <div className="fx-admin-actions">
+              <button type="button" className="fx-btn fx-btn-ghost" disabled={pending}
+                onClick={() => window.confirm(`Reject ${m.name}? They won't be able to sign in.`) && run("admin-reject-member", { userId: m.id })}>
+                Reject
+              </button>
+              <button type="button" className="fx-btn fx-btn-primary" disabled={pending}
+                onClick={() => run("admin-approve-member", { userId: m.id })}>
+                Approve
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <FormMessages errors={errors} message={message} />
+    </section>
+  );
+}
+
+const STATUS_LABEL = { ACTIVE: "approved", PENDING: "waiting", REJECTED: "rejected" };
+
+/** Everyone who has registered, with a way to undo a rejection or remove a member later. */
+function MembersSection({ members, onData }) {
+  const { run, errors, message, pending } = useAdminAction(onData);
+  const decided = members.filter((m) => m.status !== "PENDING");
+  if (!decided.length) return null;
+
+  return (
+    <details className="fx-card fx-pad fx-section">
+      <summary className="fx-summary">Members ({decided.filter((m) => m.status === "ACTIVE").length} approved)</summary>
+      <ul className="fx-email-list fx-mt">
+        {decided.map((m) => (
+          <li key={m.id}>
+            <span className="fx-grow">
+              <span className="fx-ellipsis">{m.name}{m.role === "ADMIN" && " (admin)"}</span>
+              <small className="fx-muted fx-ellipsis">{m.email}</small>
+            </span>
+            {m.role === "ADMIN" ? (
+              <span className="fx-ok">admin</span>
+            ) : m.status === "REJECTED" ? (
+              <button type="button" className="fx-link-btn" disabled={pending} onClick={() => run("admin-approve-member", { userId: m.id })}>
+                Rejected · approve
+              </button>
+            ) : (
+              <button type="button" className="fx-link-btn fx-link-muted" disabled={pending}
+                onClick={() => window.confirm(`Remove ${m.name} from the league? They'll be signed out.`) && run("admin-reject-member", { userId: m.id })}>
+                {STATUS_LABEL[m.status]} · remove
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <FormMessages errors={errors} message={message} />
+    </details>
   );
 }
 
@@ -196,7 +275,7 @@ function SquadSection({ players, onData }) {
 function WhitelistSection({ data, onData }) {
   const [emails, setEmails] = useState("");
   const { run, errors, message, pending } = useAdminAction(onData);
-  const registered = new Set(data.members.map((m) => m.email));
+  const registered = new Set(data.members.filter((m) => m.status === "ACTIVE").map((m) => m.email));
 
   async function submit(e) {
     e.preventDefault();
@@ -205,14 +284,17 @@ function WhitelistSection({ data, onData }) {
 
   return (
     <section className="fx-card fx-pad fx-section">
-      <h2 className="fx-h2">Member whitelist</h2>
+      <h2 className="fx-h2">Pre-approve emails (optional)</h2>
+      <p className="fx-small fx-muted">
+        People on this list are approved automatically when they register. Everyone else waits for an admin.
+      </p>
       <form className="fx-stack" onSubmit={submit} noValidate>
         <label className="fx-field">
-          <span>Member emails (comma or new-line separated)</span>
+          <span>Player emails (comma or new-line separated)</span>
           <textarea rows={4} value={emails} onChange={(e) => setEmails(e.target.value)} />
         </label>
         <FormMessages errors={errors} message={message} />
-        <button className="fx-btn fx-btn-ghost fx-btn-block" disabled={pending}>Whitelist emails</button>
+        <button className="fx-btn fx-btn-ghost fx-btn-block" disabled={pending}>Pre-approve emails</button>
       </form>
       {data.allowedEmails.length > 0 && (
         <ul className="fx-email-list fx-mt">
