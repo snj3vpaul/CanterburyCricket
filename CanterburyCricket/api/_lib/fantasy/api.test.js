@@ -20,10 +20,10 @@ before(async () => {
   ({ default: handler } = await import("../../fantasy.js"));
 });
 
-async function call(method, action, { body, cookie, origin } = {}) {
+async function call(method, action, { body, cookie, origin, query = {} } = {}) {
   const req = {
     method,
-    query: { action },
+    query: { action, ...query },
     body,
     headers: { host: "canterburycricketclub.com", ...(cookie ? { cookie } : {}), ...(origin ? { origin } : {}) },
   };
@@ -70,6 +70,38 @@ describe("fantasy API", () => {
     const ok = await call("POST", "login", { body: { email: "newbie@club.test", password: "supersecret1" } });
     assert.equal(ok.status, 200);
     assert.match(ok.cookie, /^ccc_member=/);
+  });
+
+  it("Approve/Reject links from the admin email: confirm page reads, confirm acts once, links can't be forged", async () => {
+    const { makeDecisionToken } = await import("./auth.js");
+    await call("POST", "register", { body: { name: "Email Link Player", email: "linky@club.test", password: "supersecret1" } });
+    const admin = await call("GET", "admin", { cookie: adminCookie });
+    const linky = admin.body.members.find((m) => m.email === "linky@club.test");
+    const approve = makeDecisionToken(linky.id, "APPROVE");
+    const reject = makeDecisionToken(linky.id, "REJECT");
+
+    // Opening the link (GET, what email scanners do) only reads
+    const info = await call("GET", "decision", { query: { t: approve } });
+    assert.equal(info.status, 200);
+    assert.deepEqual([info.body.decision, info.body.name, info.body.status], ["APPROVE", "Email Link Player", "PENDING"]);
+    assert.equal((await call("GET", "admin", { cookie: adminCookie })).body.members.find((m) => m.id === linky.id).status, "PENDING");
+
+    // Forged / tampered / expired links fail
+    assert.equal((await call("POST", "decide", { body: { t: approve.replace("APPROVE", "REJECT") } })).status, 400);
+    assert.equal((await call("POST", "decide", { body: { t: approve.slice(0, -2) + "xx" } })).status, 400);
+    assert.equal((await call("POST", "decide", { body: { t: makeDecisionToken(linky.id, "APPROVE", Date.now() - 8 * 86400000) } })).status, 400);
+
+    // Confirm acts (no login needed: the signed link is the authority)
+    const done = await call("POST", "decide", { body: { t: approve } });
+    assert.equal(done.status, 200);
+    assert.equal(done.body.status, "ACTIVE");
+    assert.equal((await call("POST", "login", { body: { email: "linky@club.test", password: "supersecret1" } })).status, 200);
+
+    // Replays and the other button can't undo it
+    assert.equal((await call("POST", "decide", { body: { t: approve } })).body.already, true);
+    const late = await call("POST", "decide", { body: { t: reject } });
+    assert.equal(late.body.already, true);
+    assert.equal(late.body.status, "ACTIVE");
   });
 
   it("rejected registrations can't sign in, and admin accounts can't be rejected", async () => {

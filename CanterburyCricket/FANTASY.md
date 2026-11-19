@@ -29,9 +29,13 @@ Anyone can register at /member-login, but the account stays **pending** until an
 Canterbury players get into the league.
 
 - The emails in `ADMIN_EMAILS` (the club Gmail and one backup) are admins and are active as soon as they register.
-- Everyone else lands in **/fantasy/admin → Waiting for approval**, and the admins get an email
-  (sent with the same SMTP settings as the Contact form). **Approve** lets them in and emails them;
-  **Reject** blocks sign-in.
+- Everyone else lands in **/fantasy/admin → Waiting for approval**, and both admins get an email
+  (sent with the same SMTP settings as the Contact form) with **Approve** and **Reject** buttons.
+  **Approve** lets them in and emails them; **Reject** blocks sign-in.
+- The email buttons open a short confirm page (one tap). Email link-scanners in Gmail/Outlook open links
+  automatically, so a link alone never changes anything. Each link is signed for that one registration, works
+  for 7 days, and only acts while the person is still waiting: whoever decides first wins, and the other
+  button then just shows "Already decided".
 - A pending or rejected person can't sign in, open /fantasy, or appear on the leaderboard.
 - Changed your mind? Admin → Members lets you approve a rejected person, or remove an approved one
   (which signs them out).

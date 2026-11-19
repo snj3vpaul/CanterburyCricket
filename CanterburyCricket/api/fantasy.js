@@ -3,6 +3,7 @@
  * (keeps the project well under the Hobby plan's function limit).
  *
  * Public:  GET me · POST register · POST login · POST logout
+ *          GET decision · POST decide   (signed Approve/Reject links from admin emails)
  * Member:  GET state · POST predict
  * Admin:   GET admin · POST admin-approve-member · admin-reject-member · admin-create-match · admin-set-xi · admin-add-player
  *          · admin-import-squad · admin-allow-emails · admin-results
@@ -32,7 +33,9 @@ import {
   clearCookie,
   currentUser,
   hashPassword,
+  makeDecisionToken,
   makeToken,
+  parseDecisionToken,
   sessionCookie,
   throttle,
   verifyPassword,
@@ -115,7 +118,20 @@ const GET = {
     const { state } = await requireAdmin(req);
     return adminView(state);
   },
+
+  /** What an email Approve/Reject link is for. Read-only: GETs never change anything. */
+  async decision(req) {
+    const t = parseDecisionToken(req.query?.t);
+    if (t.error) throw new LedgerError(t.error === "expired" ? LINK_EXPIRED : LINK_INVALID, 400);
+    const state = await getState();
+    const user = state.users.find((u) => u.id === t.userId);
+    if (!user) throw new LedgerError("That registration no longer exists.", 404);
+    return { decision: t.decision, name: user.name, email: user.email, status: user.status ?? "ACTIVE" };
+  },
 };
+
+const LINK_EXPIRED = "This link has expired (links last 7 days). Decide on the admin page instead.";
+const LINK_INVALID = "This link isn't valid. Decide on the admin page instead.";
 
 const POST = {
   async register(req, res) {
@@ -126,7 +142,15 @@ const POST = {
     const next = await mutate((s) => registerUser(s, { ...input, id, passwordHash }, { ...ctx(), adminEmails: adminEmails() }));
     const user = next.users.find((u) => u.id === id);
     if (user.status === "PENDING") {
-      await notifyAdminsOfRegistration({ admins: adminEmails(), name: user.name, email: user.email, siteUrl: siteUrl(req) });
+      const base = siteUrl(req);
+      await notifyAdminsOfRegistration({
+        admins: adminEmails(),
+        name: user.name,
+        email: user.email,
+        approveUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "APPROVE")}`,
+        rejectUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "REJECT")}`,
+        adminUrl: `${base}/fantasy/admin`,
+      });
       return {
         pending: true,
         message: "Your registration has been sent to the club admins. You can sign in once they approve it.",
@@ -165,6 +189,31 @@ const POST = {
     const input = parse(predictionSchema, req.body);
     const next = await mutate((s) => submitPrediction(s, user.id, input, ctx()));
     return { ok: true, message: "Prediction saved. Good luck!", ...memberView(next, next.users.find((u) => u.id === user.id), new Date()) };
+  },
+
+  /**
+   * Confirm button on the email-link page. The signed token is the authority (it was
+   * emailed only to ADMIN_EMAILS); it acts only while the registration is still pending,
+   * so a replayed or forwarded link can't undo a later decision.
+   */
+  async decide(req) {
+    const t = parseDecisionToken(req.body?.t);
+    if (t.error) throw new LedgerError(t.error === "expired" ? LINK_EXPIRED : LINK_INVALID, 400);
+    const current = (await getState()).users.find((u) => u.id === t.userId);
+    if (!current) throw new LedgerError("That registration no longer exists.", 404);
+    if ((current.status ?? "ACTIVE") !== "PENDING") {
+      return { ok: true, already: true, status: current.status ?? "ACTIVE", name: current.name };
+    }
+    const next = await mutate((s) => {
+      const u = s.users.find((x) => x.id === t.userId);
+      if ((u?.status ?? "ACTIVE") !== "PENDING") return s; // another admin got there first
+      return decideMember(s, t.userId, t.decision, { ...ctx(), adminId: "email-link" });
+    });
+    const member = next.users.find((u) => u.id === t.userId);
+    if (t.decision === "APPROVE" && member.status === "ACTIVE") {
+      await notifyMemberApproved({ name: member.name, email: member.email, siteUrl: siteUrl(req) });
+    }
+    return { ok: true, status: member.status, name: member.name };
   },
 
   async "admin-approve-member"(req) {

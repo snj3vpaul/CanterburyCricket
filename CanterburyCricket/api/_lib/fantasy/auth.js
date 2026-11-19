@@ -69,6 +69,30 @@ export function parseToken(token, now = Date.now()) {
   return { id, version: Number(version) };
 }
 
+// ── One-click decision links (Approve / Reject buttons in admin emails) ──────
+
+const DECISION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const DECISIONS = new Set(["APPROVE", "REJECT"]);
+// Domain-separated from session cookies so a cookie signature can never pass as a link (or vice versa).
+const signDecision = (body) => createHmac("sha256", secret()).update(`decision:${body}`).digest("base64url");
+
+/** Signed link token for one decision about one registration. Holds no personal data. */
+export function makeDecisionToken(userId, decision, now = Date.now()) {
+  if (!DECISIONS.has(decision)) throw new Error("bad decision");
+  const body = `${userId}.${decision}.${now + DECISION_TTL_MS}`;
+  return `${body}.${signDecision(body)}`;
+}
+
+/** → { userId, decision } or { error: "invalid" | "expired" } */
+export function parseDecisionToken(token, now = Date.now()) {
+  const parts = String(token ?? "").split(".");
+  if (parts.length !== 4) return { error: "invalid" };
+  const [userId, decision, exp, sig] = parts;
+  if (!DECISIONS.has(decision) || !safeEqual(sig, signDecision(`${userId}.${decision}.${exp}`))) return { error: "invalid" };
+  if (!(Number(exp) > now)) return { error: "expired" };
+  return { userId, decision };
+}
+
 export function readCookie(req, name = COOKIE) {
   const header = req.headers.cookie || "";
   for (const part of header.split(";")) {

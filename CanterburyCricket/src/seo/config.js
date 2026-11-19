@@ -93,6 +93,11 @@ export const SEO = {
     description: 'Members-only fantasy predictions for Canterbury Cricket Club matches.',
     noindex: true,
   },
+  '/fantasy/decide': {
+    title: 'Approve Registration | Canterbury Cricket Club',
+    description: 'Approve or reject a Fantasy League registration.',
+    noindex: true,
+  },
   '/fantasy/admin': {
     title: 'Fantasy Admin | Canterbury Cricket Club',
     description: 'Committee tools for the Canterbury Cricket Club Fantasy League.',

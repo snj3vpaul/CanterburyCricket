@@ -18,8 +18,10 @@ function transporter() {
   });
 }
 
-/** Strip anything that could break out of a header or line (names are user-supplied). */
+/** Names/emails are user-supplied: strip anything that could break a header or line. */
 const clean = (s) => String(s ?? "").replace(/[\r\n<>]/g, " ").slice(0, 80).trim();
+const html = (s) =>
+  clean(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 async function send(message) {
   const t = transporter();
@@ -37,20 +39,58 @@ async function send(message) {
   }
 }
 
-export function notifyAdminsOfRegistration({ admins, name, email, siteUrl }) {
+const button = (href, label, bg, fg) =>
+  `<a href="${href}" style="display:inline-block;padding:14px 28px;border-radius:999px;background:${bg};color:${fg};` +
+  `font-weight:800;font-size:16px;text-decoration:none;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif">${label}</a>`;
+
+/**
+ * The admin notification, with one-click Approve / Reject buttons.
+ * Each button opens a short confirm page on the site (so email link-scanners can't
+ * trigger a decision), signed for this one registration and valid for 7 days.
+ */
+export function registrationEmail({ name, email, approveUrl, rejectUrl, adminUrl }) {
+  const subject = `Fantasy League: approve ${clean(name)}?`;
+  const text = [
+    `${clean(name)} (${clean(email)}) registered for the Canterbury CC Fantasy League.`,
+    "",
+    "If they're a Canterbury player, APPROVE:",
+    approveUrl,
+    "",
+    "If you don't recognise them, REJECT:",
+    rejectUrl,
+    "",
+    "Each link asks you to confirm and works for 7 days. You can also decide on the admin page:",
+    adminUrl,
+  ].join("\n");
+
+  const body = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:16px;background:#f4f2ec">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+  <table role="presentation" width="100%" style="max-width:520px;background:#0d111c;border-radius:16px;color:#fbf8f1;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif" cellpadding="0" cellspacing="0">
+    <tr><td style="padding:28px 28px 8px">
+      <p style="margin:0;color:#f7b500;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">Canterbury CC · Fantasy League</p>
+      <h1 style="margin:10px 0 6px;font-size:22px;line-height:1.3">${html(name)} wants to join</h1>
+      <p style="margin:0;color:rgba(251,248,241,.7);font-size:15px">${html(email)}</p>
+    </td></tr>
+    <tr><td style="padding:20px 28px 8px;color:rgba(251,248,241,.86);font-size:15px;line-height:1.5">
+      Only approve Canterbury players. They can't sign in until an admin decides.
+    </td></tr>
+    <tr><td style="padding:16px 28px 8px">
+      ${button(approveUrl, "Approve", "#f7b500", "#1b1b1b")}
+      &nbsp;&nbsp;
+      ${button(rejectUrl, "Reject", "#2a1520", "#ff8aa0")}
+    </td></tr>
+    <tr><td style="padding:16px 28px 28px;color:rgba(251,248,241,.5);font-size:12px;line-height:1.5">
+      Each button asks you to confirm, and works for 7 days. You can also decide on the
+      <a href="${adminUrl}" style="color:#ffd36a">admin page</a>.
+    </td></tr>
+  </table></td></tr></table></body></html>`;
+
+  return { subject, text, html: body };
+}
+
+export function notifyAdminsOfRegistration({ admins, name, email, approveUrl, rejectUrl, adminUrl }) {
   if (!admins.length) return Promise.resolve(false);
-  return send({
-    to: admins.join(", "),
-    subject: `Fantasy League: ${clean(name)} is waiting for approval`,
-    text: [
-      `${clean(name)} (${clean(email)}) registered for the Canterbury CC Fantasy League.`,
-      "",
-      "If they're a Canterbury player, approve them here:",
-      `${siteUrl}/fantasy/admin`,
-      "",
-      "If you don't recognise them, reject the registration on the same page.",
-    ].join("\n"),
-  });
+  return send({ to: admins.join(", "), ...registrationEmail({ name, email, approveUrl, rejectUrl, adminUrl }) });
 }
 
 export function notifyMemberApproved({ name, email, siteUrl }) {

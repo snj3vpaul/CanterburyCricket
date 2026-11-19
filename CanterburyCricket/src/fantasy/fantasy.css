@@ -447,3 +447,4 @@
 }
 .fx-link-muted { color: var(--text-soft); }
 .fx-link-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.fx-btn-danger { background: var(--error-wash); color: #ffd6df; border-color: rgba(255, 90, 122, 0.45); }

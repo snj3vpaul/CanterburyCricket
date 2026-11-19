@@ -32,6 +32,7 @@ const MemberLogin = lazy(() => import("./pages/MemberLogin"));
 // Members-only Fantasy League (unlocks after signing in at /member-login)
 const Fantasy = lazy(() => import("./pages/Fantasy"));
 const FantasyAdmin = lazy(() => import("./pages/FantasyAdmin"));
+const FantasyDecide = lazy(() => import("./pages/FantasyDecide")); // Approve/Reject links in admin emails
 const CricketGuidesIndex = lazy(() => import("./pages/CricketGuides").then((m) => ({ default: m.CricketGuidesIndex })));
 const CricketGuide = lazy(() => import("./pages/CricketGuides").then((m) => ({ default: m.CricketGuide })));
 
@@ -76,6 +77,7 @@ function AnimatedRoutes() {
             <Route path="/member-login" element={<MemberLogin />} />
             <Route path="/fantasy" element={<RequireMember><Fantasy /></RequireMember>} />
             <Route path="/fantasy/admin" element={<RequireMember admin><FantasyAdmin /></RequireMember>} />
+            <Route path="/fantasy/decide" element={<FantasyDecide />} />
             <Route path="/guides" element={<CricketGuidesIndex />} />
             <Route path="/guides/:slug" element={<CricketGuide />} />
             <Route path="*" element={<main style={{ padding: "14rem 2rem 6rem", color: "#fff", minHeight: "65vh" }}><h1>Page not found</h1><p>That cricket club page could not be found.</p></main>} />

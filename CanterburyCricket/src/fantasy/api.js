@@ -1,6 +1,7 @@
 /** Tiny client for /api/fantasy. Throws an Error with `.errors` (string[]) and `.status` on failure. */
-export async function fantasyApi(action, body) {
-  const res = await fetch(`/api/fantasy?action=${encodeURIComponent(action)}`, {
+export async function fantasyApi(action, body, query = {}) {
+  const qs = new URLSearchParams({ action, ...query });
+  const res = await fetch(`/api/fantasy?${qs}`, {
     method: body === undefined ? "GET" : "POST",
     credentials: "same-origin",
     headers: body === undefined ? undefined : { "Content-Type": "application/json" },
