@@ -1,6 +1,5 @@
 import { describeItem } from "../shared/scoring";
 import { formatDay } from "../api";
-import Minion from "./Minion";
 
 /** Competition ranking: 1, 2=, 2=, 4 */
 function rank(rows) {
@@ -32,12 +31,9 @@ export default function LeaderboardTable({ rows, currentUserId, limit }) {
                 <span className={`fx-rank ${row.rank === 1 ? "is-first" : row.rank <= 3 ? "is-podium" : ""}`}>
                   {row.rank}{row.shared ? "=" : ""}
                 </span>
-                <span className="fx-lb-who">
-                  {row.player && <Minion name={row.player.name} jersey={row.player.jersey} role={row.player.role} variant="head" size={38} />}
-                  <span className="fx-board-name">
-                    <strong>{row.name}</strong> {row.userId === currentUserId && <em>(you)</em>}
-                    <small>{row.matches.length} match{row.matches.length === 1 ? "" : "es"} · tap for breakdown</small>
-                  </span>
+                <span className="fx-board-name">
+                  <strong>{row.name}</strong> {row.userId === currentUserId && <em>(you)</em>}
+                  <small>{row.matches.length} match{row.matches.length === 1 ? "" : "es"} · tap for breakdown</small>
                 </span>
                 <span className="fx-board-pts">{row.totalPoints}</span>
               </summary>

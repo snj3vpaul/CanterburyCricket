@@ -449,17 +449,6 @@
 .fx-link-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .fx-btn-danger { background: var(--error-wash); color: #ffd6df; border-color: rgba(255, 90, 122, 0.45); }
 
-/* ---------- Squad minions (adapted from the RSFC league mascots) ---------- */
-.minion { display: block; overflow: visible; flex: none; }
-.minion .bob, .minion .eyes { transform-box: fill-box; }
-.minion-full.is-animated .bob { transform-origin: 50% 100%; animation: minion-bob 2.8s ease-in-out infinite; animation-delay: calc(var(--phase, 0) * -2.8s); }
-.minion .eyes { transform-origin: 50% 50%; }
-.minion.is-animated .eyes { animation: minion-blink 5s infinite; animation-delay: calc(var(--phase, 0) * -5s); }
-.minion-head { border-radius: 50%; background: rgba(247, 181, 0, 0.12); }
-@keyframes minion-bob { 50% { transform: translateY(-2.5px) scaleY(1.015); } }
-@keyframes minion-blink { 0%, 94%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
-@media (prefers-reduced-motion: reduce) { .minion .bob, .minion .eyes { animation: none; } }
-
 /* ---------- "Which squad player are you?" ---------- */
 .fx-squad-field { border: 0; padding: 0; margin: 0; min-width: 0; }
 .fx-squad-field legend { font-size: 13px; font-weight: 700; color: var(--text-soft); padding: 0; margin-bottom: 8px; }
@@ -482,14 +471,14 @@
 .fx-squad-name { font-size: 12.5px; font-weight: 700; line-height: 1.2; text-align: center; color: var(--text-strong); }
 .fx-squad-role { font-size: 11px; color: var(--text-faint); }
 
-/* ---------- Squad roster (Fantasy page) ---------- */
-.fx-roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
-.fx-roster-card { display: grid; justify-items: center; gap: 3px; padding: 12px 6px 10px; border-radius: var(--r-md); border: 1px solid var(--line); background: rgba(255,255,255,.03); text-align: center; }
-.fx-roster-card.is-joined { border-color: var(--gold-line); }
-.fx-roster-card.is-me { border-color: var(--gold); background: var(--gold-wash); }
-.fx-roster-user { font-size: 12px; font-weight: 800; color: var(--gold-bright); }
-.fx-roster-user.is-free { color: var(--text-faint); font-weight: 600; }
 .fx-lb-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .fx-lb-who small { display: block; color: var(--text-faint); font-size: 11.5px; font-weight: 500; }
 .fx-claim { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: var(--r-md); border: 1px solid var(--gold-line); background: var(--gold-wash); text-align: left; line-height: 1.55; }
-.fx-roster { list-style: none; padding: 0; margin: 0; }
+
+/* ---------- Jerseys & team sheet ---------- */
+.fx-jersey { display: block; flex: none; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35)); }
+.fx-teamsheet { list-style: none; padding: 0; margin: 6px 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.fx-teamsheet li { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; border-radius: var(--r-md); border: 1px solid var(--line); background: rgba(255, 255, 255, 0.03); text-align: center; }
+.fx-teamsheet li.is-captain { border-color: var(--gold); background: var(--gold-wash); }
+.fx-teamsheet li.is-dropped { opacity: 0.55; border-style: dashed; }
+.fx-teamsheet-name { font-size: 12.5px; font-weight: 700; line-height: 1.2; color: var(--text-strong); }

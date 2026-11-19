@@ -348,9 +348,6 @@ describe("fantasy API", () => {
     const row = view.leaderboard.find((r) => r.userId === view.me.id);
     assert.equal(row.name, "MoMoney", "the table shows usernames");
     assert.equal(row.player.name, "Mo K Member");
-    const minion = view.squad.find((p) => p.name === "Mo K Member");
-    assert.equal(minion.username, "MoMoney");
-    assert.equal(view.squad.find((p) => p.name === "Brand New").username, null);
     const cap = row.matches[0].breakdown.picks.find((p) => p.isCaptain);
     assert.equal(cap.total, 140);
     assert.equal(cap.multiplier, 2);

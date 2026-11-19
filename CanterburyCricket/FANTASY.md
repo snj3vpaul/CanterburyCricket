@@ -25,21 +25,19 @@ Folders under `api/` that start with `_` aren't deployed as functions, so this a
 
 ## Who can join (squad claim, email confirmation, admin approval)
 
-Every player in the league is one of the **squad minions**: each player on the club squad sheet (the one behind
-the Our Squad page) gets an original cartoon cricketer in the navy/gold kit, wearing their jersey number and
-holding a bat (batters, keepers, all-rounders) or ball (bowlers). The look is generated from the player's name,
-so it never changes between imports; `src/fantasy/shared/minion.js` has `LOOK_OVERRIDES` to tweak anyone's look.
-The squad syncs from the sheet automatically (when the league is empty, then at most every 12 hours), and
-Admin → Squad → **Sync now** forces it.
+Players are shown in a simple **Canterbury jersey** (navy with gold trim and their squad-sheet jersey number, or
+their initial if there's no number). Your Fantasy XI appears as a small team sheet of jerseys; the captain wears
+gold. The squad syncs from the club squad sheet automatically (when the league is empty, then at most every
+12 hours), and Admin → Squad → **Sync now** forces it.
 
 Registering at /member-login:
 
-1. **Which squad player are you?** Pick yourself from the minions (players who already have an approved account
+1. **Which squad player are you?** Pick yourself from the squad list (players who already have an approved account
    aren't listed).
 2. **Full name must match the squad sheet**: same first and last name; middle names/initials are optional,
    case, accents, apostrophes and quoted nicknames (`Ehsan "Easy" Khan`) are ignored. The form checks as you type;
    the server enforces it.
-3. **Pick a username** (3–20 letters/numbers/`.`/`-`/`_`). It's what shows on the leaderboard and squad roster.
+3. **Pick a username** (3–20 letters/numbers/`.`/`-`/`_`). It's what shows on the leaderboard.
    It must be unique, can't be reserved (admin, moderator, canterbury, official, …) and can't spell another squad
    player's name.
 4. **Confirm your email** from the link we send (48 hours; unconfirmed registrations are deleted after that).

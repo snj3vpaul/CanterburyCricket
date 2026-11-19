@@ -5,7 +5,7 @@ import { fantasyApi, formatDay, formatWhen, MATCH_TYPE_LABEL } from "../fantasy/
 import PredictionForm from "../fantasy/components/PredictionForm";
 import LeaderboardTable from "../fantasy/components/LeaderboardTable";
 import FormMessages from "../fantasy/components/FormMessages";
-import Minion from "../fantasy/components/Minion";
+import Jersey from "../fantasy/components/Jersey";
 import SquadIdentityFields, { useClaimablePlayers } from "../fantasy/components/SquadIdentityFields";
 import { POINTS } from "../fantasy/shared/scoring";
 import "../fantasy/fantasy.css";
@@ -100,13 +100,10 @@ export default function Fantasy() {
   return (
     <div className="fx-page">
       <header className="fx-hero">
-        <div className="fx-lb-who">
-          {me.player && <Minion name={me.player.name} jersey={me.player.jersey} role={me.player.role} size={92} label={`Your minion: ${me.player.name}`} animated />}
-          <div>
-            <p className="fx-eyebrow">Members only</p>
-            <h1 className="fx-title">Fantasy League</h1>
-            <p className="fx-muted">Welcome back, {me.isClubAccount ? "ADMIN" : `@${me.name}`}.</p>
-          </div>
+        <div>
+          <p className="fx-eyebrow">Members only</p>
+          <h1 className="fx-title">Fantasy League</h1>
+          <p className="fx-muted">Welcome back, {me.isClubAccount ? "ADMIN" : `@${me.name}`}.</p>
         </div>
         <div className="fx-hero-actions">
           {member?.role === "ADMIN" && <Link to="/fantasy/admin" className="fx-btn fx-btn-ghost">Admin</Link>}
@@ -151,13 +148,19 @@ export default function Fantasy() {
             <div className="fx-pad fx-stack">
               {mine && !editing && (
                 <div>
-                  <p className="fx-small fx-muted">Your picks</p>
-                  <ul className="fx-chips">
-                    {mine.selectedPlayerIds.map((id) => (
-                      <li key={id} className={`fx-chip ${id === mine.captainId ? "is-captain" : ""} ${xi.has(id) ? "" : "is-dropped"}`}>
-                        {xi.get(id)?.name ?? "Dropped player"}{id === mine.captainId && " (C)"}
-                      </li>
-                    ))}
+                  <p className="fx-small fx-muted">Your Fantasy XI</p>
+                  <ul className="fx-teamsheet">
+                    {mine.selectedPlayerIds.map((id) => {
+                      const p = xi.get(id);
+                      const cap = id === mine.captainId;
+                      return (
+                        <li key={id} className={`${cap ? "is-captain" : ""} ${p ? "" : "is-dropped"}`}>
+                          <Jersey name={p?.name} jersey={p?.jersey} captain={cap} size={44} />
+                          <span className="fx-teamsheet-name">{p?.name ?? "Dropped player"}</span>
+                          {cap && <span className="fx-cap-badge">C ×2</span>}
+                        </li>
+                      );
+                    })}
                   </ul>
                   {dropped.length > 0 && nextMatch.isOpen && (
                     <p className="fx-error-text fx-small">A player you picked is no longer in the XI and will score 0. Update your team.</p>
@@ -199,23 +202,6 @@ export default function Fantasy() {
         <LeaderboardTable rows={view.leaderboard} currentUserId={me.id} />
       </section>
 
-      {view.squad?.length > 0 && (
-        <section className="fx-section">
-          <h2 className="fx-h2">The squad</h2>
-          <p className="fx-small fx-muted">
-            {view.squad.filter((p) => p.username).length} of {view.squad.length} players have joined the league.
-          </p>
-          <ul className="fx-roster">
-            {view.squad.map((p) => (
-              <li key={p.id} className={`fx-roster-card ${p.username ? "is-joined" : ""} ${me.player?.id === p.id ? "is-me" : ""}`}>
-                <Minion name={p.name} jersey={p.jersey} role={p.role} size={80} />
-                <span className="fx-squad-name">{p.name}</span>
-                <span className={`fx-roster-user ${p.username ? "" : "is-free"}`}>{p.username ? `@${p.username}` : "Not joined yet"}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {history.length > 0 && (
         <section className="fx-section">

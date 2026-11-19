@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Minion from "./Minion";
+import Jersey from "./Jersey";
 import { fantasyApi } from "../api";
 import { ROLE_LABEL, USERNAME_RULE, namesMatch, usernameProblems } from "../shared/validation";
 
@@ -21,7 +21,7 @@ export function useClaimablePlayers() {
 }
 
 /**
- * "Which of these squad players are you?" — a searchable grid of minions, a live check
+ * "Which of these squad players are you?" — a searchable grid of squad players, a live check
  * that the full name matches the squad sheet, and the leaderboard username.
  * The server enforces the same rules; this just gives instant feedback.
  */
@@ -69,7 +69,7 @@ export default function SquadIdentityFields({ players, error, fullName, playerId
                 className={`fx-squad-card ${p.id === playerId ? "is-selected" : ""}`}
                 onClick={() => onChange({ playerId: p.id })}
               >
-                <Minion name={p.name} jersey={p.jersey} role={p.role} size={74} animated={p.id === playerId} />
+                <Jersey name={p.name} jersey={p.jersey} size={52} />
                 <span className="fx-squad-name">{p.name}</span>
                 <span className="fx-squad-role">{ROLE_LABEL[p.role] ?? p.role}</span>
               </button>

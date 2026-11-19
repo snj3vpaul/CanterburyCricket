@@ -385,16 +385,7 @@ export function memberView(state, user, now) {
       })),
   }));
 
-  // The squad as minions: who has joined the league (by username) and who hasn't yet.
-  const squad = state.players
-    .filter((p) => p.isActive)
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((p) => {
-      const owner = claimOwner(state, p.id);
-      return { ...publicPlayer(p), username: owner ? displayName(owner) : null };
-    });
-
-  return { me: memberSummary(state, user), matches, leaderboard, squad };
+  return { me: memberSummary(state, user), matches, leaderboard };
 }
 
 /** Username of an approved account that already holds this user's squad player, if any. */

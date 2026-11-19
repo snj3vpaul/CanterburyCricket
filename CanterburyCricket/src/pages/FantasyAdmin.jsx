@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { fantasyApi, formatWhen, MATCH_TYPE_LABEL } from "../fantasy/api";
 import AdminMatchUpdate from "../fantasy/components/AdminMatchUpdate";
 import FormMessages from "../fantasy/components/FormMessages";
-import Minion from "../fantasy/components/Minion";
+import Jersey from "../fantasy/components/Jersey";
 import { PLAYER_ROLES, ROLE_LABEL, addPlayerSchema, allowedEmailsSchema, createMatchSchema, issuesOf } from "../fantasy/shared/validation";
 import { XI_SIZE } from "../fantasy/shared/scoring";
 import "../fantasy/fantasy.css";
@@ -149,7 +149,7 @@ function ApprovalQueue({ members, onData }) {
       <ul className="fx-stack">
         {waiting.map((m) => (
           <li key={m.id} className="fx-approval-row">
-            {m.player && <Minion name={m.player.name} jersey={m.player.jersey} role={m.player.role} variant="head" size={44} />}
+            {m.player && <Jersey name={m.player.name} jersey={m.player.jersey} size={40} />}
             <div className="fx-grow">
               <strong className="fx-ellipsis">{m.fullName}</strong>
               <span className="fx-small fx-muted fx-ellipsis">{m.email} · registered {fmtDate(m.createdAt)}</span>
@@ -284,14 +284,8 @@ function SquadSection({ players, syncedAt, onData }) {
       </form>
 
       {players.length > 0 && (
-        <ul className="fx-roster fx-mt">
-          {players.map((p) => (
-            <li key={p.id} className="fx-roster-card">
-              <Minion name={p.name} jersey={p.jersey} role={p.role} size={64} />
-              <span className="fx-squad-name">{p.name}</span>
-              <span className="fx-squad-role">{ROLE_LABEL[p.role]}</span>
-            </li>
-          ))}
+        <ul className="fx-chips fx-mt">
+          {players.map((p) => <li key={p.id} className="fx-chip">{p.jersey ? `#${p.jersey} ` : ""}{p.name} · {ROLE_LABEL[p.role]}</li>)}
         </ul>
       )}
     </section>

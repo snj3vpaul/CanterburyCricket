@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fantasyApi } from "../fantasy/api";
 import FormMessages from "../fantasy/components/FormMessages";
-import Minion from "../fantasy/components/Minion";
+import Jersey from "../fantasy/components/Jersey";
 import "./MemberLogin.css";
 import "../fantasy/fantasy.css";
 
@@ -65,7 +65,7 @@ export default function FantasyDecide() {
             </p>
             {info.player && (
               <div className="fx-claim">
-                <Minion name={info.player.name} jersey={info.player.jersey} role={info.player.role} size={84} />
+                <Jersey name={info.player.name} jersey={info.player.jersey} size={56} />
                 <div className="fx-small">
                   Says they are <strong>{info.player.name}</strong>
                   {info.player.jersey ? ` #${info.player.jersey}` : ""}
