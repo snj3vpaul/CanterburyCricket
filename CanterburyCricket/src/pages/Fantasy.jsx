@@ -5,8 +5,54 @@ import { fantasyApi, formatDay, formatWhen, MATCH_TYPE_LABEL } from "../fantasy/
 import PredictionForm from "../fantasy/components/PredictionForm";
 import LeaderboardTable from "../fantasy/components/LeaderboardTable";
 import FormMessages from "../fantasy/components/FormMessages";
+import Minion from "../fantasy/components/Minion";
+import SquadIdentityFields, { useClaimablePlayers } from "../fantasy/components/SquadIdentityFields";
 import { POINTS } from "../fantasy/shared/scoring";
 import "../fantasy/fantasy.css";
+
+/** For accounts made before squad claims: say which squad player you are + pick a username. */
+function CompleteProfile({ me, onDone }) {
+  const squad = useClaimablePlayers();
+  const [form, setForm] = useState({ playerId: "", username: "" });
+  const [errors, setErrors] = useState([]);
+  const [pending, setPending] = useState(false);
+
+  async function save(e) {
+    e.preventDefault();
+    if (!form.playerId) return setErrors(["Pick which squad player you are."]);
+    setPending(true);
+    setErrors([]);
+    try {
+      onDone((await fantasyApi("complete-profile", form)).member);
+    } catch (err) {
+      setErrors(err.errors || [err.message]);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form className="fx-card fx-pad fx-stack fx-mt" onSubmit={save} noValidate>
+      <h2 className="fx-h2">One more step: who are you?</h2>
+      <p className="fx-small fx-muted">
+        Every player in the league is linked to their spot on the squad sheet, so nobody can play as someone else.
+        Your name on file is <strong>{me.fullName}</strong>.
+      </p>
+      <SquadIdentityFields
+        players={squad.players}
+        error={squad.error}
+        fullName={me.fullName}
+        playerId={form.playerId}
+        username={form.username}
+        onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+      />
+      <FormMessages errors={errors} />
+      <button type="submit" className="fx-btn fx-btn-primary fx-btn-block" disabled={pending}>
+        {pending ? "Saving…" : "Join the league"}
+      </button>
+    </form>
+  );
+}
 
 const RESULT_LABEL = { CANTERBURY: "Canterbury won", OPPONENT: "Lost", TIE: "Tie", NO_RESULT: "No result" };
 
@@ -54,10 +100,13 @@ export default function Fantasy() {
   return (
     <div className="fx-page">
       <header className="fx-hero">
-        <div>
-          <p className="fx-eyebrow">Members only</p>
-          <h1 className="fx-title">Fantasy League</h1>
-          <p className="fx-muted">Welcome back, {me.name.split(" ")[0]}.</p>
+        <div className="fx-lb-who">
+          {me.player && <Minion name={me.player.name} jersey={me.player.jersey} role={me.player.role} size={92} label={`Your minion: ${me.player.name}`} animated />}
+          <div>
+            <p className="fx-eyebrow">Members only</p>
+            <h1 className="fx-title">Fantasy League</h1>
+            <p className="fx-muted">Welcome back, {me.isClubAccount ? "ADMIN" : `@${me.name}`}.</p>
+          </div>
         </div>
         <div className="fx-hero-actions">
           {member?.role === "ADMIN" && <Link to="/fantasy/admin" className="fx-btn fx-btn-ghost">Admin</Link>}
@@ -65,7 +114,17 @@ export default function Fantasy() {
         </div>
       </header>
 
-{me.isClubAccount ? (
+      {me.needsProfile && (
+        <CompleteProfile
+          me={me}
+          onDone={(m) => {
+            setMember(m);
+            fantasyApi("state").then((v) => { setView(v); setMember(v.me); });
+          }}
+        />
+      )}
+
+      {me.isClubAccount ? (
         <p className="fx-card fx-pad fx-small fx-muted fx-mt">
           You&apos;re signed in as the club&apos;s moderator account. It runs the league but doesn&apos;t play, so it has no
           picks or points. Use <strong>Admin</strong> to approve players, set up matches and enter results.
@@ -116,6 +175,8 @@ export default function Fantasy() {
                   />
                   <button type="button" className="fx-btn fx-btn-ghost fx-btn-block" onClick={() => setEditing(false)}>Cancel</button>
                 </>
+              ) : me.needsProfile ? (
+                <p className="fx-muted">Tell us which squad player you are (above) to make your picks.</p>
               ) : me.isClubAccount ? (
                 <p className="fx-muted">Picks are open for players. As moderator you can set the XI and enter results in Admin.</p>
               ) : nextMatch.isOpen ? (
@@ -137,6 +198,24 @@ export default function Fantasy() {
         <h2 className="fx-h2">Leaderboard</h2>
         <LeaderboardTable rows={view.leaderboard} currentUserId={me.id} />
       </section>
+
+      {view.squad?.length > 0 && (
+        <section className="fx-section">
+          <h2 className="fx-h2">The squad</h2>
+          <p className="fx-small fx-muted">
+            {view.squad.filter((p) => p.username).length} of {view.squad.length} players have joined the league.
+          </p>
+          <ul className="fx-roster">
+            {view.squad.map((p) => (
+              <li key={p.id} className={`fx-roster-card ${p.username ? "is-joined" : ""} ${me.player?.id === p.id ? "is-me" : ""}`}>
+                <Minion name={p.name} jersey={p.jersey} role={p.role} size={80} />
+                <span className="fx-squad-name">{p.name}</span>
+                <span className={`fx-roster-user ${p.username ? "" : "is-free"}`}>{p.username ? `@${p.username}` : "Not joined yet"}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {history.length > 0 && (
         <section className="fx-section">

@@ -3,6 +3,7 @@ import { fantasyApi } from "../api";
 import FormMessages from "./FormMessages";
 import { PICK_COUNT } from "../shared/scoring";
 import { MIN_BATTERS, MIN_BOWLERS, ROLE_LABEL, compositionErrors, isBattingRole, predictionSchema } from "../shared/validation";
+import Minion from "./Minion";
 
 const ROLE_ORDER = ["BATTER", "WICKET_KEEPER", "ALL_ROUNDER", "BOWLER"];
 
@@ -85,6 +86,7 @@ export default function PredictionForm({ match, onSaved }) {
             <li key={p.id} className={`fx-pick ${picked ? "is-picked" : ""} ${isCaptain ? "is-captain" : ""} ${disabled && !picked ? "is-dim" : ""}`}>
               <button type="button" className="fx-pick-main" onClick={() => toggle(p.id)} disabled={disabled} aria-pressed={picked}>
                 <span className="fx-check" aria-hidden="true">{picked ? "✓" : ""}</span>
+                <Minion name={p.name} jersey={p.jersey} role={p.role} variant="head" size={36} />
                 <span className="fx-pick-text">
                   <span className="fx-pick-name">{p.name}</span>
                   <span className={`fx-role fx-role-${p.role.toLowerCase()}`}>{ROLE_LABEL[p.role]}</span>
