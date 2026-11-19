@@ -337,6 +337,16 @@ describe("fantasy API", () => {
     assert.equal(r2.status, 400);
   });
 
+  it("the club ADMIN account moderates only: it can't make picks", async () => {
+    const view = (await call("GET", "state", { cookie: adminCookie })).body;
+    const open = view.matches.find((m) => m.isOpen && m.playingXI.length === 11);
+    const matchId = open?.id ?? view.matches[0].id;
+    const ids = (open ?? view.matches[0]).playingXI.map((p) => p.id).slice(0, 5);
+    const r = await call("POST", "predict", { cookie: adminCookie, body: { matchId, selectedPlayerIds: ids, captainId: ids[0] } });
+    assert.equal(r.status, 403);
+    assert.match(r.body.errors[0], /moderates/);
+  });
+
   it("the club account (first ADMIN_EMAILS address) shows as ADMIN and stays off the leaderboard", async () => {
     const me = await call("GET", "me", { cookie: adminCookie });
     assert.equal(me.body.member.name, "ADMIN");

@@ -139,6 +139,10 @@ export function setPlayingXI(state, { matchId, playerIds }) {
 // ── Predictions ──────────────────────────────────────────────────────────────
 
 export function submitPrediction(state, userId, { matchId, selectedPlayerIds, captainId }, { now, newId }) {
+  const player = state.users.find((u) => u.id === userId);
+  if (player && isClubAccount(player)) {
+    throw new LedgerError("The club ADMIN account moderates the league and can't make picks.", 403);
+  }
   const match = findMatch(state, matchId);
   if (!isPredictionOpen(match, now)) throw new LedgerError("Predictions for this match are closed.", 409);
   if (match.playingXI.length !== XI_SIZE) throw new LedgerError("The Playing XI hasn't been announced yet.", 409);
@@ -258,7 +262,7 @@ export function memberView(state, user, now) {
   // Others' picks are only revealed once a match is scored.
   const hasScoredPick = (u) => state.predictions.some((p) => p.userId === u.id && matchById.get(p.matchId)?.status === "COMPLETED");
   const leaderboard = state.users
-    .filter((u) => isActive(u) && (!isClubAccount(u) || hasScoredPick(u)))
+    .filter((u) => isActive(u) && (!isClubAccount(u) || hasScoredPick(u))) // club account can't pick, so it's never listed
     .map((u) => ({
     userId: u.id,
     name: displayName(u),

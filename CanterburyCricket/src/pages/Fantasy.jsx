@@ -65,10 +65,17 @@ export default function Fantasy() {
         </div>
       </header>
 
-      <div className="fx-stats">
+{me.isClubAccount ? (
+        <p className="fx-card fx-pad fx-small fx-muted fx-mt">
+          You&apos;re signed in as the club&apos;s moderator account. It runs the league but doesn&apos;t play, so it has no
+          picks or points. Use <strong>Admin</strong> to approve players, set up matches and enter results.
+        </p>
+      ) : (
+            <div className="fx-stats">
         <div className="fx-card fx-stat"><span>Season points</span><strong>{me.totalFantasyPoints}</strong></div>
         <div className="fx-card fx-stat"><span>Rank</span><strong>{me.rank ? `#${me.rank}` : "—"}</strong></div>
       </div>
+      )}
 
       <section className="fx-section">
         <h2 className="fx-h2">Next match</h2>
@@ -109,6 +116,8 @@ export default function Fantasy() {
                   />
                   <button type="button" className="fx-btn fx-btn-ghost fx-btn-block" onClick={() => setEditing(false)}>Cancel</button>
                 </>
+              ) : me.isClubAccount ? (
+                <p className="fx-muted">Picks are open for players. As moderator you can set the XI and enter results in Admin.</p>
               ) : nextMatch.isOpen ? (
                 <>
                   <button type="button" className="fx-btn fx-btn-primary fx-btn-block" onClick={() => setEditing(true)}>
