@@ -10,7 +10,8 @@ import "../fantasy/fantasy.css";
 
 /** Only same-site paths are allowed as the post-login destination. */
 function safeNext(raw) {
-  return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/fantasy";
+  // Only plain in-site paths: blocks "//evil.com", "/\\evil.com" and "javascript:" style values.
+  return typeof raw === "string" && /^\/(?![/\\])[\w\-./?=&%#]*$/.test(raw) && raw.length < 200 ? raw : "/fantasy";
 }
 
 export default function MemberLogin() {

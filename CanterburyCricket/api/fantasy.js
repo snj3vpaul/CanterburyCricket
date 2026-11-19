@@ -30,11 +30,15 @@ import { z } from "zod";
 import { ConflictError, StorageMissingError, getState, mutate } from "./_lib/fantasy/store.js";
 import {
   adminEmails,
+  audit,
   clearCookie,
+  clientIp,
   currentUser,
   hashPassword,
   makeDecisionToken,
   makeToken,
+  maskEmail,
+  needsRehash,
   parseDecisionToken,
   sessionCookie,
   throttle,
@@ -64,27 +68,49 @@ function parse(schema, data) {
   return r.data;
 }
 
-/** Reject cross-site writes: when a browser sends Origin, it must be this host. */
-function sameOrigin(req) {
+/**
+ * CSRF defence for every write (on top of the SameSite=Lax cookie):
+ *  - the body must be JSON, so a cross-site page can't send it without a CORS preflight we never approve;
+ *  - browsers' Sec-Fetch-Site must not say "cross-site"/"same-site";
+ *  - when a browser sends Origin, it must be this host.
+ */
+function writeAllowed(req) {
+  const type = String(req.headers["content-type"] || "");
+  if (!type.toLowerCase().startsWith("application/json")) return false;
+  const site = req.headers["sec-fetch-site"];
+  if (site && site !== "same-origin" && site !== "none") return false;
   const origin = req.headers.origin;
   if (!origin) return true;
   try {
-    return new URL(origin).host === (req.headers["x-forwarded-host"] || req.headers.host);
+    return new URL(origin).host === req.headers.host;
   } catch {
     return false;
   }
 }
 
-/** The site's own origin, for links in emails (works on previews and production). */
+/**
+ * The site's own address, for links in emails. Taken from configuration or Vercel's system
+ * variables, never from the request's Host header, so nobody can make the Approve/Reject
+ * email point at a look-alike site (host-header poisoning).
+ */
 function siteUrl(req) {
-  const host = req.headers["x-forwarded-host"] || req.headers.host;
-  return `${host?.startsWith("localhost") ? "http" : "https"}://${host}`;
+  const env = process.env;
+  if (env.FANTASY_SITE_URL) return env.FANTASY_SITE_URL.replace(/\/$/, "");
+  if (env.VERCEL_ENV === "production" && env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (env.VERCEL_BRANCH_URL || env.VERCEL_URL) return `https://${env.VERCEL_BRANCH_URL || env.VERCEL_URL}`;
+  return `http://${req.headers.host}`; // local development only
 }
 
 const memberIdSchema = z.object({ userId: z.string().min(1).max(80) });
 
-function clientIp(req) {
-  return String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
+const PENDING_MESSAGE = "Your registration has been sent to the club admins. You can sign in once they approve it.";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Every non-admin registration answers in at least this long, whether or not the email was new.
+const REGISTER_MIN_MS = Number(process.env.FANTASY_REGISTER_MIN_MS ?? 2500);
+/** Make two code paths take the same time, so timing can't reveal which one ran. */
+async function padTo(startedAt, ms) {
+  const left = ms - (Date.now() - startedAt);
+  if (left > 0) await sleep(left);
 }
 
 async function requireMember(req) {
@@ -135,12 +161,31 @@ const LINK_INVALID = "This link isn't valid. Decide on the admin page instead.";
 
 const POST = {
   async register(req, res) {
+    const startedAt = Date.now();
     const input = parse(registerSchema, req.body);
-    if (!(await throttle(`register:${clientIp(req)}`, 10))) throw new LedgerError("Too many attempts. Try again in a few minutes.", 429);
+    const ip = clientIp(req);
+    // 20 per IP per 10 minutes: enough for a whole squad registering on clubhouse Wi-Fi.
+    if (!(await throttle(`register:${ip}`, 20))) {
+      audit("register.throttled", { ip });
+      throw new LedgerError("Too many attempts. Try again in a few minutes.", 429);
+    }
     const passwordHash = await hashPassword(input.password);
     const id = randomUUID();
-    const next = await mutate((s) => registerUser(s, { ...input, id, passwordHash }, { ...ctx(), adminEmails: adminEmails() }));
+    let next;
+    try {
+      next = await mutate((s) => registerUser(s, { ...input, id, passwordHash }, { ...ctx(), adminEmails: adminEmails() }));
+    } catch (e) {
+      // Email already registered: answer exactly like a new registration (same message, same timing),
+      // so this form can't be used to find out who is a member. Nothing is changed or emailed.
+      if (e instanceof LedgerError && e.status === 409) {
+        audit("register.duplicate", { email: maskEmail(input.email), ip });
+        await padTo(startedAt, REGISTER_MIN_MS);
+        return { pending: true, message: PENDING_MESSAGE };
+      }
+      throw e;
+    }
     const user = next.users.find((u) => u.id === id);
+    audit("register", { email: maskEmail(user.email), status: user.status, ip });
     if (user.status === "PENDING") {
       const base = siteUrl(req);
       await notifyAdminsOfRegistration({
@@ -151,36 +196,51 @@ const POST = {
         rejectUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "REJECT")}`,
         adminUrl: `${base}/fantasy/admin`,
       });
-      return {
-        pending: true,
-        message: "Your registration has been sent to the club admins. You can sign in once they approve it.",
-      };
+      await padTo(startedAt, REGISTER_MIN_MS);
+      return { pending: true, message: PENDING_MESSAGE };
     }
-    res.setHeader("Set-Cookie", sessionCookie(makeToken(user)));
+    res.setHeader("Set-Cookie", sessionCookie(makeToken(user), user));
     return { member: memberSummary(next, user) };
   },
 
   async login(req, res) {
     const { email, password } = parse(loginSchema, req.body);
-    if (!(await throttle(`login:${email}`)) || !(await throttle(`login-ip:${clientIp(req)}`, 30))) {
+    const ip = clientIp(req);
+    if (!(await throttle(`login:${email}`)) || !(await throttle(`login-ip:${ip}`, 30))) {
+      audit("login.throttled", { email: maskEmail(email), ip });
       throw new LedgerError("Too many attempts. Try again in a few minutes.", 429);
     }
     const state = await getState();
     const user = state.users.find((u) => u.email === email);
     const ok = await verifyPassword(password, user?.passwordHash);
-    if (!user || !ok) throw new LedgerError("Incorrect email or password.", 401);
+    if (!user || !ok) {
+      audit("login.failed", { email: maskEmail(email), ip });
+      throw new LedgerError("Incorrect email or password.", 401);
+    }
     if (user.status === "PENDING") {
       throw new LedgerError("Your registration is waiting for approval by a club admin. You'll get an email once it's approved.", 403);
     }
     if (user.status === "REJECTED") {
       throw new LedgerError("This registration wasn't approved. If you play for Canterbury, contact the club.", 403);
     }
-    res.setHeader("Set-Cookie", sessionCookie(makeToken(user)));
+    // Upgrade hashes made with older, weaker scrypt settings now that we know the password.
+    if (needsRehash(user.passwordHash)) {
+      const upgraded = await hashPassword(password);
+      await mutate((s) => ({ ...s, users: s.users.map((u) => (u.id === user.id ? { ...u, passwordHash: upgraded } : u)) }));
+    }
+    audit("login", { email: maskEmail(email), role: user.role, ip });
+    res.setHeader("Set-Cookie", sessionCookie(makeToken(user), user));
     return { member: memberSummary(state, user) };
   },
 
-  async logout(_req, res) {
+  /** Signs out on the server too: the old cookie stops working even if someone copied it. */
+  async logout(req, res) {
     res.setHeader("Set-Cookie", clearCookie());
+    const user = currentUser(req, await getState());
+    if (user) {
+      await mutate((s) => ({ ...s, users: s.users.map((u) => (u.id === user.id ? { ...u, sessionVersion: u.sessionVersion + 1 } : u)) }));
+      audit("logout", { email: maskEmail(user.email) });
+    }
     return { ok: true };
   },
 
@@ -197,8 +257,12 @@ const POST = {
    * so a replayed or forwarded link can't undo a later decision.
    */
   async decide(req) {
+    if (!(await throttle(`decide:${clientIp(req)}`, 30))) throw new LedgerError("Too many attempts. Try again in a few minutes.", 429);
     const t = parseDecisionToken(req.body?.t);
-    if (t.error) throw new LedgerError(t.error === "expired" ? LINK_EXPIRED : LINK_INVALID, 400);
+    if (t.error) {
+      audit("decide.bad-link", { reason: t.error, ip: clientIp(req) });
+      throw new LedgerError(t.error === "expired" ? LINK_EXPIRED : LINK_INVALID, 400);
+    }
     const current = (await getState()).users.find((u) => u.id === t.userId);
     if (!current) throw new LedgerError("That registration no longer exists.", 404);
     if ((current.status ?? "ACTIVE") !== "PENDING") {
@@ -210,6 +274,7 @@ const POST = {
       return decideMember(s, t.userId, t.decision, { ...ctx(), adminId: "email-link" });
     });
     const member = next.users.find((u) => u.id === t.userId);
+    audit("member.decided", { via: "email-link", decision: t.decision, email: maskEmail(member.email), ip: clientIp(req) });
     if (t.decision === "APPROVE" && member.status === "ACTIVE") {
       await notifyMemberApproved({ name: member.name, email: member.email, siteUrl: siteUrl(req) });
     }
@@ -221,6 +286,7 @@ const POST = {
     const { userId } = parse(memberIdSchema, req.body);
     const next = await mutate((s) => decideMember(s, userId, "APPROVE", { ...ctx(), adminId: admin.id }));
     const member = next.users.find((u) => u.id === userId);
+    audit("member.decided", { via: "admin-page", decision: "APPROVE", email: maskEmail(member.email), by: maskEmail(admin.email) });
     await notifyMemberApproved({ name: member.name, email: member.email, siteUrl: siteUrl(req) });
     return { ok: true, message: `${member.name} approved.`, ...adminView(next) };
   },
@@ -230,6 +296,7 @@ const POST = {
     const { userId } = parse(memberIdSchema, req.body);
     const next = await mutate((s) => decideMember(s, userId, "REJECT", { ...ctx(), adminId: admin.id }));
     const member = next.users.find((u) => u.id === userId);
+    audit("member.decided", { via: "admin-page", decision: "REJECT", email: maskEmail(member.email), by: maskEmail(admin.email) });
     return { ok: true, message: `${member.name}'s registration was rejected.`, ...adminView(next) };
   },
 
@@ -311,11 +378,15 @@ const POST = {
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("X-Content-Type-Options", "nosniff");
   const action = String(req.query?.action || "");
   try {
     const table = req.method === "GET" ? GET : req.method === "POST" ? POST : null;
     if (!table) throw new LedgerError("Method not allowed.", 405);
-    if (req.method === "POST" && !sameOrigin(req)) throw new LedgerError("Cross-site request blocked.", 403);
+    if (req.method === "POST" && !writeAllowed(req)) {
+      audit("request.blocked", { action, reason: "csrf", ip: clientIp(req) });
+      throw new LedgerError("Cross-site request blocked.", 403);
+    }
     const fn = Object.hasOwn(table, action) ? table[action] : null;
     if (!fn) throw new LedgerError("Unknown action.", 404);
     return res.status(200).json(await fn(req, res));

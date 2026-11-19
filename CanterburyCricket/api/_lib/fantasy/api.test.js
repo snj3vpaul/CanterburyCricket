@@ -7,6 +7,7 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 
 let handler;
+const sentMail = [];
 const ADMIN = "captain@canterbury.test";
 const MEMBER = "member@canterbury.test";
 
@@ -14,18 +15,29 @@ before(async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "ccc-fantasy-"));
   process.env.FANTASY_DATA_FILE = path.join(dir, "fantasy.json");
   process.env.ADMIN_EMAILS = ADMIN;
+  process.env.FANTASY_REGISTER_MIN_MS = "0";
   delete process.env.VERCEL;
   delete process.env.KV_REST_API_URL;
   delete process.env.UPSTASH_REDIS_REST_URL;
+  Object.assign(process.env, { SMTP_HOST: "smtp.test", SMTP_USER: "u", SMTP_PASS: "p", MAIL_FROM: "club@test" });
+  process.env.FANTASY_SITE_URL = "https://canterburycricketclub.com";
+  const { default: nodemailer } = await import("nodemailer");
+  nodemailer.createTransport = () => ({ sendMail: async (m) => void sentMail.push(m) });
   ({ default: handler } = await import("../../fantasy.js"));
 });
 
-async function call(method, action, { body, cookie, origin, query = {} } = {}) {
+async function call(method, action, { body, cookie, origin, query = {}, headers = {} } = {}) {
   const req = {
     method,
     query: { action, ...query },
     body,
-    headers: { host: "canterburycricketclub.com", ...(cookie ? { cookie } : {}), ...(origin ? { origin } : {}) },
+    headers: {
+      host: "canterburycricketclub.com",
+      ...(method === "POST" ? { "content-type": "application/json" } : {}),
+      ...(cookie ? { cookie } : {}),
+      ...(origin ? { origin } : {}),
+      ...headers,
+    },
   };
   const res = {
     statusCode: 200,
@@ -274,6 +286,62 @@ describe("fantasy API", () => {
     } finally {
       globalThis.fetch = realFetch;
     }
+  });
+
+  // ── OWASP Top 10 regression tests ─────────────────────────────────────────
+
+  it("A01/CSRF: writes need a JSON body and must not come from another site", async () => {
+    const body = { email: MEMBER, password: "anotherpass1" };
+    assert.equal((await call("POST", "login", { body, headers: { "content-type": "text/plain" } })).status, 403);
+    assert.equal((await call("POST", "login", { body, headers: { "content-type": "application/x-www-form-urlencoded" } })).status, 403);
+    assert.equal((await call("POST", "login", { body, headers: { "sec-fetch-site": "cross-site" } })).status, 403);
+    assert.equal((await call("POST", "login", { body, headers: { "sec-fetch-site": "same-site" } })).status, 403);
+    assert.equal((await call("POST", "login", { body, headers: { "sec-fetch-site": "same-origin" } })).status, 200);
+  });
+
+  it("A04: registering an existing email looks exactly like a new registration (no member enumeration)", async () => {
+    const fresh = await call("POST", "register", { body: { name: "Brand New", email: "brandnew@club.test", password: "fresh-pass-41" } });
+    const dupe = await call("POST", "register", { body: { name: "Imposter", email: MEMBER, password: "other-pass-41" } });
+    assert.equal(dupe.status, fresh.status);
+    assert.deepEqual(dupe.body, fresh.body);
+    assert.equal(dupe.cookie, undefined);
+    // and the real account is untouched: its own password still works
+    assert.equal((await call("POST", "login", { body: { email: MEMBER, password: "anotherpass1" } })).status, 200);
+    assert.equal((await call("POST", "login", { body: { email: MEMBER, password: "other-pass-41" } })).status, 401);
+  });
+
+  it("A10/host-header: email Approve/Reject links always point at the real site", async () => {
+    sentMail.length = 0;
+    await call("POST", "register", {
+      body: { name: "Header Trick", email: "trick@club.test", password: "boundary-line-41" },
+      headers: { host: "evil.example", "x-forwarded-host": "evil.example", "x-real-ip": "203.0.113.7" },
+    });
+    const mail = sentMail.find((m) => /approve/i.test(m.subject));
+    assert.ok(mail, "admin email sent");
+    assert.doesNotMatch(mail.html + mail.text, /evil\.example/);
+    assert.match(mail.html, /href="https:\/\/canterburycricketclub\.com\/fantasy\/decide\?t=/);
+  });
+
+  it("A07: signing out revokes the session on the server, not just in the browser", async () => {
+    const a = await call("POST", "login", { body: { email: MEMBER, password: "anotherpass1" } });
+    assert.equal((await call("GET", "state", { cookie: a.cookie })).status, 200);
+    assert.equal((await call("POST", "logout", { cookie: a.cookie, body: {} })).status, 200);
+    assert.equal((await call("GET", "state", { cookie: a.cookie })).status, 401, "copied cookie is dead after sign-out");
+    memberCookie = (await call("POST", "login", { body: { email: MEMBER, password: "anotherpass1" } })).cookie;
+  });
+
+  it("A07: weak or common passwords and markup in names are refused", async () => {
+    const r1 = await call("POST", "register", { body: { name: "Weak Pw", email: "weak@club.test", password: "password123" } });
+    assert.equal(r1.status, 400);
+    const r2 = await call("POST", "register", { body: { name: "<img src=x onerror=alert(1)>", email: "xss@club.test", password: "good-pass-41" } });
+    assert.equal(r2.status, 400);
+  });
+
+  it("the club account (first ADMIN_EMAILS address) shows as ADMIN and stays off the leaderboard", async () => {
+    const me = await call("GET", "me", { cookie: adminCookie });
+    assert.equal(me.body.member.name, "ADMIN");
+    const view = await call("GET", "state", { cookie: memberCookie });
+    assert.ok(!view.body.leaderboard.some((r) => r.name === "ADMIN" || r.name === "Club Captain"));
   });
 
   it("never leaks password hashes", async () => {

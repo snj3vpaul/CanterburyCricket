@@ -27,6 +27,14 @@ function findMatch(state, matchId) {
 
 // ── Members ──────────────────────────────────────────────────────────────────
 
+/**
+ * The club's shared admin account is the FIRST address in ADMIN_EMAILS (cricketcanterbury@gmail.com).
+ * It isn't a player, so it's shown as "ADMIN" everywhere instead of the name typed at sign-up.
+ */
+const clubAccountEmail = () => (process.env.ADMIN_EMAILS || "").split(",")[0].trim().toLowerCase();
+export const isClubAccount = (user) => Boolean(clubAccountEmail()) && user.email === clubAccountEmail();
+export const displayName = (user) => (isClubAccount(user) ? "ADMIN" : user.name);
+
 /** Account status. Older records without a status are treated as ACTIVE. */
 export const statusOf = (user) => user.status ?? "ACTIVE";
 export const isActive = (user) => statusOf(user) === "ACTIVE";
@@ -203,7 +211,7 @@ export function processMatchResults(state, { matchId, winningTeam, motmPlayerId,
 const publicPlayer = (p) => ({ id: p.id, name: p.name, role: p.role });
 
 function rankOf(users, userId) {
-  const sorted = users.filter(isActive).sort((a, b) => b.totalFantasyPoints - a.totalFantasyPoints);
+  const sorted = users.filter((u) => isActive(u) && !isClubAccount(u)).sort((a, b) => b.totalFantasyPoints - a.totalFantasyPoints);
   const me = sorted.find((u) => u.id === userId);
   return me ? sorted.findIndex((u) => u.totalFantasyPoints === me.totalFantasyPoints) + 1 : null;
 }
@@ -211,7 +219,8 @@ function rankOf(users, userId) {
 export function memberSummary(state, user) {
   return {
     id: user.id,
-    name: user.name,
+    name: displayName(user),
+    isClubAccount: isClubAccount(user),
     email: user.email,
     role: user.role,
     totalFantasyPoints: user.totalFantasyPoints,
@@ -247,9 +256,12 @@ export function memberView(state, user, now) {
     });
 
   // Others' picks are only revealed once a match is scored.
-  const leaderboard = state.users.filter(isActive).map((u) => ({
+  const hasScoredPick = (u) => state.predictions.some((p) => p.userId === u.id && matchById.get(p.matchId)?.status === "COMPLETED");
+  const leaderboard = state.users
+    .filter((u) => isActive(u) && (!isClubAccount(u) || hasScoredPick(u)))
+    .map((u) => ({
     userId: u.id,
-    name: u.name,
+    name: displayName(u),
     totalPoints: u.totalFantasyPoints,
     matches: state.predictions
       .filter((p) => p.userId === u.id && matchById.get(p.matchId)?.status === "COMPLETED")
@@ -284,7 +296,7 @@ export function adminView(state) {
     members: state.users
       .map((u) => ({
         id: u.id,
-        name: u.name,
+        name: displayName(u),
         email: u.email,
         role: u.role,
         status: statusOf(u),

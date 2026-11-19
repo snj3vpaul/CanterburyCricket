@@ -37,7 +37,40 @@ export function normalizeSheetRole(raw) {
 }
 
 const id = z.string().min(1).max(80);
-const email = z.email({ message: "Enter a valid email." }).transform((e) => e.trim().toLowerCase());
+const email = z
+  .string()
+  .trim()
+  .max(254, { message: "That email is too long." })
+  .pipe(z.email({ message: "Enter a valid email." }))
+  .transform((e) => e.toLowerCase());
+
+// Letters (any language), spaces, apostrophes, dots and hyphens: no markup, links or control characters.
+const PERSON_NAME = /^[\p{L}\p{M}][\p{L}\p{M}' .-]*$/u;
+
+// The most-used passwords from public breach lists. A full breached-password check needs a network
+// service; this blocks the guesses attackers try first, at no cost.
+const COMMON_PASSWORDS = new Set(
+  `123456 123456789 12345678 1234567890 password password1 password123 qwerty qwerty123 qwertyuiop 111111
+  123123 1234567 000000 iloveyou abc123 abcd1234 1q2w3e4r 1qaz2wsx admin admin123 welcome welcome1 letmein
+  monkey dragon football baseball sunshine princess master shadow superman trustno1 passw0rd p@ssw0rd
+  cricket cricket123 canterbury canterbury1 canterbury123 ottawa ottawa123 changeme 987654321 11111111
+  12341234 asdfghjk zxcvbnm1 google123 india123 pakistan123 srilanka123 bangladesh123 sachin10 virat18`
+    .split(/\s+/)
+    .filter(Boolean),
+);
+
+export function passwordProblems(password, { email = "", name = "" } = {}) {
+  const p = String(password ?? "");
+  const lower = p.toLowerCase();
+  const problems = [];
+  if (COMMON_PASSWORDS.has(lower)) problems.push("That password is too common. Pick something harder to guess.");
+  const local = String(email).split("@")[0].toLowerCase();
+  if (local.length >= 4 && lower.includes(local)) problems.push("Don't use your email address in your password.");
+  const first = String(name).trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+  if (first.length >= 4 && lower.includes(first)) problems.push("Don't use your name in your password.");
+  if (/^(.)\1+$/.test(p)) problems.push("That password is too easy to guess.");
+  return problems;
+}
 
 export const predictionSchema = z
   .object({
@@ -65,15 +98,27 @@ export const matchResultSchema = z.object({
     .max(XI_SIZE),
 });
 
-export const registerSchema = z.object({
-  name: z.string().trim().min(2, { message: "Enter your full name." }).max(60),
-  email,
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }).max(128),
-});
+export const registerSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, { message: "Enter your full name." })
+      .max(60, { message: "That name is too long." })
+      .regex(PERSON_NAME, { message: "Use letters only in your name (spaces, ' . - are fine)." }),
+    email,
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." })
+      .max(128, { message: "Password must be at most 128 characters." }),
+  })
+  .superRefine((v, ctx) => {
+    for (const message of passwordProblems(v.password, v)) ctx.addIssue({ code: "custom", path: ["password"], message });
+  });
 
 export const loginSchema = z.object({
   email,
-  password: z.string().min(1, { message: "Enter your password." }).max(128),
+  password: z.string().min(1, { message: "Enter your password." }).max(128, { message: "Incorrect email or password." }),
 });
 
 export const createMatchSchema = z.object({

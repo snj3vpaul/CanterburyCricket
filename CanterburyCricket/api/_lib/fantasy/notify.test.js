@@ -34,3 +34,40 @@ describe("admin registration email", () => {
     assert.doesNotMatch(msg.subject, /[<>\r\n]/);
   });
 });
+
+import { hashPassword, makeToken, needsRehash, parseToken, verifyPassword } from "./auth.js";
+import { scryptSync, randomBytes } from "node:crypto";
+
+describe("password storage (A02)", () => {
+  it("uses OWASP scrypt cost and upgrades first-release hashes", async () => {
+    const h = await hashPassword("correct horse 42");
+    assert.match(h, /^scrypt\$v2\$131072\$8\$1\$[0-9a-f]{32}\$[0-9a-f]{128}$/);
+    assert.equal(await verifyPassword("correct horse 42", h), true);
+    assert.equal(await verifyPassword("wrong horse 42", h), false);
+    assert.equal(needsRehash(h), false);
+
+    const salt = randomBytes(16);
+    const legacy = `scrypt$${salt.toString("hex")}$${scryptSync("old-password-1", salt, 64, { N: 16384, r: 8, p: 1 }).toString("hex")}`;
+    assert.equal(await verifyPassword("old-password-1", legacy), true, "existing members can still sign in");
+    assert.equal(needsRehash(legacy), true, "and get upgraded");
+  });
+
+  it("verifies against a dummy hash for unknown emails (same work, never true)", async () => {
+    assert.equal(await verifyPassword("anything", undefined), false);
+  });
+});
+
+describe("sessions (A07)", () => {
+  it("admin sessions last 7 days, member sessions 30", () => {
+    const now = Date.now();
+    const exp = (role) => Number(makeToken({ id: "u", sessionVersion: 1, role }, now).split(".")[2]) - now;
+    assert.equal(exp("ADMIN"), 7 * 86400000);
+    assert.equal(exp("MEMBER"), 30 * 86400000);
+  });
+  it("rejects tampered and expired session tokens", () => {
+    const t = makeToken({ id: "u1", sessionVersion: 3, role: "MEMBER" });
+    assert.deepEqual(parseToken(t), { id: "u1", version: 3 });
+    assert.equal(parseToken(t.replace("u1.3", "u1.4")), null);
+    assert.equal(parseToken(t, Date.now() + 31 * 86400000), null);
+  });
+});

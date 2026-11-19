@@ -173,7 +173,7 @@ function MembersSection({ members, onData }) {
         {decided.map((m) => (
           <li key={m.id}>
             <span className="fx-grow">
-              <span className="fx-ellipsis">{m.name}{m.role === "ADMIN" && " (admin)"}</span>
+              <span className="fx-ellipsis">{m.name}{m.role === "ADMIN" && m.name !== "ADMIN" && " (admin)"}</span>
               <small className="fx-muted fx-ellipsis">{m.email}</small>
             </span>
             {m.role === "ADMIN" ? (
