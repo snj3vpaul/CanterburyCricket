@@ -20,7 +20,7 @@ const SCRYPT = { N: 2 ** 17, r: 8, p: 1, maxmem: 256 * 1024 * 1024 };
 const LEGACY_SCRYPT = { N: 16384, r: 8, p: 1 };
 const KEYLEN = 64;
 
-const isDeployed = () => Boolean(process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "development");
+export const isDeployed = () => Boolean(process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "development");
 
 // __Host- cookies must be Secure, Path=/ and have no Domain, so only this exact host can set them.
 export const cookieName = () => (isDeployed() ? "__Host-ccc_member" : "ccc_member");
@@ -40,7 +40,10 @@ function secret() {
 
 const sign = (v) => createHmac("sha256", secret()).update(`session:${v}`).digest("base64url");
 
-function safeEqual(a, b) {
+/** HMAC with a domain label, so a value signed for one purpose can't be replayed for another. */
+export const signFor = (domain, v) => createHmac("sha256", secret()).update(`${domain}:${v}`).digest("base64url");
+
+export function safeEqual(a, b) {
   const x = Buffer.from(String(a));
   const y = Buffer.from(String(b));
   return x.length === y.length && timingSafeEqual(x, y);

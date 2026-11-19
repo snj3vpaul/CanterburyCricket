@@ -6,7 +6,8 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/fantasy", "destination": "/member-login" },
-    { "source": "/fantasy/:path*", "destination": "/member-login" }
+    { "source": "/fantasy/:path*", "destination": "/member-login" },
+    { "source": "/auth/:provider/callback", "destination": "/api/fantasy?action=oauth-callback&provider=:provider" }
   ],
   "redirects": [
     {

@@ -59,6 +59,38 @@ refused until one is rejected; the claim can't be changed afterwards except by a
 - Signing in before confirming sends a fresh link (max 3 an hour). Pending or rejected people can't sign in.
 - Admin → Members: approve a rejected person, or remove an approved one (which signs them out).
 
+## Sign in with Google, Microsoft or Yahoo
+
+The login page offers **Continue with Google**, **Continue with Microsoft** (Hotmail, Outlook, Live) and
+**Continue with Yahoo** (Yahoo, ymail). Email and password stays available for every other address.
+
+- **New player:** the provider proves the email, so there's no confirm-your-email step. They pick their squad
+  player (full name must match the sheet) and a username, and the admins get the approval email as usual.
+- **Existing member:** the provider sign-in is linked to the account with the same email automatically. If they
+  never clicked their confirm link, signing in with the provider confirms it.
+- **Club account:** signing in with Google as cricketcanterbury@gmail.com goes straight in as ADMIN.
+- Accounts made with a provider have no password; they always sign in with that provider.
+
+Security: authorization-code flow with `state` + `nonce` (+ PKCE for Google and Microsoft) in a signed 10-minute
+HttpOnly cookie; the code is exchanged server-to-server with the client secret; the ID token's issuer, audience,
+expiry and nonce are checked. Only provider-verified emails are accepted: Google/Yahoo `email_verified`, and
+Microsoft **personal accounts only** (work/school tenants can assert unverified emails, the "nOAuth" problem).
+Accounts are matched by provider + subject first, then by that verified email.
+
+### Turning a provider on (once each, ~10 minutes)
+
+A button appears only when both its env vars are set in Vercel (Production). Callback URLs must match exactly:
+
+| Provider | Create the app at | Callback (redirect) URL | Env vars |
+|---|---|---|---|
+| Google | console.cloud.google.com → APIs & Services → OAuth consent screen (External, app name "Canterbury CC", scopes: openid, email, profile → Publish), then Credentials → Create OAuth client ID → Web application | `https://canterburycricketclub.com/auth/google/callback` | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| Microsoft | entra.microsoft.com → App registrations → New registration → **Personal Microsoft accounts only** → Web redirect URI; then Certificates & secrets → New client secret | `https://canterburycricketclub.com/auth/microsoft/callback` | `MICROSOFT_CLIENT_ID` (Application ID), `MICROSOFT_CLIENT_SECRET` (secret **value**) |
+| Yahoo | developer.yahoo.com/apps/create → Web application → OpenID Connect permissions: **Email** and **Profile** | `https://canterburycricketclub.com/auth/yahoo/callback` | `YAHOO_CLIENT_ID`, `YAHOO_CLIENT_SECRET` |
+
+Paste the values into Vercel → Settings → Environment Variables (Production, mark the secrets Sensitive) and
+redeploy. Preview deployments can't use these buttons (providers need each URL registered exactly), so leave the
+vars off Preview. Microsoft client secrets expire (max 24 months): set a calendar reminder to renew.
+
 ## Security (OWASP Top 10 review, Nov 19, 2026)
 
 | OWASP 2021 | What protects the login, registration and email flows |

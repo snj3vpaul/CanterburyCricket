@@ -3,6 +3,7 @@
  * (keeps the project well under the Hobby plan's function limit).
  *
  * Public:  GET me · GET register-options · POST register · POST login · POST logout
+ *          GET oauth-start · GET oauth-callback (via /auth/:provider/callback) · GET oauth-signup · POST oauth-register
  *          GET verify · POST verify-email  (signed confirm-your-email link sent to the registrant)
  *          GET decision · POST decide   (signed Approve/Reject links from admin emails)
  * Member:  GET state · POST predict · POST complete-profile
@@ -21,6 +22,7 @@ import {
   normalizeSheetRole,
   playingXISchema,
   predictionSchema,
+  oauthRegisterSchema,
   registerSchema,
   scorecardUploadSchema,
   namesMatch,
@@ -66,7 +68,22 @@ import {
   setPlayingXI,
   submitPrediction,
   verifyEmail,
+  isClubAccountEmail,
+  findByIdentity,
+  linkIdentity,
 } from "./_lib/fantasy/ledger.js";
+import {
+  OAuthError,
+  beginAuth,
+  clearSignupCookie,
+  clearStateCookie,
+  enabledProviders,
+  finishAuth,
+  PROVIDERS,
+  providerOrNull,
+  readSignup,
+  signupCookie,
+} from "./_lib/fantasy/oauth.js";
 
 const ctx = () => ({ now: new Date(), newId: () => randomUUID() });
 
@@ -165,6 +182,38 @@ async function freshState() {
   }
 }
 
+/** Email both admins about a registration that's ready for approval (email already proven). */
+function notifyPending(req, state, user) {
+  const base = siteUrl(req);
+  const player = state.players.find((p) => p.id === user.playerId);
+  const owner = user.playerId ? claimOwner(state, user.playerId, user.id) : null;
+  return notifyAdminsOfRegistration({
+    admins: adminEmails(),
+    name: user.name,
+    email: user.email,
+    claim: player
+      ? {
+          playerName: player.name,
+          jersey: player.jersey,
+          username: user.username,
+          nameMatches: namesMatch(user.name, player.name),
+          conflict: owner ? owner.username || owner.name : null,
+        }
+      : null,
+    approveUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "APPROVE")}`,
+    rejectUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "REJECT")}`,
+    adminUrl: `${base}/fantasy/admin`,
+  });
+}
+
+/** Only plain in-site paths after sign-in (no "//evil.com", "/\\evil", "javascript:"). */
+const safeNext = (raw) =>
+  typeof raw === "string" && raw.length < 200 && /^\/(?![/\\])[\w\-./?=&%#]*$/.test(raw) ? raw : "/fantasy";
+
+const redirect = (url) => ({ [REDIRECT]: url });
+const REDIRECT = Symbol("redirect");
+const loginPage = (outcome) => `/member-login?oauth=${outcome}`;
+
 async function requireMember(req) {
   const state = await getState();
   const user = currentUser(req, state);
@@ -190,7 +239,91 @@ const GET = {
   /** For the register form: squad players still free to claim (the Squad page is public already). */
   async "register-options"() {
     const state = await freshState();
-    return { players: claimablePlayers(state) };
+    return { players: claimablePlayers(state), providers: enabledProviders() };
+  },
+
+  /** "Continue with Google/Microsoft/Yahoo": off to the provider with a signed state cookie. */
+  async "oauth-start"(req, res) {
+    const id = String(req.query?.provider ?? "");
+    if (!(await throttle(`oauth:${clientIp(req)}`, 40))) return redirect(loginPage("busy"));
+    const base = siteUrl(req);
+    // Start on the same host the provider will send people back to, or the state cookie won't be there.
+    const host = new URL(base).host;
+    if (req.headers.host && req.headers.host !== host) {
+      const q = new URLSearchParams({ action: "oauth-start", provider: id, next: safeNext(req.query?.next) });
+      return redirect(`${base}/api/fantasy?${q}`);
+    }
+    const go = beginAuth(id, base, { next: safeNext(req.query?.next) });
+    if (!go) return redirect(loginPage("unavailable"));
+    res.setHeader("Set-Cookie", [go.cookie, clearSignupCookie()]);
+    return redirect(go.url);
+  },
+
+  /** The provider sends people back here (/auth/:provider/callback). */
+  async "oauth-callback"(req, res) {
+    const id = String(req.query?.provider ?? "");
+    const cookies = [clearStateCookie()];
+    const finish = (url, ...more) => {
+      res.setHeader("Set-Cookie", [...cookies, ...more]);
+      return redirect(url);
+    };
+    if (!(await throttle(`oauth:${clientIp(req)}`, 40))) return finish(loginPage("busy"));
+
+    let who;
+    try {
+      who = await finishAuth(req, id, siteUrl(req));
+    } catch (e) {
+      audit("oauth.failed", { provider: id, reason: e instanceof OAuthError ? e.message : "error", ip: clientIp(req) });
+      if (!(e instanceof OAuthError)) console.error("[fantasy] oauth callback:", e);
+      return finish(loginPage(e instanceof OAuthError && /not verified/.test(e.message) ? "unverified" : "error"));
+    }
+    const identity = { provider: who.provider, sub: who.sub };
+    const state = await getState();
+    const existing = findByIdentity(state, who.provider, who.sub) ?? state.users.find((u) => u.email === who.email);
+
+    if (!existing) {
+      // The club moderator account doesn't claim a squad player: create it straight away.
+      if (isClubAccountEmail(who.email)) {
+        const userId = randomUUID();
+        const next = await mutate((s) =>
+          verifyEmail(
+            registerUser(s, { id: userId, name: who.name || "Club Admin", email: who.email, passwordHash: null, identity }, ctx()),
+            userId,
+            { ...ctx(), adminEmails: adminEmails() },
+          ),
+        );
+        const user = next.users.find((u) => u.id === userId);
+        audit("oauth.register", { provider: id, email: maskEmail(who.email), status: user.status });
+        return finish(who.next, sessionCookie(makeToken(user), user));
+      }
+      audit("oauth.signup-started", { provider: id, email: maskEmail(who.email) });
+      return finish("/member-login?oauth=signup", signupCookie({ provider: who.provider, sub: who.sub, email: who.email, name: who.name }));
+    }
+
+    // Known email or login: the provider just proved they own the inbox.
+    let next = await mutate((s) => linkIdentity(s, existing.id, identity));
+    let user = next.users.find((u) => u.id === existing.id);
+    if ((user.status ?? "ACTIVE") === "UNVERIFIED") {
+      next = await mutate((s) => verifyEmail(s, existing.id, { ...ctx(), adminEmails: adminEmails() }));
+      user = next.users.find((u) => u.id === existing.id);
+      audit("register.verified", { email: maskEmail(user.email), status: user.status, via: id });
+      if (user.status === "PENDING") {
+        await notifyPending(req, next, user);
+        return finish(loginPage("pending"));
+      }
+    }
+    const status = user.status ?? "ACTIVE";
+    if (status === "PENDING") return finish(loginPage("pending"));
+    if (status === "REJECTED") return finish(loginPage("rejected"));
+    audit("login", { email: maskEmail(user.email), via: id, ip: clientIp(req) });
+    return finish(who.next, sessionCookie(makeToken(user), user));
+  },
+
+  /** Who is finishing a Google/Microsoft/Yahoo sign-up (from the signed cookie). */
+  async "oauth-signup"(req) {
+    const who = readSignup(req);
+    if (!who) throw new LedgerError("That sign-in has expired. Choose your email provider again.", 404);
+    return { email: who.email, name: who.name, provider: PROVIDERS[who.provider]?.label ?? who.provider };
   },
 
   /** What a confirm-your-email link is for. Read-only, so link scanners can't confirm anything. */
@@ -290,28 +423,7 @@ const POST = {
     if (firstTime) audit("register.verified", { email: maskEmail(user.email), status: user.status });
 
     if (user.status === "PENDING") {
-      if (firstTime) {
-        const base = siteUrl(req);
-        const player = next.players.find((p) => p.id === user.playerId);
-        const owner = user.playerId ? claimOwner(next, user.playerId, user.id) : null;
-        await notifyAdminsOfRegistration({
-          admins: adminEmails(),
-          name: user.name,
-          email: user.email,
-          claim: player
-            ? {
-                playerName: player.name,
-                jersey: player.jersey,
-                username: user.username,
-                nameMatches: namesMatch(user.name, player.name),
-                conflict: owner ? owner.username || owner.name : null,
-              }
-            : null,
-          approveUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "APPROVE")}`,
-          rejectUrl: `${base}/fantasy/decide?t=${makeDecisionToken(user.id, "REJECT")}`,
-          adminUrl: `${base}/fantasy/admin`,
-        });
-      }
+      if (firstTime) await notifyPending(req, next, user);
       return { ok: true, status: "PENDING", message: PENDING_MESSAGE };
     }
     if (user.status === "ACTIVE" && firstTime) {
@@ -319,6 +431,43 @@ const POST = {
       return { ok: true, status: "ACTIVE", member: memberSummary(next, user) };
     }
     return { ok: true, status: user.status, already: true };
+  },
+
+  /**
+   * Finish a Google/Microsoft/Yahoo sign-up: claim a squad player + username. The email is
+   * already proven, so it goes straight to the admins (or in, for admins/pre-approved emails).
+   */
+  async "oauth-register"(req, res) {
+    const who = readSignup(req);
+    if (!who || !providerOrNull(who.provider)) throw new LedgerError("That sign-in has expired. Choose your email provider again.", 401);
+    if (!(await throttle(`register:${clientIp(req)}`, 20))) throw new LedgerError("Too many attempts. Try again in a few minutes.", 429);
+    const input = parse(oauthRegisterSchema, req.body);
+    const userId = randomUUID();
+    const identity = { provider: who.provider, sub: who.sub };
+    let next;
+    try {
+      next = await mutate((s) =>
+        verifyEmail(
+          registerUser(s, { ...input, id: userId, email: who.email, passwordHash: null, identity }, ctx()),
+          userId,
+          { ...ctx(), adminEmails: adminEmails() },
+        ),
+      );
+    } catch (e) {
+      if (e instanceof LedgerError && e.code === "DUPLICATE_EMAIL") {
+        throw new LedgerError("You already have an account. Sign in with the same provider again.", 409);
+      }
+      throw e;
+    }
+    const user = next.users.find((u) => u.id === userId);
+    audit("oauth.register", { provider: who.provider, email: maskEmail(user.email), status: user.status, ip: clientIp(req) });
+    if (user.status === "ACTIVE") {
+      res.setHeader("Set-Cookie", [clearSignupCookie(), sessionCookie(makeToken(user), user)]);
+      return { ok: true, status: "ACTIVE", member: memberSummary(next, user) };
+    }
+    res.setHeader("Set-Cookie", clearSignupCookie());
+    await notifyPending(req, next, user);
+    return { ok: true, status: "PENDING", pending: true, message: PENDING_MESSAGE };
   },
 
   /** Accounts made before squad claims: claim your squad player and pick a username. */
@@ -514,7 +663,13 @@ export default async function handler(req, res) {
     }
     const fn = Object.hasOwn(table, action) ? table[action] : null;
     if (!fn) throw new LedgerError("Unknown action.", 404);
-    return res.status(200).json(await fn(req, res));
+    const out = await fn(req, res);
+    if (out && out[REDIRECT]) {
+      res.statusCode = 302;
+      res.setHeader("Location", out[REDIRECT]);
+      return res.end();
+    }
+    return res.status(200).json(out);
   } catch (e) {
     if (e instanceof LedgerError) return res.status(e.status).json({ ok: false, errors: e.errors });
     if (e instanceof ConflictError) return res.status(409).json({ ok: false, errors: [e.message] });
