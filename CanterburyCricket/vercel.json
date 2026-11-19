@@ -5,8 +5,8 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/fantasy", "destination": "/member-login.html" },
-    { "source": "/fantasy/:path*", "destination": "/member-login.html" }
+    { "source": "/fantasy", "destination": "/member-login" },
+    { "source": "/fantasy/:path*", "destination": "/member-login" }
   ],
   "redirects": [
     {
