@@ -187,8 +187,10 @@ describe("fantasy API", () => {
       const body = { matchId, files: [{ name: "scorecard.pdf", mediaType: "application/pdf", data: pdf }] };
 
       delete process.env.ANTHROPIC_API_KEY;
+      assert.equal((await call("GET", "admin", { cookie: adminCookie })).body.scorecardReader, false);
       assert.equal((await call("POST", "admin-read-scorecard", { cookie: adminCookie, body })).status, 503);
       process.env.ANTHROPIC_API_KEY = "test-key";
+      assert.equal((await call("GET", "admin", { cookie: adminCookie })).body.scorecardReader, true);
 
       assert.equal((await call("POST", "admin-read-scorecard", { cookie: memberCookie, body })).status, 403);
       assert.equal((await call("POST", "admin-read-scorecard", { cookie: adminCookie, body: { matchId } })).status, 400);

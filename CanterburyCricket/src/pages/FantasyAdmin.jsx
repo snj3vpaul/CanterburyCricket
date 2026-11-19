@@ -68,7 +68,7 @@ export default function FantasyAdmin() {
         {panel.type === "xi" ? (
           <PlayingXIPicker match={activeMatch} players={data.players} onDone={(res) => { setData(res); setPanel(null); }} />
         ) : (
-          <AdminMatchUpdate match={activeMatch} players={data.players} onDone={setData} />
+          <AdminMatchUpdate match={activeMatch} players={data.players} scorecardReader={data.scorecardReader} onDone={setData} />
         )}
       </div>
     );

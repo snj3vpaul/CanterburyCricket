@@ -251,6 +251,8 @@ export function memberView(state, user, now) {
 export function adminView(state) {
   const resultOf = new Map(state.results.map((r) => [r.matchId, r]));
   return {
+    // The CricHeroes scorecard reader needs a (paid) Claude API key; hide it when absent.
+    scorecardReader: Boolean(process.env.ANTHROPIC_API_KEY),
     players: [...state.players].sort((a, b) => a.name.localeCompare(b.name)),
     matches: [...state.matches]
       .sort((a, b) => new Date(b.date) - new Date(a.date))

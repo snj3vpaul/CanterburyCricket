@@ -16,7 +16,7 @@ const FIELDS = [
  * each Canterbury XI player, with a live points preview. Saving scores every
  * member's prediction in one atomic write (safe to re-run for corrections).
  */
-export default function AdminMatchUpdate({ match, players, onDone }) {
+export default function AdminMatchUpdate({ match, players, scorecardReader = false, onDone }) {
   const initial = match.result;
   const xi = useMemo(() => match.playingXI.map((id) => players.find((p) => p.id === id)).filter(Boolean), [match.playingXI, players]);
 
@@ -102,7 +102,7 @@ export default function AdminMatchUpdate({ match, players, onDone }) {
 
   return (
     <div className="fx-stack-lg">
-      <ScorecardImport matchId={match.id} onDraft={applyDraft} />
+      {scorecardReader && <ScorecardImport matchId={match.id} onDraft={applyDraft} />}
 
       {imported && (
         <section className="fx-card fx-pad fx-import-result" aria-live="polite">
