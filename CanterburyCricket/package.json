@@ -9,7 +9,8 @@
     "build:client": "vite build",
     "seo:check": "node scripts/check-seo.mjs",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:fantasy": "node --test \"src/fantasy/**/*.test.js\" \"api/_lib/**/*.test.js\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

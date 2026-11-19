@@ -87,6 +87,22 @@ export const SEO = {
     description: 'Member access for Canterbury Cricket Club.',
     noindex: true,
   },
+  // Members-only SPA routes: not prerendered (kept out of STATIC_ROUTES), never indexed.
+  '/fantasy': {
+    title: 'Fantasy League | Canterbury Cricket Club Members',
+    description: 'Members-only fantasy predictions for Canterbury Cricket Club matches.',
+    noindex: true,
+  },
+  '/fantasy/decide': {
+    title: 'Approve Registration | Canterbury Cricket Club',
+    description: 'Approve or reject a Fantasy League registration.',
+    noindex: true,
+  },
+  '/fantasy/admin': {
+    title: 'Fantasy Admin | Canterbury Cricket Club',
+    description: 'Committee tools for the Canterbury Cricket Club Fantasy League.',
+    noindex: true,
+  },
 };
 
 export const FAQS = [

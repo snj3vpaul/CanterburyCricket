@@ -34,3 +34,5 @@ Thumbs.db
 
 # Heavy source originals — keep optimized webp (thumbs/previews) in git instead
 src/assets/Masonry/originals/
+# Local fantasy-league data (vercel dev without Redis)
+.data/
