@@ -157,17 +157,26 @@ export const matchResultSchema = z.object({
     .max(XI_SIZE),
 });
 
+const fullName = z
+  .string()
+  .trim()
+  .min(2, { message: "Enter your full name." })
+  .max(60, { message: "That name is too long." })
+  .regex(PERSON_NAME, { message: "Use letters only in your name (spaces, ' . - are fine)." });
+
+/** Finishing a Google/Microsoft/Yahoo sign-up: the provider already proved the email. */
+export const oauthRegisterSchema = z.object({
+  name: fullName,
+  playerId: z.string().trim().max(80).optional().default(""),
+  username: z.string().trim().max(20, { message: `Username: ${USERNAME_RULE}` }).optional().default(""),
+});
+
 export const registerSchema = z
   .object({
     // Required for everyone except the club's moderator account (checked on the server).
     playerId: z.string().trim().max(80).optional().default(""),
     username: z.string().trim().max(20, { message: `Username: ${USERNAME_RULE}` }).optional().default(""),
-    name: z
-      .string()
-      .trim()
-      .min(2, { message: "Enter your full name." })
-      .max(60, { message: "That name is too long." })
-      .regex(PERSON_NAME, { message: "Use letters only in your name (spaces, ' . - are fine)." }),
+    name: fullName,
     email,
     password: z
       .string()

@@ -3,21 +3,26 @@ import Jersey from "./Jersey";
 import { fantasyApi } from "../api";
 import { ROLE_LABEL, USERNAME_RULE, namesMatch, usernameProblems } from "../shared/validation";
 
-/** Loads the squad players nobody has claimed yet (public: the Squad page shows them anyway). */
+/** Loads the squad players nobody has claimed yet (public: the Squad page shows them anyway) and the sign-in providers that are switched on. */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useClaimablePlayers() {
   const [players, setPlayers] = useState(null);
+  const [providers, setProviders] = useState([]);
   const [error, setError] = useState("");
   useEffect(() => {
     let live = true;
     fantasyApi("register-options")
-      .then((r) => live && setPlayers(r.players))
+      .then((r) => {
+        if (!live) return;
+        setPlayers(r.players);
+        setProviders(r.providers ?? []);
+      })
       .catch(() => live && setError("Couldn't load the squad. Refresh to try again."));
     return () => {
       live = false;
     };
   }, []);
-  return { players, error };
+  return { players, providers, error };
 }
 
 /**

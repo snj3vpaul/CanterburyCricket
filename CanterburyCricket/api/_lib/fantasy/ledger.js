@@ -94,7 +94,7 @@ function checkIdentity(state, { name, playerId, username }, userId) {
  * Players must claim their squad player (name must match the sheet) and pick a unique
  * username. The club moderator account (first ADMIN_EMAILS address) doesn't play.
  */
-export function registerUser(state, { id, name, email, passwordHash, playerId, username }, { now }) {
+export function registerUser(state, { id, name, email, passwordHash, playerId, username, identity = null }, { now }) {
   state = purgeStale(state, now);
   // Identity first, so its errors say nothing about whether the email is registered.
   const club = isClubAccountEmail(email);
@@ -106,7 +106,8 @@ export function registerUser(state, { id, name, email, passwordHash, playerId, u
     id,
     name,
     email,
-    passwordHash,
+    passwordHash, // null for accounts that only sign in with Google/Microsoft/Yahoo
+    identities: identity ? [identity] : [],
     username: club ? null : username,
     playerId: player?.id ?? null,
     role: "MEMBER", // decided when the email is confirmed
@@ -140,6 +141,22 @@ export function verifyEmail(state, userId, { adminEmails, now }) {
     ...(active ? { approvedAt: stamp, approvedBy: isAdmin ? "admin-email" : "pre-approved" } : {}),
   };
   return { ...state, users: state.users.map((u) => (u.id === userId ? next : u)) };
+}
+
+/** The account linked to this Google/Microsoft/Yahoo login, if any. */
+export const findByIdentity = (state, provider, sub) =>
+  state.users.find((u) => (u.identities ?? []).some((i) => i.provider === provider && i.sub === sub)) ?? null;
+
+/** Remember a provider login on an account (found by its provider-verified email). */
+export function linkIdentity(state, userId, identity) {
+  return {
+    ...state,
+    users: state.users.map((u) =>
+      u.id === userId && !(u.identities ?? []).some((i) => i.provider === identity.provider && i.sub === identity.sub)
+        ? { ...u, identities: [...(u.identities ?? []), identity] }
+        : u,
+    ),
+  };
 }
 
 /** For accounts created before squad claims existed: claim a squad player and a username. */

@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useMember } from "../fantasy/MemberContext";
 import FormMessages from "../fantasy/components/FormMessages";
 import SquadIdentityFields, { useClaimablePlayers } from "../fantasy/components/SquadIdentityFields";
+import { OAuthFinish, OAuthOutcome, ProviderButtons } from "../fantasy/components/OAuthSignIn";
 import { loginSchema, registerSchema, issuesOf } from "../fantasy/shared/validation";
 
 import "./MemberLogin.css";
@@ -18,7 +19,9 @@ function safeNext(raw) {
 export default function MemberLogin() {
   const prefersReducedMotion = useReducedMotion();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const oauth = params.get("oauth"); // set when coming back from Google/Microsoft/Yahoo
+  const next = safeNext(params.get("next"));
   const { member, signIn, signOut } = useMember();
 
   const [mode, setMode] = useState("login");
@@ -58,7 +61,7 @@ export default function MemberLogin() {
         setForm(EMPTY);
         return;
       }
-      navigate(safeNext(params.get("next")), { replace: true });
+      navigate(next, { replace: true });
     } catch (err) {
       setErrors(err.errors || [err.message]);
     } finally {
@@ -101,16 +104,26 @@ export default function MemberLogin() {
               Thanks{awaiting.name ? `, ${awaiting.name}` : ""}! {awaiting.message}
             </p>
             <p className="fx-muted fx-small">
-              Check your spam folder if it hasn&apos;t arrived in a few minutes. Only Canterbury players are approved.
+              {awaiting.viaProvider
+                ? "You'll get an email when you're approved. Only Canterbury players are approved."
+                : "Check your spam folder if it hasn't arrived in a few minutes. Only Canterbury players are approved."}
             </p>
             <button
               type="button"
               className="fx-btn fx-btn-ghost fx-btn-block"
-              onClick={() => { setAwaiting(null); setMode("login"); }}
+              onClick={() => { setAwaiting(null); setMode("login"); setParams({}, { replace: true }); }}
             >
               Back to sign in
             </button>
           </div>
+        ) : oauth === "signup" && !member ? (
+          <OAuthFinish
+            players={squad.players}
+            error={squad.error}
+            next={next}
+            onPending={(a) => { setAwaiting({ ...a, viaProvider: true }); setParams({}, { replace: true }); }}
+            onCancel={() => setParams({}, { replace: true })}
+          />
         ) : member ? (
           <div className="fx-stack">
             <p className="future-sub">
@@ -122,6 +135,8 @@ export default function MemberLogin() {
         ) : (
           <>
             <p className="future-sub">Sign in to unlock the members-only Fantasy League: pick your five, back your captain, top the table.</p>
+            <OAuthOutcome outcome={oauth} />
+            <ProviderButtons providers={squad.providers} next={next} />
 
             <div className="fx-tabs" role="tablist" aria-label="Sign in or register">
               {[["login", "Sign in"], ["register", "Register"]].map(([value, label]) => (
