@@ -28,6 +28,7 @@ const Masonry = lazy(() => import("./pages/Masonry"));
 //const Reels = lazy(() => import("./pages/Reels")); // ← if Reels was deleted, remove this line + its <Route> below
 const Sponsors = lazy(() => import("./pages/Sponsors"));
 const Contact = lazy(() => import("./pages/Contact"));
+const JoinCricket = lazy(() => import("./pages/JoinCricket"));
 const MemberLogin = lazy(() => import("./pages/MemberLogin"));
 // Members-only Fantasy League (unlocks after signing in at /member-login)
 const Fantasy = lazy(() => import("./pages/Fantasy"));
@@ -75,6 +76,7 @@ function AnimatedRoutes() {
             
             <Route path="/sponsors" element={<Sponsors />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/join" element={<JoinCricket />} />
             <Route path="/member-login" element={<MemberLogin />} />
             <Route path="/fantasy" element={<RequireMember><Fantasy /></RequireMember>} />
             <Route path="/fantasy/admin" element={<RequireMember admin><FantasyAdmin /></RequireMember>} />

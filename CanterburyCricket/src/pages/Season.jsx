@@ -80,7 +80,7 @@ export default function Season() {
             </div>
             <div className={styles.seasonGuideLinks}>
               <Link to="/guides/ottawa-cricket-leagues-explained">Ottawa cricket league guide <span aria-hidden="true">↗</span></Link>
-              <Link to="/contact">Ask about joining <span aria-hidden="true">→</span></Link>
+              <Link to="/join">Join Canterbury <span aria-hidden="true">→</span></Link>
             </div>
           </aside>
         </div>

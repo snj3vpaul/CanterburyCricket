@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { CLUB, FAQS, PLAYING_GROUND, SEO, SITE_URL, VERIFIED_EVENTS } from './config';
+import { CLUB, FAQS, JOIN_FAQS, PLAYING_GROUND, SEO, SITE_URL, VERIFIED_EVENTS } from './config';
 import { GUIDE_ARTICLES } from './guides';
 
 const absolute = (path) => `${SITE_URL}${path === '/' ? '/' : path}`;
@@ -88,9 +88,9 @@ function structuredData(path, title) {
   if (path !== '/' && path !== '/member-login') graph.push({
     '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: crumbs,
   });
-  if (path === '/contact') graph.push({
+  if (path === '/contact' || path === '/join') graph.push({
     '@context': 'https://schema.org', '@type': 'FAQPage',
-    mainEntity: FAQS.map(({ question, answer }) => ({
+    mainEntity: (path === '/join' ? JOIN_FAQS : FAQS).map(({ question, answer }) => ({
       '@type': 'Question', name: question, acceptedAnswer: { '@type': 'Answer', text: answer },
     })),
   });

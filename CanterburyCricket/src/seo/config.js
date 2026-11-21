@@ -38,7 +38,7 @@ export const PLAYING_GROUND = {
 
 export const STATIC_ROUTES = [
   '/', '/history', '/squad', '/season', '/awards', '/masonry',
-  '/sponsors', '/contact', '/guides',
+  '/join', '/sponsors', '/contact', '/guides',
   '/guides/join-cricket-club-ottawa',
   '/guides/first-cricket-match-ottawa',
   '/guides/ottawa-cricket-leagues-explained',
@@ -73,6 +73,10 @@ export const SEO = {
   '/sponsors': {
     title: 'Support Ottawa Cricket | Canterbury CC Sponsors',
     description: 'Discover the community partners and supporters of Canterbury Cricket Club in Ottawa, and learn how to support local cricket.',
+  },
+  '/join': {
+    title: 'Join a Cricket Club in Ottawa | Play for Canterbury CC',
+    description: 'Want to play cricket in Ottawa? Canterbury Cricket Club plays leather-ball cricket in the OVCC CHG, CTZ and T20 divisions. New players welcome for 2027.',
   },
   '/contact': {
     title: 'Join Cricket in Ottawa | Contact Canterbury Cricket Club',
@@ -113,7 +117,7 @@ export const SEO = {
 export const FAQS = [
   {
     question: 'How do I ask about joining Canterbury Cricket Club in Ottawa?',
-    answer: 'Reach out using our website contact page or our official Instagram or Facebook channels. Introduce yourself, share your cricket experience and ask about current opportunities. A message is an enquiry, not a confirmed registration or selection.',
+    answer: 'Reach out using our website contact page or our official Instagram or Facebook channels. Introduce yourself, share your cricket experience and ask about current opportunities. A captain will follow up to talk about the right team for you. See the Join page for what to include.',
   },
   {
     question: 'Does Canterbury Cricket Club offer youth cricket lessons?',
@@ -122,6 +126,26 @@ export const FAQS = [
   {
     question: 'Where does Canterbury Cricket Club play?',
     answer: 'Canterbury currently identifies Lynda Lane Park, home to the Jim Siew Cricket Pitch, at 580 Smyth Road, Ottawa, as a playing ground. This is a public park, not the club’s mailing or office address. Confirm each fixture, exact pitch and any training arrangements with the club before travelling.',
+  },
+];
+
+// Recruitment questions shown on /join and marked up as FAQPage.
+export const JOIN_FAQS = [
+  {
+    question: 'How do I join Canterbury Cricket Club?',
+    answer: 'Send a message to @canterburyccottawa on Instagram with your name, playing role, previous clubs or leagues and the part of Ottawa you live in. A Canterbury captain will contact you to talk about the right team. You can also use the contact form on this website.',
+  },
+  {
+    question: 'What level of cricket does Canterbury play?',
+    answer: 'Canterbury plays leather-ball cricket in the Ottawa Valley Cricket Council: the Challenge (CHG) division, the Citizen (CTZ) division and the T20 division. The club has ten divisional titles in its records and reached the T20 final in 2025 and 2026.',
+  },
+  {
+    question: 'Where does Canterbury play and practise?',
+    answer: 'Home matches are at the Jim Siew Cricket Pitch, Lynda Lane Park, 580 Smyth Road, Ottawa. Practice is outdoors during the summer season. Check each fixture with the club, as pitch allocations change by season.',
+  },
+  {
+    question: 'I have just moved to Ottawa. Can I still join?',
+    answer: 'Yes. Many Canterbury players first played their cricket elsewhere. Tell us where you played and in what role, and a captain will explain how the OVCC season works and where you could fit in.',
   },
 ];
 

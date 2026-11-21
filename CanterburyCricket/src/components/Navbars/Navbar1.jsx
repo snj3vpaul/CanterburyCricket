@@ -276,6 +276,10 @@ export default function Navbar1() {
               Sponsors
             </NavLink>
 
+            <NavLink to="/join" className={linkClass} onClick={closeDesktopDropdowns}>
+              Join Us
+            </NavLink>
+
             <NavLink to="/contact" className={linkClass} onClick={closeDesktopDropdowns}>
               Contact Us!
             </NavLink>
@@ -438,6 +442,10 @@ export default function Navbar1() {
 
           <NavLink to="/sponsors" className={mobileLinkClass} onClick={closeAll}>
             Sponsors
+          </NavLink>
+
+          <NavLink to="/join" className={mobileLinkClass} onClick={closeAll}>
+            Join Us
           </NavLink>
 
           <NavLink to="/contact" className={mobileLinkClass} onClick={closeAll}>

@@ -7,23 +7,23 @@ import styles from './EditorialContent.module.css';
 const RELATED_LINKS = {
   '/': [
     ['/guides/join-cricket-club-ottawa', 'How to join cricket in Ottawa →'],
-    ['/contact', 'Ask Canterbury about playing →'],
+    ['/join', 'Join a cricket club in Ottawa →'],
     ['/guides/ottawa-cricket-leagues-explained', 'Understand Ottawa cricket leagues →'],
   ],
   '/contact': [
-    ['/guides/join-cricket-club-ottawa', 'Read the Ottawa joining guide →'],
+    ['/join', 'How to join Canterbury →'],
     ['/squad', 'Meet the Canterbury squad →'],
     ['/season', 'Explore our cricket divisions →'],
   ],
   '/season': [
     ['/guides/ottawa-cricket-leagues-explained', 'Understand Ottawa leagues and formats →'],
     ['/history', 'Explore Canterbury history →'],
-    ['/contact', 'Ask about playing for Canterbury →'],
+    ['/join', 'Play for Canterbury →'],
   ],
   '/squad': [
     ['/season', 'See season statistics →'],
     ['/guides/join-cricket-club-ottawa', 'How to join a cricket club in Ottawa →'],
-    ['/contact', 'Contact Canterbury →'],
+    ['/join', 'Join Canterbury →'],
   ],
   '/history': [
     ['/season', 'Explore recent seasons →'],

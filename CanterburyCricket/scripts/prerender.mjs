@@ -12,7 +12,7 @@ import { GUIDE_ARTICLES } from '../src/seo/guides.js';
 
 const dist = path.resolve('dist');
 const publicRoutes = STATIC_ROUTES.filter((route) => !SEO[route]?.noindex);
-const requiredH1 = new Set(['/','/history','/season','/squad','/guides',...Object.keys(GUIDE_ARTICLES)]);
+const requiredH1 = new Set(['/','/history','/season','/squad','/join','/guides',...Object.keys(GUIDE_ARTICLES)]);
 let server;
 let browser;
 try {
