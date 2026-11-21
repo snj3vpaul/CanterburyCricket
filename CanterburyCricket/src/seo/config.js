@@ -33,7 +33,7 @@ export const PLAYING_GROUND = {
   latitude: 45.3972967,
   longitude: -75.6453003,
   mapUrl: 'https://maps.app.goo.gl/ieaHWsTVR2K5WcCP8',
-  venueNotice: 'Confirm the date, exact pitch and access details with the club before travelling. No fixture or training schedule has been confirmed.',
+  venueNotice: 'Fixtures and pitch allocations change each season, so check the date and exact pitch with the club before travelling.',
 };
 
 export const STATIC_ROUTES = [
@@ -47,8 +47,8 @@ export const STATIC_ROUTES = [
 
 export const SEO = {
   '/': {
-    title: 'Cricket in Ottawa | Canterbury Cricket Club Since 1983',
-    description: 'Discover Canterbury Cricket Club in Ottawa, Ontario, playing at Lynda Lane Park. Explore our history, season records and ways to get in touch.',
+    title: 'Canterbury Cricket Club | Ottawa Cricket Club Since 1983',
+    description: 'Canterbury Cricket Club is an Ottawa cricket club, playing in the Ottawa Valley Cricket Council since 1983. New players welcome at Lynda Lane Park.',
   },
   '/history': {
     title: 'Our History & Championships | Canterbury Cricket Club Ottawa',

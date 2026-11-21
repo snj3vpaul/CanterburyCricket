@@ -58,7 +58,7 @@ export default function Home() {
             <div className={styles.heroCopy}>
               <p className={styles.eyebrow}><span className={styles.eyebrowDot} /> CANTERBURY CRICKET CLUB · OTTAWA</p>
               <h1 id="home-hero-heading" className={styles.heroTitle}>
-                Cricket in Ottawa.<br />
+                Canterbury Cricket Club, Ottawa.<br />
                 <span>A legacy since 1983.</span>
               </h1>
               <p className={styles.heroDescription}>
@@ -84,7 +84,7 @@ export default function Home() {
               <div className={styles.heroPhotoFrame}>
                 <img
                   src={matchPhoto}
-                  alt="Canterbury cricketer batting in a match"
+                  alt="Canterbury Cricket Club Ottawa crest"
                   fetchPriority="high"
                   decoding="async"
                   className={styles.heroPhoto}
