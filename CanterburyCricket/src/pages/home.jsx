@@ -58,7 +58,7 @@ export default function Home() {
             <div className={styles.heroCopy}>
               <p className={styles.eyebrow}><span className={styles.eyebrowDot} /> CANTERBURY CRICKET CLUB · OTTAWA</p>
               <h1 id="home-hero-heading" className={styles.heroTitle}>
-                Cricket in Ottawa.<br />
+                Canterbury Cricket Club, Ottawa.<br />
                 <span>A legacy since 1983.</span>
               </h1>
               <p className={styles.heroDescription}>
@@ -67,8 +67,8 @@ export default function Home() {
                 Living in Kanata, Nepean, Barrhaven, Orleans or Riverside South? We’d love to still have you join us on the pitch. Whether you’re new to cricket or a seasoned player, we’ll help you find your place in the game.
               </p>
               <div className={styles.heroActions}>
-                <Link className={styles.primaryAction} to="/contact">
-                  Ask about joining <Arrow />
+                <Link className={styles.primaryAction} to="/join">
+                  Join Canterbury <Arrow />
                 </Link>
                 <Link className={styles.secondaryAction} to="/history">
                   Discover our story <Arrow diagonal />
@@ -84,7 +84,7 @@ export default function Home() {
               <div className={styles.heroPhotoFrame}>
                 <img
                   src={matchPhoto}
-                  alt="Canterbury cricketer batting in a match"
+                  alt="Canterbury Cricket Club Ottawa crest"
                   fetchPriority="high"
                   decoding="async"
                   className={styles.heroPhoto}
@@ -225,7 +225,7 @@ export default function Home() {
               <p>Interested in playing cricket in Ottawa or supporting the club? Send us an enquiry and we'll help you find the right information.</p>
             </div>
             <div className={styles.joinActions}>
-              <Link className={styles.primaryAction} to="/contact">Ask about playing <Arrow /></Link>
+              <Link className={styles.primaryAction} to="/join">Play for Canterbury <Arrow /></Link>
               <Link className={styles.joinSecondary} to="/sponsors">Our supporters <Arrow diagonal /></Link>
             </div>
           </div>

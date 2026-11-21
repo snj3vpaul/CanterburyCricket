@@ -267,9 +267,6 @@ export default function Navbar1() {
         Masonry Gallery
       </NavLink>
 
-      <NavLink to="/reels" className="dropdownItem" onClick={closeAll}>
-        Reels &amp; Highlights
-      </NavLink>
     </div>
   )}
 </div>
@@ -277,6 +274,10 @@ export default function Navbar1() {
 
             <NavLink to="/sponsors" className={linkClass} onClick={closeDesktopDropdowns}>
               Sponsors
+            </NavLink>
+
+            <NavLink to="/join" className={linkClass} onClick={closeDesktopDropdowns}>
+              Join Us
             </NavLink>
 
             <NavLink to="/contact" className={linkClass} onClick={closeDesktopDropdowns}>
@@ -436,18 +437,15 @@ export default function Navbar1() {
     Masonry Gallery
   </NavLink>
 
-  <NavLink
-    to="/reels"
-    className={({ isActive }) => `mobileSubItem ${isActive ? "active" : ""}`}
-    onClick={closeAll}
-  >
-    Reels &amp; Highlights
-  </NavLink>
 </div>
 
 
           <NavLink to="/sponsors" className={mobileLinkClass} onClick={closeAll}>
             Sponsors
+          </NavLink>
+
+          <NavLink to="/join" className={mobileLinkClass} onClick={closeAll}>
+            Join Us
           </NavLink>
 
           <NavLink to="/contact" className={mobileLinkClass} onClick={closeAll}>

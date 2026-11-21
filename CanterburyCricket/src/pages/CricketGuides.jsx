@@ -5,6 +5,7 @@ const items = Object.entries(GUIDE_ARTICLES);
 // Guide-to-club links help readers reach the relevant page after learning more.
 const RELATED_GUIDES = {
   'join-cricket-club-ottawa': [
+    ['/join', 'Join Canterbury Cricket Club'],
     ['/squad', 'Meet our squad'],
     ['/season', 'Explore the current season'],
   ],
@@ -47,7 +48,7 @@ export function CricketGuide() {
       {article.sections.map(({ heading, paragraphs }) => <section key={heading} className={styles.chapter}>
         <h2>{heading}</h2>{paragraphs.map((text) => <p key={text}>{text}</p>)}
       </section>)}
-      <div className={styles.bottom}><p>Interested in getting involved with cricket in Ottawa?</p><Link to="/contact">Ask Canterbury Cricket Club about joining →</Link></div>
+      <div className={styles.bottom}><p>Interested in getting involved with cricket in Ottawa?</p><Link to="/join">Join Canterbury Cricket Club →</Link></div>
       <nav className={styles.relatedReads} aria-label="Related Canterbury information">
         <span>EXPLORE THE CLUB</span>
         {(RELATED_GUIDES[slug] || []).map(([to, label]) => (

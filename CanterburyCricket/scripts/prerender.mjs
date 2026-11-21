@@ -12,7 +12,7 @@ import { GUIDE_ARTICLES } from '../src/seo/guides.js';
 
 const dist = path.resolve('dist');
 const publicRoutes = STATIC_ROUTES.filter((route) => !SEO[route]?.noindex);
-const requiredH1 = new Set(['/','/history','/season','/squad','/guides',...Object.keys(GUIDE_ARTICLES)]);
+const requiredH1 = new Set(['/','/history','/season','/squad','/join','/guides',...Object.keys(GUIDE_ARTICLES)]);
 let server;
 let browser;
 try {
@@ -77,7 +77,7 @@ try {
   }
   await fs.writeFile(path.join(dist, '404.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Page not found | Canterbury Cricket Club</title></head><body style="background:#070912;color:#fff;font:16px system-ui;padding:10vw"><main><h1>Page not found</h1><p>We could not find that Canterbury Cricket Club page.</p><a style="color:#e1b963" href="/">Return to Canterbury Cricket Club</a></main></body></html>`, 'utf8');
   const xmlEsc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${publicRoutes.map((url) => `  <url><loc>${xmlEsc(SITE_URL + url)}</loc></url>`).join('\n')}\n</urlset>\n`;
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${publicRoutes.map((url) => `  <url><loc>${xmlEsc(SITE_URL + url)}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>`).join('\n')}\n</urlset>\n`;
   await fs.writeFile(path.join(dist, 'sitemap.xml'), sitemap, 'utf8');
   await fs.writeFile(path.join(dist, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`, 'utf8');
   if (failures.length) throw new Error(`Pre-render incomplete. NEVER deploy a partial build:\n${failures.join('\n')}`);

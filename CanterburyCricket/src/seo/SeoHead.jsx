@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { CLUB, FAQS, PLAYING_GROUND, SEO, SITE_URL, VERIFIED_EVENTS } from './config';
+import { CLUB, FAQS, JOIN_FAQS, PLAYING_GROUND, SEO, SITE_URL, VERIFIED_EVENTS } from './config';
 import { GUIDE_ARTICLES } from './guides';
 
 const absolute = (path) => `${SITE_URL}${path === '/' ? '/' : path}`;
@@ -49,6 +49,8 @@ function structuredData(path, title) {
     '@type': 'SportsClub',
     '@id': `${SITE_URL}/#sportsclub`,
     name: CLUB.name,
+    alternateName: ['Canterbury CC', 'Canterbury Cricket Club Ottawa'],
+    description: 'Community cricket club in Ottawa, Ontario, founded in 1983, competing in the Ottawa Valley Cricket Council CHG, CTZ and T20 divisions.',
     url: SITE_URL,
     email: CLUB.email,
     foundingDate: CLUB.founded,
@@ -68,20 +70,27 @@ function structuredData(path, title) {
     } : {}),
     // Public municipal ground, separate from the club's registered address.
     location: playingGround,
+    memberOf: { '@type': 'SportsOrganization', name: 'Ottawa Valley Cricket Council', alternateName: 'OVCC' },
     sameAs: [CLUB.instagram, CLUB.facebook],
-    logo: `${SITE_URL}/og-canterbury.jpg`,
+    logo: `${SITE_URL}/club-icon.png`,
+    image: `${SITE_URL}/og-canterbury.jpg`,
   };
   const segments = path.split('/').filter(Boolean);
   const crumbs = [{ '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` }];
   if (segments.length) crumbs.push({ '@type': 'ListItem', position: 2, name: segments.length > 1 ? 'Cricket Guides' : title, item: absolute(`/${segments[0]}`) });
   if (segments.length > 1) crumbs.push({ '@type': 'ListItem', position: 3, name: title, item: absolute(path) });
   const graph = [organization];
+  if (path === '/') graph.push({
+    '@context': 'https://schema.org', '@type': 'WebSite', '@id': `${SITE_URL}/#website`,
+    name: CLUB.name, alternateName: 'Canterbury CC Ottawa', url: `${SITE_URL}/`,
+    publisher: { '@id': `${SITE_URL}/#sportsclub` }, inLanguage: 'en-CA',
+  });
   if (path !== '/' && path !== '/member-login') graph.push({
     '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: crumbs,
   });
-  if (path === '/contact') graph.push({
+  if (path === '/contact' || path === '/join') graph.push({
     '@context': 'https://schema.org', '@type': 'FAQPage',
-    mainEntity: FAQS.map(({ question, answer }) => ({
+    mainEntity: (path === '/join' ? JOIN_FAQS : FAQS).map(({ question, answer }) => ({
       '@type': 'Question', name: question, acceptedAnswer: { '@type': 'Answer', text: answer },
     })),
   });
