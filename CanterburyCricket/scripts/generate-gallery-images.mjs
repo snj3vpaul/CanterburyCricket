@@ -14,7 +14,7 @@ const PREVIEWS_DIR = path.join(INPUT_DIR, "previews");
 
 // Image settings
 const THUMB_WIDTH = 420;      // grid thumbnails
-const PREVIEW_WIDTH = 1600;   // lightbox viewing
+const PREVIEW_MAX = 1600;     // lightbox viewing: longest edge (portrait shots are capped too)
 const THUMB_QUALITY = 62;     // webp quality
 const PREVIEW_QUALITY = 78;
 
@@ -84,7 +84,7 @@ async function main() {
     if (!previewExists) {
       await img
         .clone()
-        .resize({ width: PREVIEW_WIDTH, withoutEnlargement: true })
+        .resize({ width: PREVIEW_MAX, height: PREVIEW_MAX, fit: "inside", withoutEnlargement: true })
         .webp({ quality: PREVIEW_QUALITY })
         .toFile(previewOut);
     }
