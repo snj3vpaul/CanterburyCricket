@@ -221,6 +221,11 @@
    ],
    "series": [
     {
+     "season": 2025,
+     "value": 9,
+     "matches": 18
+    },
+    {
      "season": 2026,
      "value": 30,
      "matches": 21
