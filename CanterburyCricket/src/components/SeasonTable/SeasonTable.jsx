@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./SeasonTable.module.css";
+import SeasonCharts from "../SeasonCharts/SeasonCharts";
 
 const PAGE_SIZE = 10;
 const SEASONS = ["2026", "2025", "2024"];
@@ -239,6 +240,8 @@ export default function SeasonTable() {
             <LeaderCard index={3} label="Leading fielder" person={top.fielder} stat={top.fielder?.fielding.catches} statLabel="catches" detail={top.fielder ? `${top.fielder.fielding.runOuts} run outs · ${top.fielder.fielding.stumpings} stumpings` : ""} />
           </div>
         )}
+
+        {showData && <SeasonCharts data={rawStats} season={seasonYear} division={division} />}
 
         <div className={styles.recordsPanel}>
           <div className={styles.recordsHeader}>

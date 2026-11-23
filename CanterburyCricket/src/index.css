@@ -26,6 +26,7 @@ html {
 *, *::before, *::after { box-sizing: inherit; }
 strong, b { font-weight: 700; }
 button, input, select, textarea { font-family: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 body {
   color: #fff;
   font-weight: 400;
