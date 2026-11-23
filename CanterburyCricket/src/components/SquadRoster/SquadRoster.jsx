@@ -2,15 +2,18 @@ import { useState } from "react";
 import "./SquadRoster.css";
 
 // A player's photo, or their initials on navy if the photo is missing or fails to load.
+// Tries the resized photo first, then the original file, then initials.
 export function PlayerPhoto({ player, className = "", eager = false, sizes }) {
-  const [failed, setFailed] = useState(false);
-  if (!player.photo || failed) {
+  const [attempt, setAttempt] = useState(0);
+  const sources = [player.photo, player.photo.replace(/=w\d+$/, "")].filter((s, i, all) => s && all.indexOf(s) === i);
+  const src = sources[attempt];
+  if (!src) {
     return <div className={`ro-monogram ${className}`} aria-hidden="true"><span>{player.initials}</span></div>;
   }
   return (
     <img
       className={className}
-      src={player.photo}
+      src={src}
       alt={player.name}
       width="640"
       height="800"
@@ -18,7 +21,7 @@ export function PlayerPhoto({ player, className = "", eager = false, sizes }) {
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       referrerPolicy="no-referrer"
-      onError={() => setFailed(true)}
+      onError={() => setAttempt((n) => n + 1)}
     />
   );
 }
