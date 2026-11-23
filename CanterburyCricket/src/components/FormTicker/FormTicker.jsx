@@ -4,8 +4,9 @@ import { portraitFor } from "../../data/playerPortraits";
 import "./FormTicker.css";
 
 // Season "form guide": stock-ticker pills for the leading run scorers and wicket takers.
-// A pill expands into a card that scrubs through the player's seasons (2024 -> now),
-// updating the total and the change against the season before, then rests on this season.
+// Like a share price, each player's figure is their running total for Canterbury since the first
+// season on record, and the green change is what they added that season. A pill expands into a
+// card that scrubs through the seasons (2024 -> now), then rests on this season.
 // Data: src/data/formGuide.json, generated from the CricHeroes exports by scripts/build-form-guide.mjs.
 
 const UNIT = { runs: ["run", "runs"], wickets: ["wicket", "wickets"] };
@@ -13,20 +14,24 @@ const unit = (metric, n) => UNIT[metric][n === 1 ? 0 : 1];
 const initials = (name) => name.split(" ").map((w) => w[0]).slice(0, 2).join("");
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-function change(series, i) {
-  if (i <= 0 || !series[i - 1]) return null;
-  const prev = series[i - 1].value, now = series[i].value;
-  return { diff: now - prev, pct: prev ? ((now - prev) / prev) * 100 : null, prevSeason: series[i - 1].season };
+// Running total per season: [{ season, value (this season), matches, total (all seasons so far) }]
+function career(series) {
+  let total = 0;
+  return series.map((s) => ({ ...s, total: (total += s.value) }));
 }
 
-function Delta({ c, compact = false }) {
-  if (!c) return <span className="ft-delta is-new">{compact ? "NEW" : "First season with these stats"}</span>;
-  const up = c.diff >= 0;
-  const pct = c.pct === null ? "" : `${up ? "+" : "−"}${Math.abs(c.pct).toFixed(compact ? 0 : 1)}%`;
+// What the player added in season i, and how much that grew their running total
+function gain(points, i) {
+  const before = i > 0 ? points[i - 1].total : 0;
+  return { added: points[i].value, pct: before ? (points[i].value / before) * 100 : null, season: points[i].season };
+}
+
+function Delta({ g, metric, compact = false }) {
+  const pct = g.pct === null ? "" : ` (+${g.pct.toFixed(1)}%)`;
   return (
-    <span className={`ft-delta ${up ? "is-up" : "is-down"}`}>
-      <span aria-hidden="true">{up ? "▲" : "▼"}</span>{" "}
-      {compact ? pct : <>{up ? "+" : "−"}{Math.abs(c.diff)} ({pct}) vs {c.prevSeason}</>}
+    <span className="ft-delta is-up">
+      <span aria-hidden="true">▲</span> +{g.added.toLocaleString()}
+      {compact ? null : <> {unit(metric, g.added)} in {g.season}{pct}</>}
     </span>
   );
 }
@@ -38,14 +43,13 @@ function Avatar({ name }) {
 
 // ---------- chart: one point per season, dashed line = last season (the "previous close") ----------
 const W = 320, H = 130, PAD = 14;
-function Chart({ entry, index, onScrub }) {
-  const { series } = entry;
-  const max = Math.max(...series.map((s) => s.value), 1);
+function Chart({ entry, points: series, index, onScrub }) {
+  const max = Math.max(...series.map((s) => s.total), 1);
   const x = (i) => series.length === 1 ? W / 2 : PAD + (i * (W - PAD * 2)) / (series.length - 1);
   const y = (v) => H - 18 - (v / max) * (H - 44);
-  const line = series.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(s.value).toFixed(1)}`).join(" ");
+  const line = series.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(s.total).toFixed(1)}`).join(" ");
   const area = `${line} L${x(series.length - 1)} ${H} L${x(0)} ${H} Z`;
-  const prev = series.length > 1 ? series[series.length - 2].value : null;
+  const prev = series.length > 1 ? series[series.length - 2].total : null; // where they stood a season ago
   const gradId = useId();
 
   const pick = (e) => {
@@ -61,7 +65,7 @@ function Chart({ entry, index, onScrub }) {
       className="ft-chart"
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`${entry.name}, ${entry.metric} by season: ${series.map((s) => `${s.season} ${s.value}`).join(", ")}`}
+      aria-label={`${entry.name}, ${entry.metric} for Canterbury since ${series[0].season}: ${series.map((s) => `${s.total} by end of ${s.season}`).join(", ")}`}
       onPointerMove={pick}
       onPointerDown={pick}
       onPointerLeave={() => onScrub(series.length - 1)}
@@ -77,7 +81,7 @@ function Chart({ entry, index, onScrub }) {
       <path className="ft-line" d={line} pathLength="1" />
       {series.map((s, i) => (
         <g key={s.season}>
-          <circle className={`ft-dot ${i === index ? "is-on" : ""}`} cx={x(i)} cy={y(s.value)} r={i === index ? 4.5 : 3} />
+          <circle className={`ft-dot ${i === index ? "is-on" : ""}`} cx={x(i)} cy={y(s.total)} r={i === index ? 4.5 : 3} />
           <text className="ft-year" x={x(i)} y={H - 3} textAnchor="middle">{s.season}</text>
         </g>
       ))}
@@ -94,7 +98,8 @@ function shrinkThenClose(from, setPhase, onClose) {
 }
 
 function Card({ entry, from, onClose }) {
-  const last = entry.series.length - 1;
+  const points = career(entry.series);
+  const last = points.length - 1;
   const [index, setIndex] = useState(reducedMotion() ? last : 0);
   const [phase, setPhase] = useState(reducedMotion() || !from ? "open" : "from"); // from -> open -> closing
   const cardRef = useRef(null);
@@ -124,9 +129,7 @@ function Card({ entry, from, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [from, onClose]);
 
-  const s = entry.series[index];
-  const c = change(entry.series, index);
-  const trendUp = (change(entry.series, last)?.diff ?? 0) >= 0;
+  const s = points[index];
   const perMatch = s.matches ? (s.value / s.matches).toFixed(entry.metric === "runs" ? 1 : 2) : "–";
 
   return (
@@ -134,7 +137,7 @@ function Card({ entry, from, onClose }) {
       <div className={`ft-scrim ${phase === "open" ? "is-on" : ""}`} onClick={close} />
       <div
         ref={cardRef}
-        className={`ft-card is-${phase} ${trendUp ? "trend-up" : "trend-down"}`}
+        className={`ft-card is-${phase}`}
         role="dialog"
         aria-modal="true"
         aria-label={`${entry.name}: ${entry.metric} by season`}
@@ -149,15 +152,15 @@ function Card({ entry, from, onClose }) {
         </header>
 
         <div className="ft-value" aria-live="polite">
-          <strong>{s.value.toLocaleString()}</strong> <span>{unit(entry.metric, s.value)}</span>
+          <strong>{s.total.toLocaleString()}</strong> <span>{unit(entry.metric, s.total)} for Canterbury</span>
         </div>
-        <Delta c={c} />
-        <p className="ft-when">{s.season} season · {s.matches} matches · all divisions</p>
+        <Delta g={gain(points, index)} metric={entry.metric} />
+        <p className="ft-when">Since {points[0].season} · {s.season}: {s.matches} matches across all divisions</p>
 
-        <Chart entry={entry} index={index} onScrub={setIndex} />
+        <Chart entry={entry} points={points} index={index} onScrub={setIndex} />
 
         <footer className="ft-cardFoot">
-          <span>Per match <strong>{perMatch}</strong></span>
+          <span>Per match in {s.season} <strong>{perMatch}</strong></span>
           <a href="#season-statistics" onClick={close}>Full stats ↓</a>
         </footer>
       </div>
@@ -169,7 +172,7 @@ function Card({ entry, from, onClose }) {
 export default function FormTicker() {
   const [open, setOpen] = useState(null); // { i, from }
   const pills = useRef([]);
-  const { entries, season, compareTo } = GUIDE;
+  const { entries, season } = GUIDE;
 
   const close = () => {
     const i = open?.i;
@@ -181,11 +184,12 @@ export default function FormTicker() {
     <section className="ft" aria-labelledby="form-guide-heading">
       <div className="ft-head">
         <h2 id="form-guide-heading">Form guide</h2>
-        <span>{season} leaders · change vs {compareTo}</span>
+        <span>Totals for Canterbury since {GUIDE.since} · ▲ added in {season}</span>
       </div>
       <ul className="ft-strip">
         {entries.map((e, i) => {
-          const s = e.series.at(-1);
+          const points = career(e.series);
+          const s = points.at(-1);
           return (
             <li key={`${e.metric}-${e.name}`}>
               <button
@@ -197,8 +201,8 @@ export default function FormTicker() {
               >
                 <Avatar name={e.name} />
                 <span className="ft-pillName">{e.name}</span>
-                <span className="ft-pillValue">{s.value} <small>{e.metric === "runs" ? "R" : "W"}</small></span>
-                <Delta c={change(e.series, e.series.length - 1)} compact />
+                <span className="ft-pillValue">{s.total.toLocaleString()} <small>{e.metric === "runs" ? "R" : "W"}</small></span>
+                <Delta g={gain(points, points.length - 1)} metric={e.metric} compact />
               </button>
             </li>
           );

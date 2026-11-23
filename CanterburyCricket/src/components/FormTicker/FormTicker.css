@@ -1,11 +1,10 @@
-/* Form guide ticker: navy glass pills and card, gold accents, market green/red for change. */
+/* Form guide ticker: navy glass pills and card, gold accents, market green for gains. */
 .ft {
   --ft-ink: #fbf8f1;
   --ft-muted: rgba(251, 248, 241, .58);
   --ft-line: rgba(255, 255, 255, .09);
   --ft-gold: #ffd36a;
   --ft-up: #34d399;
-  --ft-down: #f87171;
   --ft-glass: linear-gradient(180deg, rgba(28, 31, 44, .92), rgba(14, 16, 26, .94));
   margin-top: clamp(28px, 4vw, 40px);
   color: var(--ft-ink);
@@ -50,8 +49,6 @@
 
 .ft-delta { font-size: 12px; font-variant-numeric: tabular-nums; font-weight: 600; }
 .ft-delta.is-up { color: var(--ft-up); }
-.ft-delta.is-down { color: var(--ft-down); }
-.ft-delta.is-new { color: var(--ft-gold); letter-spacing: .06em; }
 
 /* ---------- expanded card ---------- */
 .ft-scrim { position: fixed; inset: 0; z-index: 1200; background: rgba(4, 6, 12, 0); transition: background .3s ease; }
@@ -70,7 +67,6 @@
   transform-origin: top left;
   transition: transform .42s cubic-bezier(.2, .8, .2, 1), opacity .3s ease, border-radius .42s ease;
 }
-.ft-card.trend-down { --ft-trend: var(--ft-down); }
 /* Start at (and shrink back to) the pill */
 .ft-card.is-from, .ft-card.is-closing { transform: translate(-50%, -50%) var(--ft-from, scale(.9)); border-radius: 999px; opacity: .3; transition-duration: 0s, 0s, 0s; }
 .ft-card.is-closing { opacity: 0; transition-duration: .26s, .26s, .26s; }

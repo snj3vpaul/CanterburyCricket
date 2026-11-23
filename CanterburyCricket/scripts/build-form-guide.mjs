@@ -53,6 +53,9 @@ const top = (metric, n) => current
   .slice(0, n)
   .map((p) => entry(p, metric));
 
-const guide = { season: CURRENT, compareTo: CURRENT - 1, entries: [...top("runs", TOP_BATTERS), ...top("wickets", TOP_BOWLERS)] };
+// Pick this season's leaders, then list them by the running total the ticker displays.
+const total = (e) => e.series.reduce((sum, s) => sum + s.value, 0);
+const byTotal = (list) => list.sort((a, b) => total(b) - total(a));
+const guide = { season: CURRENT, since: SEASONS[0], entries: [...byTotal(top("runs", TOP_BATTERS)), ...byTotal(top("wickets", TOP_BOWLERS))] };
 fs.writeFileSync(OUT, JSON.stringify(guide, null, 1) + "\n");
 console.log(`formGuide.json: ${guide.entries.length} entries for ${CURRENT}`);
