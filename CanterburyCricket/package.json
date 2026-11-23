@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:client && node scripts/prerender.mjs && node scripts/check-seo.mjs",
-    "build:client": "vite build",
+    "build:client": "node scripts/build-form-guide.mjs && vite build",
     "seo:check": "node scripts/check-seo.mjs",
     "lint": "eslint .",
     "preview": "vite preview",

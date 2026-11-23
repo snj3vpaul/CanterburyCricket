@@ -1,0 +1,231 @@
+{
+ "season": 2026,
+ "compareTo": 2025,
+ "entries": [
+  {
+   "name": "Sanjeev K Paul",
+   "metric": "runs",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 406,
+     "matches": 23
+    },
+    {
+     "season": 2025,
+     "value": 1083,
+     "matches": 34
+    },
+    {
+     "season": 2026,
+     "value": 692,
+     "matches": 30
+    }
+   ]
+  },
+  {
+   "name": "Haris Chaudhry",
+   "metric": "runs",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 790,
+     "matches": 22
+    },
+    {
+     "season": 2025,
+     "value": 427,
+     "matches": 21
+    },
+    {
+     "season": 2026,
+     "value": 371,
+     "matches": 17
+    }
+   ]
+  },
+  {
+   "name": "Amir Abbas",
+   "metric": "runs",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 84,
+     "matches": 14
+    },
+    {
+     "season": 2025,
+     "value": 265,
+     "matches": 23
+    },
+    {
+     "season": 2026,
+     "value": 331,
+     "matches": 26
+    }
+   ]
+  },
+  {
+   "name": "Jaideep Grover",
+   "metric": "runs",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 185,
+     "matches": 21
+    },
+    {
+     "season": 2025,
+     "value": 299,
+     "matches": 31
+    },
+    {
+     "season": 2026,
+     "value": 322,
+     "matches": 23
+    }
+   ]
+  },
+  {
+   "name": "Zain Mahmood",
+   "metric": "runs",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 186,
+     "matches": 15
+    },
+    {
+     "season": 2025,
+     "value": 338,
+     "matches": 18
+    },
+    {
+     "season": 2026,
+     "value": 278,
+     "matches": 10
+    }
+   ]
+  },
+  {
+   "name": "Sanjeev K Paul",
+   "metric": "wickets",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 20,
+     "matches": 23
+    },
+    {
+     "season": 2025,
+     "value": 36,
+     "matches": 34
+    },
+    {
+     "season": 2026,
+     "value": 38,
+     "matches": 30
+    }
+   ]
+  },
+  {
+   "name": "Kunal Arora",
+   "metric": "wickets",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2026,
+     "value": 30,
+     "matches": 21
+    }
+   ]
+  },
+  {
+   "name": "Amir Abbas",
+   "metric": "wickets",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 7,
+     "matches": 14
+    },
+    {
+     "season": 2025,
+     "value": 18,
+     "matches": 23
+    },
+    {
+     "season": 2026,
+     "value": 27,
+     "matches": 26
+    }
+   ]
+  },
+  {
+   "name": "Zaki Gardezi",
+   "metric": "wickets",
+   "divisions": [
+    "CHG",
+    "CTZ",
+    "T20"
+   ],
+   "series": [
+    {
+     "season": 2024,
+     "value": 18,
+     "matches": 25
+    },
+    {
+     "season": 2025,
+     "value": 26,
+     "matches": 29
+    },
+    {
+     "season": 2026,
+     "value": 22,
+     "matches": 18
+    }
+   ]
+  }
+ ]
+}

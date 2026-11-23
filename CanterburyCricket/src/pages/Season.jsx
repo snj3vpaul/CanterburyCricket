@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import SeasonCaptains from "../components/SeasonCaptains/SeasonCaptains";
 import DivisionMatches from "../components/DivisionMatches/DivisionMatches";
 import SeasonTable from "../components/SeasonTable/SeasonTable";
+import FormTicker from "../components/FormTicker/FormTicker";
 import styles from "./Season.module.css";
 
 const divisions = [
@@ -51,6 +52,7 @@ export default function Season() {
               </div>
             </aside>
           </div>
+          <FormTicker />
           <nav className={styles.sectionNav} aria-label="Season sections">
             <a href="#season-leadership"><span>01</span> Leadership</a>
             <a href="#season-matches"><span>02</span> Matches</a>
