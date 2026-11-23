@@ -121,13 +121,24 @@ html {
 }
 
 .item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   opacity: 0.88;
   line-height: 1.4;
 }
 
+.item a {
+  min-width: 0;
+}
+
 .muted {
   opacity: 0.75;
+}
+
+.itemIcon {
+  color: #ffd36a;
 }
 
 .link {

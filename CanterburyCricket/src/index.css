@@ -25,6 +25,7 @@ html {
 }
 *, *::before, *::after { box-sizing: inherit; }
 strong, b { font-weight: 700; }
+button, input, select, textarea { font-family: inherit; }
 body {
   color: #fff;
   font-weight: 400;
