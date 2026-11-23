@@ -280,6 +280,7 @@
 
 /* Filtered finals: softly elevated timeline cards, matching MUI dark theme. */
 .finalsSection { padding: clamp(64px, 7vw, 103px) 0; background: rgba(7, 9, 18, .71); }
+.timelineSlot { margin-bottom: 18px; }
 .filterBar { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 23px 25px; background: var(--history-panel-raised); border: 1px solid var(--history-border); border-radius: 16px; }
 .filterGroup { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .filterLabel { color: var(--history-muted); font-size: 10px; font-weight: 850; letter-spacing: .1em; }
