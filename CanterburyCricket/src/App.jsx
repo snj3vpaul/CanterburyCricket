@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ScrollToTop from "./components/ScrollToTop";
@@ -27,7 +28,6 @@ const Awards = lazy(() => import("./pages/Awards"));
 const GalleryPage = lazy(() => import("./pages/GalleryPage"));
 //const Reels = lazy(() => import("./pages/Reels")); // ← if Reels was deleted, remove this line + its <Route> below
 const Sponsors = lazy(() => import("./pages/Sponsors"));
-const Contact = lazy(() => import("./pages/Contact"));
 const JoinCricket = lazy(() => import("./pages/JoinCricket"));
 const MemberLogin = lazy(() => import("./pages/MemberLogin"));
 // Members-only Fantasy League (unlocks after signing in at /member-login)
@@ -75,7 +75,8 @@ function AnimatedRoutes() {
             <Route path="/masonry" element={<GalleryPage />} />
             
             <Route path="/sponsors" element={<Sponsors />} />
-            <Route path="/contact" element={<Contact />} />
+            {/* Contact merged into Join (the server also 301s /contact) */}
+            <Route path="/contact" element={<Navigate to="/join#get-in-touch" replace />} />
             <Route path="/join" element={<JoinCricket />} />
             <Route path="/member-login" element={<MemberLogin />} />
             <Route path="/fantasy" element={<RequireMember><Fantasy /></RequireMember>} />

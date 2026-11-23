@@ -16,7 +16,7 @@ for (const route of STATIC_ROUTES) {
     jsonld: html.includes('application/ld+json'),
     noindex: (SEO[route]?.noindex ? /noindex/.test(html) : true),
     article: (GUIDE_ARTICLES[route] ? html.includes('BlogPosting') : true),
-    verifiedGround: ((route === '/' || route === '/contact') ? /Lynda Lane Park/.test(html) && /580 Smyth Road/.test(html) && /ieaHWsTVR2K5WcCP8/.test(html) : true),
+    verifiedGround: ((route === '/' || route === '/join') ? /Lynda Lane Park/.test(html) && /580 Smyth Road/.test(html) && /ieaHWsTVR2K5WcCP8/.test(html) : true),
   };
   const failed = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name);
   console.log(`${failed.length ? 'FAIL' : 'PASS'} ${route}${failed.length ? ': ' + failed.join(', ') : ''}`);

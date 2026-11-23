@@ -17,7 +17,7 @@ export const CLUB = {
   longitude: null,
   // This is not Canterbury's street or mailing address.
   groundName: 'Lynda Lane Park',
-  joiningMethod: 'Website contact page and official social-media accounts',
+  joiningMethod: 'Instagram message or the form on the Join page',
 };
 
 // Venue details refer to the public playing ground, NOT a club office or mailing address.
@@ -38,7 +38,7 @@ export const PLAYING_GROUND = {
 
 export const STATIC_ROUTES = [
   '/', '/history', '/squad', '/season', '/awards', '/masonry',
-  '/join', '/sponsors', '/contact', '/guides',
+  '/join', '/sponsors', '/guides',
   '/guides/join-cricket-club-ottawa',
   '/guides/first-cricket-match-ottawa',
   '/guides/ottawa-cricket-leagues-explained',
@@ -78,10 +78,6 @@ export const SEO = {
     title: 'Join a Cricket Club in Ottawa | Play for Canterbury CC',
     description: 'Want to play cricket in Ottawa? Canterbury Cricket Club plays leather-ball cricket in the OVCC CHG, CTZ and T20 divisions. New players welcome for 2027.',
   },
-  '/contact': {
-    title: 'Join Cricket in Ottawa | Contact Canterbury Cricket Club',
-    description: 'Want to play cricket in Ottawa? Contact Canterbury Cricket Club to ask about joining, current opportunities and local playing arrangements.',
-  },
   '/guides': {
     title: 'Ottawa Cricket Guides | Canterbury Cricket Club',
     description: 'Practical guides to playing cricket in Ottawa: finding a club, preparing for a match and understanding local cricket formats.',
@@ -114,26 +110,11 @@ export const SEO = {
   },
 };
 
-export const FAQS = [
-  {
-    question: 'How do I ask about joining Canterbury Cricket Club in Ottawa?',
-    answer: 'Reach out using our website contact page or our official Instagram or Facebook channels. Introduce yourself, share your cricket experience and ask about current opportunities. A captain will follow up to talk about the right team for you. See the Join page for what to include.',
-  },
-  {
-    question: 'Does Canterbury Cricket Club offer youth cricket lessons?',
-    answer: 'Current youth coaching or junior registration has not been confirmed. Contact the club to ask about age eligibility or possible referrals to suitable programs in Ottawa.',
-  },
-  {
-    question: 'Where does Canterbury Cricket Club play?',
-    answer: 'Canterbury currently identifies Lynda Lane Park, home to the Jim Siew Cricket Pitch, at 580 Smyth Road, Ottawa, as a playing ground. This is a public park, not the club’s mailing or office address. Confirm each fixture, exact pitch and any training arrangements with the club before travelling.',
-  },
-];
-
 // Recruitment questions shown on /join and marked up as FAQPage.
 export const JOIN_FAQS = [
   {
     question: 'How do I join Canterbury Cricket Club?',
-    answer: 'Send a message to @canterburyccottawa on Instagram with your name, playing role, previous clubs or leagues and the part of Ottawa you live in. A Canterbury captain will contact you to talk about the right team. You can also use the contact form on this website.',
+    answer: 'Send a message to @canterburyccottawa on Instagram with your name, playing role, previous clubs or leagues and the part of Ottawa you live in. A Canterbury captain will contact you to talk about the right team. No Instagram? Use the form on this page instead.',
   },
   {
     question: 'What level of cricket does Canterbury play?',
@@ -146,6 +127,14 @@ export const JOIN_FAQS = [
   {
     question: 'I have just moved to Ottawa. Can I still join?',
     answer: 'Yes. Many Canterbury players first played their cricket elsewhere. Tell us where you played and in what role, and a captain will explain how the OVCC season works and where you could fit in.',
+  },
+  {
+    question: 'Does Canterbury Cricket Club offer youth cricket?',
+    answer: 'Canterbury plays adult club cricket. If you are asking for a younger player, send us a message with their age and experience and we will point you to the right programme in Ottawa.',
+  },
+  {
+    question: 'How can my business sponsor Canterbury?',
+    answer: 'Choose Sponsorship in the form on the Join page and tell us about your business and how you would like to support the club. The committee will get back to you.',
   },
 ];
 

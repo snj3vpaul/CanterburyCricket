@@ -18,7 +18,7 @@ export default function Sponsors() {
       <div className="sponsors-content">
         <SponsorsAccordion />
         <p className="sponsors-cta">
-          Want to support Ottawa cricket? <Link to="/contact">Become a sponsor →</Link>
+          Want to support Ottawa cricket? <Link to="/join?topic=sponsorship#get-in-touch">Become a sponsor →</Link>
         </p>
       </div>
 

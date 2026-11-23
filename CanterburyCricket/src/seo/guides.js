@@ -19,7 +19,7 @@ export const GUIDE_ARTICLES = {
       ]},
       {heading: 'Make your first conversation count', paragraphs: [
         'You can prepare by following the club on its official channels, looking at recent public match information and writing down two or three questions. Ask about the relevant competition, how selections are handled and what steps are expected of new members. If you are approaching a club on behalf of a child, confirm whether a qualified and age-appropriate junior program actually exists before sharing details or travelling to a session.',
-        'The important thing is to begin with an honest conversation. Ottawa has a cricket community with a long history, and finding a suitable team can take some patience. If Canterbury is an interesting fit, use our contact page to introduce yourself. We would rather provide accurate information about current arrangements than make a promise a club cannot keep.'
+        'The important thing is to begin with an honest conversation. Ottawa has a cricket community with a long history, and finding a suitable team can take some patience. If Canterbury is an interesting fit, use our Join page to introduce yourself. We would rather provide accurate information about current arrangements than make a promise a club cannot keep.'
       ]}
     ]
   },
@@ -42,7 +42,7 @@ export const GUIDE_ARTICLES = {
       ]},
       {heading: 'Learn from the day', paragraphs: [
         'After the match, reflect on one thing that went well and one thing to improve. It might be your approach to a particular bowling length, fitness between deliveries or communication in the field. Experienced teammates can often offer context that a raw number cannot. Avoid comparing performances across formats without understanding the situation of the game.',
-        'If you are new to Canterbury Cricket Club, explore our season section to understand the club’s recorded divisions and performances, and visit the history page to learn more about the team. To ask about participating in future matches, use the contact page. Treat this checklist as preparation guidance, not as confirmation of any scheduled fixture or selection opportunity.'
+        'If you are new to Canterbury Cricket Club, explore our season section to understand the club’s recorded divisions and performances, and visit the history page to learn more about the team. To ask about playing in future matches, use the Join page. Treat this checklist as preparation guidance, not as confirmation of any scheduled fixture or selection opportunity.'
       ]}
     ]
   },
