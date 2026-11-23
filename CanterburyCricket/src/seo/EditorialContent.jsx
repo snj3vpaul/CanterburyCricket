@@ -49,8 +49,8 @@ export default function EditorialContent() {
   const content = EDITORIAL[path];
   if (!content) return null;
   // Contact now has its own prominent H1 above the form. Keep only one page H1.
-  // Legacy awards/gallery/sponsors components still need a meaningful H1.
-  const needsH1 = new Set(["/awards", "/masonry", "/sponsors"]).has(path);
+  // Legacy awards/sponsors components still need a meaningful H1 (the gallery has its own).
+  const needsH1 = new Set(["/awards", "/sponsors"]).has(path);
   const Heading = needsH1 ? "h1" : "h2";
   return (
     <section className={styles.section} aria-labelledby="local-cricket-heading">
