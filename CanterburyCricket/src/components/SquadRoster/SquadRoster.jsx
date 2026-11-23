@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./SquadRoster.css";
+import PlayerForm from "./PlayerForm";
 
 // A player's photo, or their initials on navy if the photo is missing or fails to load.
 // Tries the resized photo first, then the original file, then initials.
@@ -40,6 +41,7 @@ function PlayerCard({ player, index }) {
           <span className="ro-last">{player.last}</span>
         </h3>
         {details ? <p className="ro-details">{details}</p> : null}
+        <PlayerForm name={player.name} role={player.role} />
       </div>
     </li>
   );

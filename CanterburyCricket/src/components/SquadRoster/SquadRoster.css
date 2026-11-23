@@ -145,3 +145,20 @@
   .ro-card { animation: none; }
   .ro-photo img, .ro-text::before { transition: none; }
 }
+
+/* Three-season form line (PlayerForm.jsx) */
+.ro-form { display: grid; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .08); }
+.ro-formRow { display: grid; grid-template-columns: 52px 84px 1fr; align-items: center; gap: 8px; }
+.ro-formLabel { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sq-muted); }
+.ro-spark { display: block; overflow: visible; }
+.ro-sparkBase { stroke: rgba(255, 255, 255, .1); stroke-width: 1; }
+.ro-sparkLine { fill: none; stroke: rgba(250, 249, 245, .42); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ro-sparkDot { fill: rgba(250, 249, 245, .55); }
+.ro-sparkNow { fill: var(--sq-gold, #ffd36a); stroke: #0b0d16; stroke-width: 2; }
+.ro-formValue { display: flex; align-items: baseline; justify-content: flex-end; gap: 5px; font-variant-numeric: tabular-nums; }
+.ro-formValue strong { font-size: 14px; font-weight: 700; color: var(--sq-ivory); }
+.ro-formValue small { font-size: 10.5px; color: var(--sq-muted); }
+@media (max-width: 420px) {
+  .ro-formRow { grid-template-columns: 44px 1fr auto; }
+  .ro-spark { width: 100%; }
+}
