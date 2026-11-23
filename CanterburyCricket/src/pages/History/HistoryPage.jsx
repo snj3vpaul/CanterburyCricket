@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent } from '@mui/material';
 import ClubMuiTheme from '../../theme/ClubMuiTheme';
+import LegendsByNumbers from '../../components/LegendCharts/LegendsByNumbers';
+import FinalsTimeline from '../../components/LegendCharts/FinalsTimeline';
 
 import archiveAwards from '../../assets/gallery/previews/IMG_1375.webp';
 import archiveTrophies from '../../assets/gallery/previews/IMG_1490.webp';
@@ -223,7 +225,7 @@ function DivisionSummary() {
 function FinalCard({ item, index }) {
   const champion = item.placement === 'champion';
   return (
-    <article className={styles.finalEntry}>
+    <article className={styles.finalEntry} id={`final-${item.id}`}>
       <div className={styles.finalYearColumn}>
         <span className={styles.finalYear}>{item.year}</span>
         <span className={styles.finalNode} aria-hidden="true" />
@@ -285,6 +287,23 @@ function FinalsArchive() {
     setResult('All');
   };
 
+  const [focusId, setFocusId] = useState(null);
+  const selectFinal = (item) => {
+    setDivision(item.division);
+    setResult('All');
+    setFocusId(item.id);
+  };
+  useEffect(() => {
+    if (!focusId) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const el = document.getElementById(`final-${focusId}`);
+      el?.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      el?.querySelector('a, button')?.focus({ preventScroll: true });
+      setFocusId(null);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusId]);
+
   return (
     <section id="championships" className={styles.finalsSection} aria-labelledby="finals-heading">
       <div className={styles.shell}>
@@ -296,6 +315,9 @@ function FinalsArchive() {
           <p className={`${styles.sectionIntro} ${styles.introLight}`}>
             From the triumphs to the near misses — explore the matches that left their mark on Canterbury history.
           </p>
+        </div>
+        <div className={styles.timelineSlot}>
+          <FinalsTimeline finals={championships} onSelect={selectFinal} />
         </div>
         <div className={styles.filterBar}>
           <div className={styles.filterGroup} role="group" aria-label="Filter finals by division">
@@ -377,7 +399,7 @@ function PlayerCard({ person, onOpen, index }) {
   );
 }
 
-function PlayerSection({ id, label, title, description, players, variant = 'dark', onOpen }) {
+function PlayerSection({ id, label, title, description, players, variant = 'dark', onOpen, children }) {
   return (
     <section id={id} className={`${styles.playersSection} ${variant === 'light' ? styles.playersLight : ''}`} aria-labelledby={`${id}-heading`}>
       <div className={styles.shell}>
@@ -391,6 +413,7 @@ function PlayerSection({ id, label, title, description, players, variant = 'dark
         <div className={styles.playerGrid}>
           {players.map((person, index) => <PlayerCard key={person.id} person={person} index={index} onOpen={onOpen} />)}
         </div>
+        {children}
       </div>
     </section>
   );
@@ -473,7 +496,9 @@ export default function HistoryPage() {
         description="The players whose skill, consistency, and commitment helped shape Canterbury's identity. Select a profile to see their full record."
         players={leagueLegends}
         onOpen={setSelectedPlayer}
-      />
+      >
+        <LegendsByNumbers legends={leagueLegends} recent={performers} />
+      </PlayerSection>
       <PlayerSection
         id="performers"
         label="The story continues"
