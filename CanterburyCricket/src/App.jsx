@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -21,22 +21,10 @@ import Home from "./pages/HomePage";
 
 // Every other page is code-split: its JS only downloads when first visited.
 // This shrinks the initial bundle and makes the first load noticeably snappier.
-const HistoryPage = lazy(() => import("./pages/History/HistoryPage"));
-const OurSquad = lazy(() => import("./pages/OurSquad"));
-const Season = lazy(() => import("./pages/Season"));
-const Awards = lazy(() => import("./pages/Awards"));
-const GalleryPage = lazy(() => import("./pages/GalleryPage"));
-//const Reels = lazy(() => import("./pages/Reels")); // ← if Reels was deleted, remove this line + its <Route> below
-const Sponsors = lazy(() => import("./pages/Sponsors"));
-const JoinCricket = lazy(() => import("./pages/JoinCricket"));
-const MemberLogin = lazy(() => import("./pages/MemberLogin"));
-// Members-only Fantasy League (unlocks after signing in at /member-login)
-const Fantasy = lazy(() => import("./pages/Fantasy"));
-const FantasyAdmin = lazy(() => import("./pages/FantasyAdmin"));
-const FantasyDecide = lazy(() => import("./pages/FantasyDecide")); // Approve/Reject links in admin emails
-const FantasyVerify = lazy(() => import("./pages/FantasyVerify")); // confirm-your-email links
-const CricketGuidesIndex = lazy(() => import("./pages/CricketGuides").then((m) => ({ default: m.CricketGuidesIndex })));
-const CricketGuide = lazy(() => import("./pages/CricketGuides").then((m) => ({ default: m.CricketGuide })));
+import {
+  HistoryPage, OurSquad, Season, Awards, GalleryPage, Sponsors, JoinCricket, MemberLogin,
+  Fantasy, FantasyAdmin, FantasyDecide, FantasyVerify, CricketGuidesIndex, CricketGuide,
+} from "./routePages";
 
 // Lightweight branded loader shown while a split chunk loads.
 function PageLoader() {

@@ -1,7 +1,7 @@
 .sponsors-page {
   position: relative;
   min-height: 100vh;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-body);
   overflow: hidden;
 }
 

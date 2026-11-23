@@ -1,4 +1,44 @@
 /* index.css – GLOBAL ONLY */
+
+/* Club typefaces, self-hosted (public/fonts, SIL OFL). Latin only, preloaded in index.html.
+   Outfit = headings, numbers, buttons. Inter = body text. Both are variable (100–900). */
+@font-face {
+  font-family: "Outfit";
+  src: url("/fonts/outfit-var-latin-v5.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/inter-var-latin-v5.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Base reset (formerly MUI CssBaseline, dark mode) */
+html {
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: inherit; }
+strong, b { font-weight: 700; }
+body {
+  color: #fff;
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.5;
+  letter-spacing: 0.00938em;
+  background-color: transparent;
+}
+@media print { body { background-color: #fff; } }
+
+:root {
+  --font-display: "Outfit", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
 html, body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -31,7 +71,6 @@ body {
   min-width: 320px;
   min-height: 100vh;
   display: block;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 /* keep global rendering improvements */
