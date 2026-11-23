@@ -1,16 +1,29 @@
-# React + Vite
+# Canterbury Cricket Club website
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Source for [canterburycricketclub.com](https://canterburycricketclub.com): Vite + React, deployed on Vercel.
+Pages are prerendered to static HTML at build time so search engines see full content.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| Command | What it does |
+|---|---|
+| `npm run dev` | Local dev server (no `api/` functions; use `npx vercel dev` for those) |
+| `npm run build` | Build, prerender every route, write `sitemap.xml`/`robots.txt`, run the SEO check |
+| `npm run test:fantasy` | Fantasy league, login and scorecard tests |
+| `node scripts/generate-gallery-images.mjs` | Make gallery thumbnails/previews and `dimensions.json` from photos in `src/assets/gallery/` |
 
-## React Compiler
+## Where things live
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Path | Contents |
+|---|---|
+| `src/pages/` | One file per page: `HomePage`, `HistoryPage`, `OurSquad`, `Season`, `Awards`, `GalleryPage` (/masonry), `Sponsors`, `Contact`, `JoinCricket` (/join), `CricketGuides` (/guides), member login and fantasy pages |
+| `src/components/` | Shared pieces: `Navbar`, `Footer`, `ClubBackground`, plus page sections (`SeasonTable`, `SeasonCaptains`, `DivisionMatches`, `SquadSpotlight`, `SquadRanking`, `AwardsCarousel`, `SponsorsAccordion`, `GetInTouch`) |
+| `src/seo/` | Page titles and descriptions (`config.js`), structured data (`SeoHead.jsx`), guide articles, editorial text |
+| `src/data/` | Season captains, CricHeroes team links, and player stats in `stats/<division>-<year>.json` |
+| `src/assets/gallery/` | Gallery photos: `thumbs/` (grid), `previews/` (full-size viewer), `dimensions.json` |
+| `src/fantasy/`, `api/` | Member login and fantasy league (see `FANTASY.md`), contact form and squad API |
+| `scripts/` | Prerender, SEO check and gallery image tools |
 
-## Expanding the ESLint configuration
+## Licence
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+All rights reserved. See `../LICENSE`.

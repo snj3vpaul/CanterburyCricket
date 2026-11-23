@@ -1,7 +1,7 @@
 /* Canterbury Cricket Club / Rich History
    Uses the EXISTING site language: charcoal/navy, warm gold, Inter/Poppins,
    rounded translucent cards and soft glows. All styling is local to this page.
-   Site references: Navbar1.css, parallax.css, OurSquadFlip.css and main.jsx.
+   Site references: Navbar.css, OurSquad.css and main.jsx.
 */
 .page {
   --history-bg: #070912;

@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent } from '@mui/material';
 
-import archiveAwards from '../../assets/Masonry/previews/IMG_1375.webp';
-import archiveTrophies from '../../assets/Masonry/previews/IMG_1490.webp';
+import archiveAwards from '../../assets/gallery/previews/IMG_1375.webp';
+import archiveTrophies from '../../assets/gallery/previews/IMG_1490.webp';
 import { championships, goldenEra, leagueLegends, performers } from './historyData';
 import { divisionSummaries } from './historyPageContent';
 import styles from './HistoryPage.module.css';

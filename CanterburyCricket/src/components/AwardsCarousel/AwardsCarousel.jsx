@@ -21,24 +21,24 @@ import "./AwardsCarousel.css";
 // =========================
 
 // Club award images
-import PlayerOfTheYearImg from "./2025.jpg";
+import PlayerOfTheYearImg from "./PlayerOfTheYear2025.jpg";
 import BestKnockImg from "./BestKnock.jpg";
 import BestSpellImg from "./BestSpell.jpg";
 
 // CHG Division
-import BatCHGImg from "./batCHG.png";
-import BowlCHGImg from "./BowlCHG.jpg";
-import FielderCHGImg from "./FielderCHG.jpg";
+import BatCHGImg from "./BattingCHG.png";
+import BowlCHGImg from "./BowlingCHG.jpg";
+import FielderCHGImg from "./FieldingCHG.jpg";
 
 // CTZ Division
-import BatCTZImg from "./BatCTZ.jpg";
-import BowlCTZImg from "./BowlerCTZ.jpg";
-import FielderCTZImg from "./FielderCTZ.jpg";
+import BatCTZImg from "./BattingCTZ.jpg";
+import BowlCTZImg from "./BowlingCTZ.jpg";
+import FielderCTZImg from "./FieldingCTZ.jpg";
 
 // T20 Division
-import BatT20Img from "./T20Bat.jpg";
-import BowlT20Img from "./T20Bowl.jpg";
-import FielderT20Img from "./Fieldt20.jpg";
+import BatT20Img from "./BattingT20.jpg";
+import BowlT20Img from "./BowlingT20.jpg";
+import FielderT20Img from "./FieldingT20.jpg";
 
 // =========================
 // Config

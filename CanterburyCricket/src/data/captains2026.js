@@ -3,7 +3,7 @@
 // Canterbury CC — 2026 Captaincy
 // -----------------------------------------------------------------------------
 // To add a real photo later: drop the image in src/assets, import it at the top
-// of Captaincy2026.jsx, and set `img: thatImport` on the person below.
+// of SeasonCaptains.jsx, and set `img: thatImport` on the person below.
 // While `img` is null, a clean initials avatar is shown automatically.
 // -----------------------------------------------------------------------------
 

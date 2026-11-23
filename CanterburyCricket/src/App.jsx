@@ -7,8 +7,8 @@ import {
 } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import ScrollToTop from "./components/ScrollToTop";
-import ClubBackground from "./components/background/ClubBackground";
-import Navbar from "./components/Navbars/Navbar1";
+import ClubBackground from "./components/ClubBackground/ClubBackground";
+import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import SeoHead from "./seo/SeoHead";
 import EditorialContent from "./seo/EditorialContent";
@@ -16,7 +16,7 @@ import { MemberProvider } from "./fantasy/MemberContext";
 import RequireMember from "./fantasy/RequireMember";
 
 // Home loads eagerly so the landing page paints instantly.
-import Home from "./pages/home";
+import Home from "./pages/HomePage";
 
 // Every other page is code-split: its JS only downloads when first visited.
 // This shrinks the initial bundle and makes the first load noticeably snappier.
@@ -24,7 +24,7 @@ const HistoryPage = lazy(() => import("./pages/History/HistoryPage"));
 const OurSquad = lazy(() => import("./pages/OurSquad"));
 const Season = lazy(() => import("./pages/Season"));
 const Awards = lazy(() => import("./pages/Awards"));
-const Masonry = lazy(() => import("./pages/Masonry"));
+const GalleryPage = lazy(() => import("./pages/GalleryPage"));
 //const Reels = lazy(() => import("./pages/Reels")); // ← if Reels was deleted, remove this line + its <Route> below
 const Sponsors = lazy(() => import("./pages/Sponsors"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -72,7 +72,7 @@ function AnimatedRoutes() {
             <Route path="/squad" element={<OurSquad />} />
             <Route path="/season" element={<Season />} />
             <Route path="/awards" element={<Awards />} />
-            <Route path="/masonry" element={<Masonry />} />
+            <Route path="/masonry" element={<GalleryPage />} />
             
             <Route path="/sponsors" element={<Sponsors />} />
             <Route path="/contact" element={<Contact />} />
