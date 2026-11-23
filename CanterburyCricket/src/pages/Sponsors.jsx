@@ -1,7 +1,7 @@
 import React from "react";
 import SponsorsAccordion from "../components/SponsorsAccordion/SponsorsAccordion";
 import "./SponsorsPage.css";
-import bgSvg from "../assets/LightStreaksBackground.png"; // make sure the relative path is correct
+import lightStreaks from "../assets/LightStreaksBackground.webp";
 
 
 export default function Sponsors() {
@@ -10,7 +10,7 @@ export default function Sponsors() {
       {/* Background SVG */}
       <div
         className="sponsors-bg"
-        style={{ backgroundImage: `url(${bgSvg})` }}
+        style={{ backgroundImage: `url(${lightStreaks})` }}
       ></div>
 
       {/* Accordion */}

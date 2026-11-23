@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import styles from "./Footer.module.css";
 
 // Optional: replace with your actual logo path
-import clubLogo from "../../assets/CanterburyCrest.png";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -18,7 +17,6 @@ export default function Footer() {
           {/* Brand */}
           <div className={styles.brand}>
             {/* If you have a logo, uncomment and use it */}
-            {/* <img className={styles.logo} src={clubLogo} alt="Canterbury Cricket Club logo" /> */}
 
             <div className={styles.brandText}>
               <p className={styles.clubName}>Canterbury Cricket Club</p>
