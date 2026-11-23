@@ -1,14 +1,4 @@
-import ameerKhan from "../../assets/players/ameer-khan.webp";
-import sanjeevKPaul from "../../assets/players/sanjeev-k-paul.webp";
-import zainMahmood from "../../assets/players/zain-mahmood.webp";
-
-// One photo per player across the whole site: players with a portrait in src/assets/players
-// use it here too (same as History and Awards) instead of their squad-sheet upload.
-const PLAYER_PORTRAITS = {
-  "ameer khan": ameerKhan,
-  "sanjeev k paul": sanjeevKPaul,
-  "zain mahmood": zainMahmood,
-};
+import { portraitFor } from "../../data/playerPortraits";
 
 // Turns rows from the club squad sheet (/api/squad) into clean player records.
 // The sheet is filled in by players themselves, so names, roles and numbers arrive in many spellings.
@@ -74,7 +64,8 @@ export function toPlayer(row, i) {
     sortNumber: Number.isFinite(number) ? number : 999,
     batting: HAND[batting.toUpperCase()] ?? batting,
     bowling: bowling ? sentence(bowling) : "",
-    photo: PLAYER_PORTRAITS[name.toLowerCase()] ?? driveImage(row["Photo for Squad Banner"]),
+    // one photo per player site-wide: a portrait from src/assets/players wins over the sheet upload
+    photo: portraitFor(name) ?? driveImage(row["Photo for Squad Banner"]),
   };
 }
 
