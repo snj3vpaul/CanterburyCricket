@@ -1,348 +1,136 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
-import { gsap } from "gsap";
+import { useEffect, useRef, useState } from "react";
+import DIMENSIONS from "../assets/Masonry/dimensions.json";
 import "./Masonry.css";
 
-/**
- * HYBRID LOCAL SETUP
- * - originals: src/assets/Masonry/originals (your current big photos)
- * - thumbs:    src/assets/Masonry/thumbs    (small webp for fast grid)
- * - previews:  src/assets/Masonry/previews  (medium webp for lightbox viewing)
- *
- * If thumbs/previews don’t exist yet, it will gracefully fallback to originals.
- */
+// Gallery: thumbs (420px wide WebP) in the grid, previews (1600px WebP) in the lightbox.
+// Layout is pure CSS columns, so nothing waits for JavaScript or for every photo to download:
+// each tile reserves its space from dimensions.json and the browser lazy-loads photos as you scroll.
+// New photo? Add the same file name to thumbs/ and previews/ (and ideally its size to dimensions.json).
+const thumbs = import.meta.glob("../assets/Masonry/thumbs/*.{webp,avif,jpg,jpeg,png}", { eager: true, import: "default" });
+const previews = import.meta.glob("../assets/Masonry/previews/*.{webp,avif,jpg,jpeg,png}", { eager: true, import: "default" });
 
-// Gallery is built from optimized WebP only (thumbs + previews).
-// The heavy "originals" folder is NOT used and can be safely deleted.
-const thumbs = import.meta.glob(
-  "../assets/Masonry/thumbs/**/*.{webp,avif,jpg,jpeg,png,WEBP,AVIF,JPG,JPEG,PNG}",
-  { eager: true, import: "default" }
-);
+const baseName = (path) => path.split("/").pop().replace(/\.[a-z]+$/i, "");
+const thumbByName = Object.fromEntries(Object.entries(thumbs).map(([p, url]) => [baseName(p), url]));
 
-const previews = import.meta.glob(
-  "../assets/Masonry/previews/**/*.{webp,avif,jpg,jpeg,png,WEBP,AVIF,JPG,JPEG,PNG}",
-  { eager: true, import: "default" }
-);
-
-const toFileName = (path) => path.split("/").pop() || path;
-
-/**
- * Build a stable list from originals, and match thumb/preview by same filename (recommended).
- * e.g. originals/A01.jpg -> thumbs/A01.webp -> previews/A01.webp
- */
-const AUTO_ITEMS = Object.entries(previews)
-  .map(([path, previewUrl]) => {
-    const fileName = toFileName(path);
-    const baseName = fileName.replace(/\.(jpg|jpeg|png|webp|avif)$/i, ""); // name without ext
-
-    // Match the matching thumbnail by base name; fall back to the preview.
-    const thumbEntry = Object.entries(thumbs).find(
-      ([p]) => toFileName(p).replace(/\.(jpg|jpeg|png|webp|avif)$/i, "") === baseName
-    );
-    const thumbUrl = thumbEntry?.[1] ?? previewUrl;
-
-    return {
-      id: baseName,
-      fileName,
-      alt: baseName,
-      thumb: thumbUrl,        // small webp -> fast grid
-      preview: previewUrl,    // medium webp -> lightbox
-      full: previewUrl,       // lightbox uses optimized preview (no heavy original)
-    };
+const PHOTOS = Object.entries(previews)
+  .map(([path, preview]) => {
+    const id = baseName(path);
+    const [w, h] = DIMENSIONS[id] ?? [420, 280];
+    return { id, preview, thumb: thumbByName[id] ?? preview, w, h };
   })
-  .sort((a, b) => a.fileName.localeCompare(b.fileName));
+  .sort((a, b) => a.id.localeCompare(b.id))
+  .map((photo, i, all) => ({ ...photo, alt: `Canterbury Cricket Club photo ${i + 1} of ${all.length}` }));
 
-/* =========================
-   Hooks
-========================= */
+const EAGER = 4; // first row loads straight away; the rest wait until they are near the screen
 
-const useMedia = (queries, values, defaultValue) => {
-  const get = () => values[queries.findIndex((q) => matchMedia(q).matches)] ?? defaultValue;
-  const [value, setValue] = useState(get);
-
-  useEffect(() => {
-    const handler = () => setValue(get);
-    const mqs = queries.map((q) => matchMedia(q));
-    mqs.forEach((mq) => mq.addEventListener("change", handler));
-    return () => mqs.forEach((mq) => mq.removeEventListener("change", handler));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queries]);
-
-  return value;
-};
-
-const useMeasure = () => {
+// Fade each tile up as it scrolls into view (skipped for reduced-motion users via CSS).
+function useReveal() {
   const ref = useRef(null);
-  const [size, setSize] = useState({ width: 0, height: 0 });
-
-  useLayoutEffect(() => {
-    if (!ref.current) return;
-    const ro = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setSize({ width, height });
-    });
-    ro.observe(ref.current);
-    return () => ro.disconnect();
-  }, []);
-
-  return [ref, size];
-};
-
-const loadImageMeta = (src) =>
-  new Promise((resolve) => {
-    const img = new Image();
-    img.src = src;
-
-    const done = () => {
-      const w = img.naturalWidth || 1200;
-      const h = img.naturalHeight || 900;
-      resolve({ src, w, h, ratio: h / w });
-    };
-
-    img.onload = done;
-    img.onerror = done;
-  });
-
-/* =========================
-   Component
-========================= */
-
-export default function Masonry({
-  items, // optional override [{id, thumb, preview, full, filename, alt}]
-  ease = "power3.out",
-  duration = 0.6,
-  stagger = 0.03,
-  minTileH = 180,
-  maxTileH = 560
-}) {
-  const columns = useMedia(
-    ["(min-width:1500px)", "(min-width:1000px)", "(min-width:600px)", "(min-width:400px)"],
-    [5, 4, 3, 2],
-    1
-  );
-
-  const [containerRef, { width }] = useMeasure();
-  const [imagesReady, setImagesReady] = useState(false);
-  const [measuredItems, setMeasuredItems] = useState([]);
-  const hasMounted = useRef(false);
-
-  // Lightbox
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const finalSource = useMemo(() => {
-    if (items?.length) {
-      return items.map((it, idx) => ({
-        id: it.id ?? `custom-${idx}`,
-        thumb: it.thumb ?? it.img ?? it.full,
-        preview: it.preview ?? it.thumb ?? it.img ?? it.full,
-        full: it.full ?? it.preview ?? it.thumb,
-        filename: it.filename ?? `photo-${idx + 1}.jpg`,
-        alt: it.alt ?? `Photo ${idx + 1}`
-      }));
-    }
-    return AUTO_ITEMS.map((it) => ({
-      id: it.id,
-      thumb: it.thumb,
-      preview: it.preview,
-      full: it.full,
-      filename: it.fileName,
-      alt: it.alt
-    }));
-  }, [items]);
-
-  // Measure aspect ratios based on THUMB (fastest) or PREVIEW fallback
   useEffect(() => {
-    let cancelled = false;
-    setImagesReady(false);
-
-    const measureSrc = finalSource.map((it) => it.thumb || it.preview || it.full);
-
-    Promise.all(measureSrc.map((src) => loadImageMeta(src))).then((metas) => {
-      if (cancelled) return;
-
-      const next = finalSource.map((it) => {
-        const src = it.thumb || it.preview || it.full;
-        const meta = metas.find((m) => m.src === src);
-        return { ...it, ratio: meta?.ratio ?? 0.75 };
-      });
-
-      setMeasuredItems(next);
-      setImagesReady(true);
-      hasMounted.current = false;
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [finalSource]);
-
-  const { grid, totalHeight } = useMemo(() => {
-  if (!width || !imagesReady || measuredItems.length === 0) return { grid: [], totalHeight: 0 };
-
-  const gap = 16; // 👈 spacing between tiles (matches visual)
-  const colHeights = new Array(columns).fill(0);
-
-  // ✅ account for gaps between columns
-  const columnWidth = (width - gap * (columns - 1)) / columns;
-
-  const positioned = measuredItems.map((child) => {
-    const col = colHeights.indexOf(Math.min(...colHeights));
-    const x = (columnWidth + gap) * col;
-
-    let h = columnWidth * (child.ratio ?? 0.75);
-    h = Math.max(minTileH, Math.min(maxTileH, h));
-
-    const y = colHeights[col];
-    colHeights[col] += h + gap; // ✅ account for vertical gap
-
-    return { ...child, x, y, w: columnWidth, h };
-  });
-
-  const maxH = Math.max(...colHeights, 0);
-  return { grid: positioned, totalHeight: Math.max(0, maxH - gap) };
-}, [width, imagesReady, measuredItems, columns, minTileH, maxTileH]);
-
-  // Animate positions
-  useLayoutEffect(() => {
-    if (!imagesReady || grid.length === 0) return;
-
-    grid.forEach((item, index) => {
-      const selector = `[data-key="${item.id}"]`;
-      const animationProps = { x: item.x, y: item.y, width: item.w, height: item.h };
-
-      if (!hasMounted.current) {
-        gsap.fromTo(
-          selector,
-          { opacity: 0, x: item.x, y: item.y + 30, width: item.w, height: item.h, filter: "blur(10px)" },
-          {
-            opacity: 1,
-            ...animationProps,
-            filter: "blur(0px)",
-            duration: 0.7,
-            ease: "power3.out",
-            delay: index * stagger
-          }
-        );
-      } else {
-        gsap.to(selector, { ...animationProps, duration, ease, overwrite: "auto" });
-      }
-    });
-
-    hasMounted.current = true;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grid, imagesReady, stagger, duration, ease]);
-
-  const openAt = useCallback((idx) => {
-    setActiveIndex(idx);
-    setOpen(true);
+    const root = ref.current;
+    if (!root || !("IntersectionObserver" in window)) return;
+    root.classList.add("gallery--reveal");
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add("is-visible"); io.unobserve(e.target); }
+      }),
+      { rootMargin: "0px 0px -8% 0px" }
+    );
+    root.querySelectorAll(".gallery__tile").forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
+  return ref;
+}
 
-  const close = useCallback(() => setOpen(false), []);
-  const prev = useCallback(() => setActiveIndex((i) => (i - 1 + grid.length) % grid.length), [grid.length]);
-  const next = useCallback(() => setActiveIndex((i) => (i + 1) % grid.length), [grid.length]);
+export default function Masonry() {
+  const gridRef = useReveal();
+  const [active, setActive] = useState(null); // index of the open photo, or null
+  const closeBtn = useRef(null);
+  const lastTile = useRef(null);
+  const touchX = useRef(null);
 
-  const active = grid[activeIndex];
+  const open = (i, el) => { lastTile.current = el; setActive(i); };
+  const close = () => { setActive(null); lastTile.current?.focus(); };
+  const step = (d) => setActive((i) => (i + d + PHOTOS.length) % PHOTOS.length);
+  const isOpen = active !== null;
 
-  // Keyboard controls when modal open
+  // While the viewer is open: keyboard controls, focus on Close, no page scrolling behind it.
   useEffect(() => {
-    if (!open) return;
-
+    if (!isOpen) return;
+    closeBtn.current?.focus();
+    const move = (d) => setActive((i) => (i + d + PHOTOS.length) % PHOTOS.length);
     const onKey = (e) => {
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "ArrowRight") next();
+      if (e.key === "Escape") { setActive(null); lastTile.current?.focus(); }
+      if (e.key === "ArrowLeft") move(-1);
+      if (e.key === "ArrowRight") move(1);
     };
-
-    window.addEventListener("keydown", onKey);
-
-    const prevOverflow = document.body.style.overflow;
+    const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = overflow; };
+  }, [isOpen]);
 
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [open, close, prev, next]);
-
-  const downloadActive = useCallback(() => {
-    if (!active?.full) return;
-    const a = document.createElement("a");
-    a.href = active.full;
-    a.download = active.filename || "photo.jpg";
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  // Warm up the neighbouring photos so next/previous feel instant.
+  useEffect(() => {
+    if (active === null) return;
+    [1, -1].forEach((d) => { new Image().src = PHOTOS[(active + d + PHOTOS.length) % PHOTOS.length].preview; });
   }, [active]);
 
-  const onKeyDown = (e, idx) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openAt(idx);
-    }
-  };
+  const photo = active === null ? null : PHOTOS[active];
 
   return (
-    <>
-      <div ref={containerRef} className="list" style={{ height: totalHeight }}>
-        {grid.map((item, idx) => (
-          <div
-            key={item.id}
-            data-key={item.id}
-            className="item-wrapper"
-            onClick={() => openAt(idx)}
-            onKeyDown={(e) => onKeyDown(e, idx)}
-            role="button"
-            tabIndex={0}
-            aria-label="Open photo"
-          >
-            {/* CHANGED: use <img> for true lazy-loading */}
-            <img className="item-img" src={item.thumb} alt={item.alt} loading="lazy" decoding="async" />
-          </div>
+    <main className="gallery">
+      <header className="gallery__header">
+        <p className="gallery__eyebrow">CANTERBURY CRICKET CLUB · OTTAWA</p>
+        <h1>Club photo gallery</h1>
+        <p>Matches, awards nights and the people behind the club. Tap a photo to view it full size.</p>
+      </header>
+
+      <ul ref={gridRef} className="gallery__grid">
+        {PHOTOS.map((p, i) => (
+          <li key={p.id} className="gallery__tile">
+            <button type="button" onClick={(e) => open(i, e.currentTarget)} aria-label={`Open ${p.alt}`}>
+              <img
+                src={p.thumb}
+                alt={p.alt}
+                width={p.w}
+                height={p.h}
+                loading={i < EAGER ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : undefined}
+                decoding="async"
+              />
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {/* Lightbox Modal */}
-      {open && active && (
-        <div className="mModal" role="dialog" aria-modal="true">
+      {photo && (
+        <div className="mModal" role="dialog" aria-modal="true" aria-label="Photo viewer">
           <div className="mBackdrop" onClick={close} />
-
           <div className="mPanel">
             <div className="mTopbar">
-              <div className="mCount">
-                {activeIndex + 1} / {grid.length}
-              </div>
-
+              <div className="mCount">{active + 1} / {PHOTOS.length}</div>
               <div className="mActions">
-                <button className="mBtn" onClick={downloadActive}>
-                  Download
-                </button>
-                <button className="mBtn mBtnGhost" onClick={close}>
-                  Close
-                </button>
+                <a className="mBtn" href={photo.preview} download={`canterbury-${photo.id}.webp`}>Download</a>
+                <button ref={closeBtn} className="mBtn mBtnGhost" onClick={close}>Close</button>
               </div>
             </div>
-
-            <div className="mStage">
-              <button className="mNav mNavLeft" onClick={prev} aria-label="Previous photo">
-                ‹
-              </button>
-
-              {/* Use preview (medium) for viewing. Falls back to thumb/original. */}
-              <img className="mFull" src={active.preview || active.thumb || active.full} alt={active.alt} />
-
-              <button className="mNav mNavRight" onClick={next} aria-label="Next photo">
-                ›
-              </button>
+            <div
+              className="mStage"
+              onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                const dx = e.changedTouches[0].clientX - (touchX.current ?? 0);
+                if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+              }}
+            >
+              <button className="mNav mNavLeft" onClick={() => step(-1)} aria-label="Previous photo">‹</button>
+              <img className="mFull" src={photo.preview} alt={photo.alt} />
+              <button className="mNav mNavRight" onClick={() => step(1)} aria-label="Next photo">›</button>
             </div>
-
-            <div className="mFooter">
-              <div className="mCaption">{active.alt}</div>
-              <div className="mHint">Tip: Download grabs the original file.</div>
-            </div>
+            <div className="mFooter"><div className="mHint">Swipe or use the arrows to browse.</div></div>
           </div>
         </div>
       )}
-    </>
+    </main>
   );
 }

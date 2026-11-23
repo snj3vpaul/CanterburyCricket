@@ -1,79 +1,68 @@
-/* Masonry.css */
+/* Masonry.css: CSS-columns gallery (no JS layout) + lightbox */
 
-/* The container is given a real height via inline style in JSX (totalHeight),
-   so do NOT force height: 100% here. */
-.list {
-  position: relative;
-  width: 100%;
-  /* height comes from inline style */
-  overflow: visible;
+.gallery {
+  width: min(1400px, 100% - 32px);
   margin: 0 auto;
+  padding: 24px 0 48px;
 }
 
-/* Each tile wrapper is absolutely positioned by GSAP using x/y transforms */
-.item-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  padding: 0px;
-  cursor: pointer;
-  transform-origin: center;
-  will-change: transform, width, height, opacity;
-  /* avoid accidental text selection while dragging/clicking */
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
+.gallery__header { max-width: 720px; margin-bottom: 24px; }
+.gallery__header h1 { margin: 6px 0 8px; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.1; }
+.gallery__header p { margin: 0; opacity: 0.8; }
+.gallery__eyebrow { font-size: 0.78rem; letter-spacing: 0.14em; font-weight: 700; opacity: 0.7; }
 
-/* The visual “card” */
-.item-wrapper > .item-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;  /* ✅ same as background-size: cover */
+.gallery__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 12px;
+}
+@media (min-width: 700px)  { .gallery__grid { columns: 3; column-gap: 16px; } }
+@media (min-width: 1000px) { .gallery__grid { columns: 4; } }
+@media (min-width: 1500px) { .gallery__grid { columns: 5; } }
+
+.gallery__tile {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+@media (min-width: 700px) { .gallery__tile { margin-bottom: 16px; } }
+
+.gallery__tile button {
   display: block;
-
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.06); /* placeholder colour while the photo loads */
   border-radius: 14px;
   overflow: hidden;
-
-  box-shadow:
-    0 10px 28px rgba(0, 0, 0, 0.25),
-    0 2px 10px rgba(0, 0, 0, 0.18);
-
-  border: 1px solid rgba(255, 255, 255, 0.08);
-
-  transition: transform 220ms ease, filter 220ms ease, box-shadow 220ms ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
 }
 
-.item-wrapper::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  pointer-events: none;
-  background:
-    radial-gradient(900px 420px at 50% 0%, rgba(255, 255, 255, 0.10), transparent 55%),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.18));
-  opacity: 0.9;
+.gallery__tile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 220ms ease;
 }
 
+.gallery__tile button:hover img,
+.gallery__tile button:focus-visible img { transform: scale(1.03); }
+.gallery__tile button:focus-visible { outline: 3px solid #f5c542; outline-offset: 3px; }
 
-/* Hover/Focus: make it feel premium */
-.item-wrapper:hover > .item-img,
-.item-wrapper:focus-visible > .item-img {
-  transform: scale(1.03);
-  filter: saturate(1.05) contrast(1.03);
-  box-shadow:
-    0 16px 44px rgba(0, 0, 0, 0.32),
-    0 3px 12px rgba(0, 0, 0, 0.20);
-  outline: none;
+/* Scroll reveal: added by JS only, so photos are always visible without it */
+.gallery--reveal .gallery__tile {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 500ms ease, transform 500ms ease;
 }
+.gallery--reveal .gallery__tile.is-visible { opacity: 1; transform: none; }
 
-.item-wrapper:focus-visible {
-  outline: none;
-}
-
-/* If you enable the gradient overlay in JSX (colorShiftOnHover) */
-.color-overlay {
-  border-radius: inherit;
+@media (prefers-reduced-motion: reduce) {
+  .gallery--reveal .gallery__tile { opacity: 1; transform: none; transition: none; }
+  .gallery__tile img { transition: none; }
 }
 
 /* ===== Lightbox ===== */
@@ -123,6 +112,8 @@
 
 .mBtn {
   cursor: pointer;
+  text-decoration: none;
+  font: inherit;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
@@ -141,6 +132,7 @@
 
 .mStage {
   position: relative;
+  touch-action: pan-y;
   display: grid;
   place-items: center;
   padding: 14px;
