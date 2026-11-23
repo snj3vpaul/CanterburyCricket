@@ -12,6 +12,7 @@ import {
   Button,
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import ClubMuiTheme from "../../theme/ClubMuiTheme";
 
 import TiltedCard from "../../components/TiltedCard/TiltedCard"; // ✅ adjust if your path differs
 import "./AwardsCarousel.css";
@@ -259,6 +260,7 @@ function AwardModal({ open, award, onClose, onNext }) {
       : { label: award.division, className: "chipDiv" };
 
   return (
+    <ClubMuiTheme>
     <Modal
       open={open}
       onClose={onClose}
@@ -332,6 +334,7 @@ function AwardModal({ open, award, onClose, onNext }) {
         </Box>
       </Fade>
     </Modal>
+    </ClubMuiTheme>
   );
 }
 

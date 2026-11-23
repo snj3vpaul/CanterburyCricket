@@ -9,7 +9,7 @@
   margin: 0 auto;
   padding: clamp(28px, 6vw, 72px) 0 72px;
   color: var(--sq-ivory);
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
 }
 .sq *, .sq *::before, .sq *::after { box-sizing: border-box; }
 

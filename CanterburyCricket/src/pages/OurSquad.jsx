@@ -70,7 +70,7 @@ export default function OurSquad() {
       ) : null}
 
       {status === "loading" ? (
-        <div className="sq-skeleton" aria-label="Loading the squad">
+        <div className="sq-skeleton" role="status" aria-label="Loading the squad">
           {Array.from({ length: 8 }, (_, i) => <div key={i}><span /><i /><i /></div>)}
         </div>
       ) : null}

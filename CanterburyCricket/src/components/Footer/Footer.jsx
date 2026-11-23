@@ -74,7 +74,7 @@ export default function Footer() {
                 href="https://www.instagram.com/canterburyccottawa"
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Instagram"
+                aria-label="Instagram (IG)"
                 title="Instagram"
               >
                 IG
@@ -84,7 +84,7 @@ export default function Footer() {
                 href="https://www.facebook.com/CanterburyCCCanada/"
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Facebook"
+                aria-label="Facebook (FB)"
                 title="Facebook"
               >
                 FB

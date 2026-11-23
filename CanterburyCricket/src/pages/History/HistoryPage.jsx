@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Dialog, DialogContent } from '@mui/material';
+import ClubMuiTheme from '../../theme/ClubMuiTheme';
 
 import archiveAwards from '../../assets/gallery/previews/IMG_1375.webp';
 import archiveTrophies from '../../assets/gallery/previews/IMG_1490.webp';
@@ -356,7 +357,7 @@ function PlayerCard({ person, onOpen, index }) {
   const visibleStats = primaryStats.filter(([, value]) => value != null).slice(0, 2);
 
   return (
-    <button type="button" className={styles.playerCard} onClick={() => onOpen(person)} aria-label={`View ${person.name}'s profile`}>
+    <button type="button" className={styles.playerCard} onClick={() => onOpen(person)}>
       <div className={styles.playerMedia}>
         <Portrait person={person} />
         <span className={styles.playerIndex}>NO. {String(index + 1).padStart(2, '0')}</span>
@@ -398,6 +399,7 @@ function PlayerSection({ id, label, title, description, players, variant = 'dark
 function PlayerProfile({ person, onClose }) {
   const stats = Object.entries(person?.stats || {});
   return (
+    <ClubMuiTheme>
     <Dialog
       open={Boolean(person)}
       onClose={onClose}
@@ -437,6 +439,7 @@ function PlayerProfile({ person, onClose }) {
         </DialogContent>
       )}
     </Dialog>
+    </ClubMuiTheme>
   );
 }
 
