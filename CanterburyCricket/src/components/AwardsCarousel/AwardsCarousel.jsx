@@ -13,6 +13,8 @@ import {
 } from "@mui/material";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ClubMuiTheme from "../../theme/ClubMuiTheme";
+import ClubIcon from "../ClubIcon/ClubIcon";
+import { ICONS, ICON_ATTRS } from "../ClubIcon/icons";
 
 import TiltedCard from "../../components/TiltedCard/TiltedCard"; // ✅ adjust if your path differs
 import "./AwardsCarousel.css";
@@ -49,17 +51,17 @@ const SEASON = "2025";
 const DIVISIONS = ["T20", "CTZ", "CHG"];
 
 const DIVISION_AWARDS = [
-  { key: "best_batter", label: "Best Batter", emoji: "🏏" },
-  { key: "best_bowler", label: "Best Bowler", emoji: "🔥" },
-  { key: "best_fielder", label: "Best Fielder", emoji: "🧤" },
-  { key: "mvp", label: "MVP", emoji: "🏆" },
+  { key: "best_batter", label: "Best Batter", icon: "bat" },
+  { key: "best_bowler", label: "Best Bowler", icon: "ball" },
+  { key: "best_fielder", label: "Best Fielder", icon: "glove" },
+  { key: "mvp", label: "MVP", icon: "trophy" },
 ];
 
 const CLUB_AWARDS = [
-  { key: "player_of_year", label: "Player of the Year", emoji: "👑" },
-  { key: "most_dedicated", label: "Most Dedicated Player", emoji: "🫡" },
-  { key: "best_knock", label: "Best Knock of the Year", emoji: "💥" },
-  { key: "best_spell", label: "Best Bowling Spell of the Year", emoji: "🎯" },
+  { key: "player_of_year", label: "Player of the Year", icon: "cap" },
+  { key: "most_dedicated", label: "Most Dedicated Player", icon: "medal" },
+  { key: "best_knock", label: "Best Knock of the Year", icon: "strike" },
+  { key: "best_spell", label: "Best Bowling Spell of the Year", icon: "stumps" },
 ];
 
 // ✅ Division winners map
@@ -151,7 +153,7 @@ function useIsMobile(breakpoint = 520) {
 /**
  * Fallback placeholder (used only when there’s no image)
  */
-function imagePlaceholderDataUri({ emoji = "🏆", accent = "#f7b500" } = {}) {
+function imagePlaceholderDataUri({ icon = "trophy", accent = "#f7b500" } = {}) {
   const svg = `
   <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900">
     <defs>
@@ -168,12 +170,7 @@ function imagePlaceholderDataUri({ emoji = "🏆", accent = "#f7b500" } = {}) {
     <circle cx="760" cy="180" r="260" fill="${accent}" opacity="0.20" filter="url(#blur)"/>
     <circle cx="150" cy="780" r="320" fill="${accent}" opacity="0.14" filter="url(#blur)"/>
 
-    <text x="70" y="180"
-      font-size="140"
-      font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial"
-      fill="#ffffff"
-      opacity="0.95"
-    >${emoji}</text>
+    <svg x="70" y="70" width="170" height="170" ${ICON_ATTRS} color="#ffffff" opacity="0.95">${ICONS[icon] ?? ICONS.trophy}</svg>
 
     <rect x="70" y="700" width="760" height="16" rx="8" fill="rgba(255,255,255,0.14)"/>
     <rect x="70" y="740" width="540" height="16" rx="8" fill="rgba(255,255,255,0.10)"/>
@@ -202,7 +199,7 @@ function buildAwards(season = SEASON) {
         division: div,
         type: "division",
         title: a.label,
-        emoji: a.emoji,
+        icon: a.icon,
         subtitle: `${div} Division`,
         meta: `${season} • ${div}`,
         winner: {
@@ -228,7 +225,7 @@ function buildAwards(season = SEASON) {
       division: "CLUB",
       type: "club",
       title: a.label,
-      emoji: a.emoji,
+      icon: a.icon,
       subtitle: "Club Award",
       meta: `${season}`,
       winner: {
@@ -293,7 +290,7 @@ function AwardModal({ open, award, onClose, onNext }) {
               ) : award.winner.photoUrl ? (
                 <img src={award.winner.photoUrl} alt={award.winner.name} />
               ) : (
-                <div className="awardPhotoPlaceholder">{award.emoji}</div>
+                <div className="awardPhotoPlaceholder" style={{ color: accentByDivision(award.division) }}><ClubIcon name={award.icon} size={64} /></div>
               )}
             </div>
 
@@ -387,7 +384,7 @@ export default function AwardsCarousel() {
               const imageSrc =
                 item.imageUrl ||
                 imagePlaceholderDataUri({
-                  emoji: item.emoji,
+                  icon: item.icon,
                   accent: accentByDivision(item.division),
                 });
 
@@ -437,7 +434,7 @@ export default function AwardsCarousel() {
                     className="awardMiniCard"
                     onClick={() => openAward(awards.findIndex((x) => x.id === a.id))}
                   >
-                    <span className="miniEmoji">{a.emoji}</span>
+                    <span className="miniIcon" style={{ color: accentByDivision(a.division) }}><ClubIcon name={a.icon} size={26} /></span>
                     <span className="miniTitle">{a.title}</span>
                     <span className="miniMeta">{a.meta}</span>
                     <span className="miniWinner">{a.winner?.name ?? "TBD"}</span>
@@ -458,7 +455,7 @@ export default function AwardsCarousel() {
                       className="awardMiniCard"
                       onClick={() => openAward(awards.findIndex((x) => x.id === a.id))}
                     >
-                      <span className="miniEmoji">{a.emoji}</span>
+                      <span className="miniIcon" style={{ color: accentByDivision(a.division) }}><ClubIcon name={a.icon} size={26} /></span>
                       <span className="miniTitle">{a.title}</span>
                       <span className="miniMeta">{a.meta}</span>
                       <span className="miniWinner">{a.winner?.name ?? "TBD"}</span>

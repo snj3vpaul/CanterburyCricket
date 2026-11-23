@@ -194,8 +194,13 @@
 }
 
 .git__statusIcon {
+  display: inline-flex;
   line-height: 1.1;
   margin-top: 1px;
+}
+
+.git__errorIcon {
+  vertical-align: -2px;
 }
 
 /* Desktop spacing upgrade */

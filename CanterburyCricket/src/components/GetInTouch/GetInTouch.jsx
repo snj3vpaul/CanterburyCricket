@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "./GetInTouch.css";
+import ClubIcon from "../ClubIcon/ClubIcon";
 
 /* =========================
    Provider typo-squat detection
@@ -320,7 +321,7 @@ const payload = {
 
       setStatus({
         type: "success",
-        message: "Message sent successfully! We’ll get back to you soon 🙌",
+        message: "Message sent successfully! We’ll get back to you soon.",
       });
       setErrors({});
       setTouched({});
@@ -388,7 +389,7 @@ const payload = {
             />
             {errors.name && (
               <div id="name-error" className="git__error">
-                ⚠️ {errors.name}
+                <ClubIcon name="alert" size={15} className="git__errorIcon" /> {errors.name}
               </div>
             )}
           </div>
@@ -414,7 +415,7 @@ const payload = {
             />
             {errors.email && (
               <div id="email-error" className="git__error">
-                ⚠️ {errors.email}
+                <ClubIcon name="alert" size={15} className="git__errorIcon" /> {errors.email}
               </div>
             )}
           </div>
@@ -438,7 +439,7 @@ const payload = {
             />
             {errors.profile && (
               <div id="profile-error" className="git__error">
-                ⚠️ {errors.profile}
+                <ClubIcon name="alert" size={15} className="git__errorIcon" /> {errors.profile}
               </div>
             )}
           </div>}
@@ -464,7 +465,7 @@ const payload = {
             </div>
             {errors.message && (
               <div id="message-error" className="git__error">
-                ⚠️ {errors.message}
+                <ClubIcon name="alert" size={15} className="git__errorIcon" /> {errors.message}
               </div>
             )}
           </div>
@@ -492,7 +493,7 @@ const payload = {
               role="status"
             >
               <span className="git__statusIcon">
-                {status.type === "success" ? "✅" : "⚠️"}
+                <ClubIcon name={status.type === "success" ? "check" : "alert"} size={20} />
               </span>
               <span>{status.message}</span>
             </div>
@@ -500,7 +501,7 @@ const payload = {
 
           {hasAnyError && !status.message && (
             <div className="git__status is-error" role="status">
-              <span className="git__statusIcon">⚠️</span>
+              <span className="git__statusIcon"><ClubIcon name="alert" size={20} /></span>
               <span>Please review the highlighted fields.</span>
             </div>
           )}

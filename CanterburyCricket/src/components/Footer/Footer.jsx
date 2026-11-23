@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import styles from "./Footer.module.css";
+import ClubIcon from "../ClubIcon/ClubIcon";
 
 // Optional: replace with your actual logo path
 
@@ -22,7 +23,7 @@ export default function Footer() {
               <p className={styles.clubName}>Canterbury Cricket Club</p>
               <p className={styles.meta}>Est. 1983 • Ottawa, Canada</p>
               <p className={styles.tagline}>
-                Community cricket, competitive spirit, and great vibes 🏏
+                Community cricket, competitive spirit, and great vibes.
               </p>
             </div>
           </div>
@@ -46,16 +47,16 @@ export default function Footer() {
             <p className={styles.heading}>Contact</p>
             <ul className={styles.list}>
               <li className={styles.item}>
-                <span className={styles.muted}>📍</span> Ottawa, Ontario
+                <ClubIcon name="pin" size={18} className={styles.itemIcon} /> Ottawa, Ontario
               </li>
               <li className={styles.item}>
-                <span className={styles.muted}>✉️</span>{" "}
+                <ClubIcon name="mail" size={18} className={styles.itemIcon} />{" "}
                 <a className={styles.link} href="mailto:cricketcanterbury@gmail.com">
-                  cricketcanterbury@gmail.com
+                  cricketcanterbury@<wbr />gmail.com
                 </a>
               </li>
               <li className={styles.item}>
-                <span className={styles.muted}>📣</span> New players welcome!
+                <ClubIcon name="megaphone" size={18} className={styles.itemIcon} /> New players welcome!
               </li>
             </ul>
 
