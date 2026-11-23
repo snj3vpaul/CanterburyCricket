@@ -49,7 +49,14 @@
   }
 
   // ---------- layout ----------
+  // Four stacked layers so the bat can be shaded in club colours: ember shadows -> deep gold -> gold -> cream highlights
   var pre = root.querySelector("pre");
+  var TONES = ["#c2410c", "#f7b500", "#ffd36a", "#fbf8f1"];
+  var layers = TONES.map(function (color, i) {
+    var el = i === 0 ? pre : root.insertBefore(pre.cloneNode(false), hud);
+    el.style.color = color;
+    return el;
+  });
   var hud = root.querySelector("canvas");
   var ctx = hud.getContext("2d");
   var cols, rows, cellW, cellH, scale, cx, cy, dpr;
@@ -65,8 +72,7 @@
     cellW = pre.getBoundingClientRect().width / 20 || fontPx * 0.6; cellH = fontPx;
     var boxW = Math.min(w * 0.94, 760), boxH = Math.min(h * 0.74, 720);
     cols = Math.floor(boxW / cellW); rows = Math.floor(boxH / cellH);
-    pre.style.fontSize = fontPx + "px";
-    pre.style.lineHeight = cellH + "px";
+    layers.forEach(function (el) { el.style.fontSize = fontPx + "px"; el.style.lineHeight = cellH + "px"; });
     scale = Math.min(boxH / 0.78, boxW / 0.62); // world units -> px
     cx = w / 2; cy = h / 2;
     hud.width = w * dpr; hud.height = h * dpr;
@@ -76,20 +82,25 @@
   // ---------- render one frame ----------
   var lx = -0.45, ly = 0.55, lz = 0.7, ll = len3(lx, ly, lz); lx /= ll; ly /= ll; lz /= ll;
 
+  // put `ch` in tone layer `tone` and a space in the others (tone -1 = space everywhere)
+  function pad(line, tone, ch) {
+    for (var k = 0; k < 4; k++) line[k] += k === tone ? ch : " ";
+  }
+
   function frame(time) {
     var a = time * 0.0011 + 0.6;              // spin around the bat's long axis
     var tilt = 0.22 * Math.sin(time * 0.0007); // gentle nod
     var ca = Math.cos(a), sa = Math.sin(a), ct = Math.cos(tilt), st = Math.sin(tilt);
     var gridW = cols * cellW, gridH = rows * cellH;
-    var out = "";
+    var out = ["", "", "", ""];
     for (var r = 0; r < rows; r++) {
       var gy = -((r + 0.5) * cellH - gridH / 2) / scale;
-      var line = "";
+      var line = ["", "", "", ""];
       for (var c = 0; c < cols; c++) {
         var gx = ((c + 0.5) * cellW - gridW / 2) / scale;
         // undo the lean, then skip cells that are clearly nowhere near the bat
         var sx = gx * cr + gy * sr, sy = -gx * sr + gy * cr - 0.06; // bat centre is at y = -0.06
-        if (Math.abs(sx) > 0.085 || sy < -0.56 || sy > 0.43) { line += " "; continue; }
+        if (Math.abs(sx) > 0.085 || sy < -0.56 || sy > 0.43) { pad(line, -1, " "); continue; }
         // Orthographic ray from z = 0.2 travelling to -z, transformed into bat space
         var d = 0, hit = false, px, py, pz;
         for (var i = 0; i < 34; i++) {
@@ -102,7 +113,7 @@
           d += dist;
           if (d > 0.4) break;
         }
-        if (!hit) { line += " "; continue; }
+        if (!hit) { pad(line, -1, " "); continue; }
         var e = 0.002;
         var nx = bat(px + e, py, pz) - bat(px - e, py, pz);
         var ny = bat(px, py + e, pz) - bat(px, py - e, pz);
@@ -118,11 +129,11 @@
         var spec = Math.pow(Math.max(0, (vx * lx + vy * ly + vz * hz) / hl), 24);
         var rim = Math.pow(1 - Math.abs(vz), 4) * 0.35;
         var b = Math.min(0.999, 0.04 + diff * diff * 0.75 + spec * 0.6 + rim);
-        line += RAMP.charAt(1 + Math.floor(b * (RAMP.length - 1)));
+        pad(line, b < 0.3 ? 0 : b < 0.55 ? 1 : b < 0.8 ? 2 : 3, RAMP.charAt(1 + Math.floor(b * (RAMP.length - 1))));
       }
-      out += line + "\n";
+      for (var k = 0; k < 4; k++) out[k] += line[k] + "\n";
     }
-    pre.textContent = out;
+    for (var j = 0; j < 4; j++) layers[j].textContent = out[j];
     drawHud(time, ca, sa, ct, st);
   }
 
@@ -155,24 +166,28 @@
     var local = (time % 520) / 520;
     var L = LABELS[slot];
     var p = project(L.at, ca, sa, ct, st);
-    var gold = "rgba(217,180,90,";
+    var gold = "rgba(255,211,106,"; // --gold-bright
     var size = 12 + 4 * (1 - local);
     ctx.strokeStyle = gold + "0.95)";
     corners(p[0], p[1], size);
+    var reach = small ? 46 : 90, textW = Math.max(ctx.measureText(L.name).width, ctx.measureText(L.note).width) + 24;
     var side = p[0] < cx ? -1 : 1;
-    var ex = p[0] + side * (small ? 46 : 90), ey = p[1] - 22;
+    // flip to the other side if the label would run off the screen
+    if (side < 0 && p[0] - reach - textW < 8) side = 1;
+    else if (side > 0 && p[0] + reach + textW > w - 8) side = -1;
+    var ex = p[0] + side * reach, ey = p[1] - 22;
     ctx.beginPath(); ctx.moveTo(p[0] + side * size, p[1]); ctx.lineTo(ex, ey); ctx.lineTo(ex + side * 14, ey); ctx.stroke();
     var shown = Math.ceil(Math.min(1, local * 2.2) * L.name.length);
-    ctx.fillStyle = "rgba(246,242,234,0.95)";
+    ctx.fillStyle = "rgba(251,248,241,0.96)";
     ctx.textAlign = side > 0 ? "left" : "right";
     ctx.fillText(L.name.slice(0, shown), ex + side * 18, ey - 7);
-    ctx.fillStyle = gold + "0.8)";
+    ctx.fillStyle = "rgba(247,181,0,0.9)"; // --gold
     ctx.fillText(local > 0.35 ? L.note : "", ex + side * 18, ey + 8);
 
     // Frame furniture
     var pct = Math.min(100, Math.floor((time / DURATION) * 100));
     var m = small ? 16 : 28;
-    ctx.fillStyle = "rgba(246,242,234,0.55)";
+    ctx.fillStyle = "rgba(251,248,241,0.55)";
     ctx.textAlign = "left";
     ctx.fillText("CANTERBURY CC / SPECIMEN 1983", m, m + 4);
     ctx.fillText("ENGLISH WILLOW · " + (small ? "" : "SHORT HANDLE · ") + "2.8 LB", m, m + 20);
@@ -182,11 +197,13 @@
     ctx.textAlign = "center";
     ctx.fillStyle = gold + "0.9)";
     ctx.fillText("CANTERBURY CRICKET CLUB · OTTAWA", w / 2, h - m - 18);
-    ctx.fillStyle = "rgba(246,242,234,0.4)";
+    ctx.fillStyle = "rgba(251,248,241,0.4)";
     ctx.fillText(small ? "TAP TO SKIP" : "CLICK OR PRESS ESC TO SKIP", w / 2, h - m);
-    // progress hairline
-    ctx.fillStyle = gold + "0.9)";
-    ctx.fillRect(0, h - 1, (w * pct) / 100, 1);
+    // progress bar in the navbar's amber-to-ember glow
+    var g = ctx.createLinearGradient(0, 0, w, 0);
+    g.addColorStop(0, "rgba(255,211,106,0.95)"); g.addColorStop(0.6, "rgba(255,170,0,0.95)"); g.addColorStop(1, "rgba(255,60,0,0.95)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, h - 2, (w * pct) / 100, 2);
   }
 
   // ---------- run ----------

@@ -12,9 +12,10 @@
     <link rel="icon" type="image/png" href="/club-icon.png" />
     <style>
       /* Intro scan overlay (public/intro/bat-scan.js). Hidden unless the bootstrap below shows it. */
-      #ccIntro{position:fixed;inset:0;z-index:2147483000;background:#05070d;display:grid;place-items:center;cursor:pointer;transition:opacity .45s ease}
+      #ccIntro{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;cursor:pointer;transition:opacity .45s ease;
+        background:radial-gradient(60% 38% at 50% 0%,rgba(255,170,0,.20),transparent 70%),radial-gradient(45% 30% at 80% 100%,rgba(255,60,0,.10),transparent 70%),#070912}
       #ccIntro[hidden]{display:none}
-      #ccIntro pre{margin:0;color:#f6f2ea;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:0;white-space:pre;user-select:none;opacity:.92}
+      #ccIntro pre{grid-area:1/1;margin:0;color:#fbf8f1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:0;white-space:pre;user-select:none;opacity:.92}
       #ccIntro canvas{position:absolute;inset:0;pointer-events:none}
       #ccIntro.is-leaving{opacity:0}
       html.cc-intro{overflow:hidden}
