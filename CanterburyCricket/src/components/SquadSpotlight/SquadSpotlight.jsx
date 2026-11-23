@@ -1,116 +1,43 @@
-// src/components/SquadSpotlight/SquadSpotlight.jsx
 import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { PlayerPhoto } from "../SquadRoster/SquadRoster";
 import "./SquadSpotlight.css";
 
-function roleRGB(role) {
-  const r = (role || "").toLowerCase();
-  if (r.includes("wicket")) return "255, 211, 106"; // light gold
-  if (r.includes("bowl")) return "224, 48, 30";     // crest red
-  if (r.includes("bat")) return "247, 181, 0";       // gold
-  return "245, 130, 31";                             // amber (all-rounder)
-}
-
-function splitName(name = "") {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return { first: "", last: parts[0] };
-  const last = parts.pop();
-  return { first: parts.join(" "), last };
-}
-
-const dayIndex = () => Math.floor(Date.now() / 86_400_000); // changes once per day
+const ROLE_LABEL = { Batter: "Batter", "Wicket-keeper": "Wicket-keeper", "All-rounder": "All-rounder", Bowler: "Bowler", Squad: "Squad player" };
+const today = () => Math.floor(Date.now() / 86_400_000);
 
 /**
- * Featured "Player Spotlight".
- * - Only players WITH a real photo are eligible (never shows the placeholder).
- * - Rotates deterministically by day, so everyone sees the same one and it
- *   cycles fairly over time — no backend needed.
- * - pinnedName (optional) locks a specific player and overrides the rotation.
+ * Featured player. Rotates once a day among players with a photo (everyone sees the same one),
+ * or shows `pinnedName` if set (player of the month, a debut, a milestone).
  */
-export default function SquadSpotlight({ players = [], fallbackImage, pinnedName = "" }) {
+export default function SquadSpotlight({ players = [], pinnedName = "" }) {
   const player = useMemo(() => {
-    const eligible = players.filter(
-      (p) => p.image && p.image !== fallbackImage
-    );
-    if (eligible.length === 0) return null;
-
-    if (pinnedName) {
-      const pinned = eligible.find(
-        (p) => (p.name || "").toLowerCase() === pinnedName.toLowerCase()
-      );
-      if (pinned) return pinned;
-    }
-
-    // Stable daily pick (sorted first so the index is consistent everywhere)
-    const sorted = [...eligible].sort((a, b) =>
-      (a.name || "").localeCompare(b.name || "")
-    );
-    return sorted[dayIndex() % sorted.length];
-  }, [players, fallbackImage, pinnedName]);
+    const withPhoto = players.filter((p) => p.photo).sort((a, b) => a.name.localeCompare(b.name));
+    if (!withPhoto.length) return null;
+    const pinned = pinnedName && withPhoto.find((p) => p.name.toLowerCase() === pinnedName.toLowerCase());
+    return pinned || withPhoto[today() % withPhoto.length];
+  }, [players, pinnedName]);
 
   if (!player) return null;
 
-  const { first, last } = splitName(player.name);
-  const rgb = roleRGB(player.role);
-  const jersey = String(player.jersey ?? "").replace(/\D/g, "");
-
   return (
-    <motion.section
-      className="sp-wrap"
-      style={{ "--sp-rgb": rgb }}
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      aria-label="Player spotlight"
-    >
-      <span className="sp-glow" aria-hidden="true" />
-
-      <div className="sp-photoFrame">
-        <img
-          className="sp-photo"
-          src={player.image}
-          alt={player.name}
-          loading="lazy"
-          onError={(e) => {
-            if (fallbackImage) e.currentTarget.src = fallbackImage;
-          }}
-        />
+    <section className="sp" aria-label="Featured player">
+      <div className="sp-photo">
+        <PlayerPhoto player={player} eager />
       </div>
-
       <div className="sp-body">
-        <span className="sp-kicker">★ Player Spotlight</span>
-
+        {player.jersey ? <span className="sp-ghost" aria-hidden="true">{player.jersey}</span> : null}
+        <p className="sp-kicker">Featured player</p>
         <h2 className="sp-name">
-          {first ? <span className="sp-first">{first} </span> : null}
-          <span className="sp-last">{last}</span>
+          {player.first ? <span className="sp-first">{player.first}</span> : null}
+          <span className="sp-last">{player.last}</span>
         </h2>
-
-        <div className="sp-meta">
-          <span className="sp-roleBadge">{player.role || "All-rounder"}</span>
-          {jersey ? <span className="sp-jersey">#{jersey}</span> : null}
-        </div>
-
-        <dl className="sp-stats">
-          {player.batting ? (
-            <div className="sp-stat">
-              <dt>Batting</dt>
-              <dd>{player.batting}</dd>
-            </div>
-          ) : null}
-          {player.bowling ? (
-            <div className="sp-stat">
-              <dt>Bowling</dt>
-              <dd>{player.bowling}</dd>
-            </div>
-          ) : null}
-          {player.bio ? (
-            <div className="sp-stat sp-stat--bio">
-              <dt>Bio</dt>
-              <dd>{player.bio}</dd>
-            </div>
-          ) : null}
-        </dl>
       </div>
-    </motion.section>
+      <dl className="sp-facts">
+        <div><dt>Role</dt><dd>{ROLE_LABEL[player.role]}</dd></div>
+        {player.jersey ? <div><dt>Number</dt><dd>{player.jersey}</dd></div> : null}
+        {player.batting ? <div><dt>Bats</dt><dd>{player.batting.replace(/ bat$/, "")}</dd></div> : null}
+        {player.bowling ? <div><dt>Bowls</dt><dd>{player.bowling}</dd></div> : null}
+      </dl>
+    </section>
   );
 }
