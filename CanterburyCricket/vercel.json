@@ -60,6 +60,11 @@
       "source": "/events",
       "destination": "/awards",
       "permanent": true
+    },
+    {
+      "source": "/contact",
+      "destination": "/join#get-in-touch",
+      "permanent": true
     }
   ],
   "headers": [

@@ -224,6 +224,7 @@ const ContactSchema = z
       .min(5, "Message is too short")
       .max(2000, "Message is too long"),
 
+    topic: z.enum(["playing", "sponsorship", "other"]).optional(), // "What's this about?"
     website: z.string().trim().optional().or(z.literal("")), // honeypot
     startedAt: z.number().int().optional(), // bot-signal
   })
@@ -340,7 +341,8 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: msg });
   }
 
-  const { name, email, profile, message, website, startedAt } = parsed.data;
+  const { name, email, profile, message, website, startedAt, topic = "other" } = parsed.data;
+  const TOPIC_LABEL = { playing: "Playing", sponsorship: "Sponsorship", other: "General enquiry" };
 
   // Honeypot -> pretend success
   if (website) {
@@ -394,6 +396,7 @@ export default async function handler(req, res) {
   const emailText = `
 New message from Canterbury Cricket Club website
 
+Topic: ${TOPIC_LABEL[topic]}
 Name: ${safeText(name)}
 Email: ${safeText(email)}
 Profile: ${safeText(profile || "-")}
@@ -407,7 +410,7 @@ ${safeText(message)}
       from: process.env.MAIL_FROM,
       to: process.env.MAIL_TO,
       replyTo: email, // already validated
-      subject: `New Contact Form Message — ${safeText(name)}`,
+      subject: `[${TOPIC_LABEL[topic]}] New website message — ${safeText(name)}`,
       text: emailText,
     });
 

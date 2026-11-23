@@ -157,7 +157,34 @@ function isValidFullName(raw) {
 }
 
 
-export default function GetInTouch() {
+// "What's this about?" One form for players, sponsors and everyone else.
+const TOPICS = {
+  playing: {
+    label: "Playing",
+    title: "Play for Canterbury",
+    subtitle: "Tell us about your cricket and a captain will get back to you.",
+    placeholder: "Your role (batter, bowler, all-rounder, keeper), where you've played, and which part of Ottawa you're in…",
+    button: "Send to the captains",
+  },
+  sponsorship: {
+    label: "Sponsorship",
+    title: "Sponsor Canterbury Cricket Club",
+    subtitle: "Support community cricket in Ottawa. Tell us about your business and how you'd like to get involved, and the committee will reply.",
+    placeholder: "Your business, and how you'd like to support the club…",
+    button: "Send to the committee",
+  },
+  other: {
+    label: "Something else",
+    title: "Get in touch",
+    subtitle: "Parents, other clubs, media or anything else: drop us a message and we'll get back to you.",
+    placeholder: "How can we help?",
+    button: "Send message",
+  },
+};
+
+export default function GetInTouch({ initialTopic = "playing" }) {
+  const [topic, setTopic] = useState(TOPICS[initialTopic] ? initialTopic : "playing");
+  const copy = TOPICS[topic];
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
   const [errors, setErrors] = useState({});
@@ -213,7 +240,7 @@ export default function GetInTouch() {
 
   const validateForm = (formEl) => {
     const next = {};
-    const fields = ["name", "email", "profile", "message"];
+    const fields = topic === "playing" ? ["name", "email", "profile", "message"] : ["name", "email", "message"];
 
     for (const field of fields) {
       const err = validateField(field, formEl[field]?.value);
@@ -270,7 +297,8 @@ export default function GetInTouch() {
 const payload = {
   name: isValidFullName(form.name.value).value, // normalized + validated format
   email: form.email.value.trim(),
-  profile: form.profile.value.trim(),
+  profile: form.profile ? form.profile.value.trim() : "",
+  topic,
   message: form.message.value.trim(),
   website: form.website.value.trim(),
   startedAt,
@@ -319,11 +347,28 @@ const payload = {
     <section className="git">
       <div className="git__inner">
         <header className="git__header">
-          <h2 className="git__title">Get in Touch</h2>
-          <p className="git__subtitle">Drop us a message and we’ll get back to you ✍🏼</p>
+          <h2 className="git__title">{copy.title}</h2>
+          <p className="git__subtitle">{copy.subtitle}</p>
         </header>
 
         <form className="git__form" onSubmit={handleSubmit} noValidate>
+          {/* What's this about? */}
+          <fieldset className="git__topics">
+            <legend className="git__label">What’s this about?</legend>
+            {Object.entries(TOPICS).map(([key, t]) => (
+              <label key={key} className={`git__topic ${topic === key ? "is-on" : ""}`}>
+                <input
+                  type="radio"
+                  name="topic"
+                  value={key}
+                  checked={topic === key}
+                  onChange={() => { setTopic(key); setFieldError("profile", ""); }}
+                />
+                {t.label}
+              </label>
+            ))}
+          </fieldset>
+
           {/* Full Name */}
           <div className={`git__field ${errors.name ? "is-error" : ""}`}>
             <label className="git__label" htmlFor="name">
@@ -374,8 +419,8 @@ const payload = {
             )}
           </div>
 
-          {/* Profile */}
-          <div className={`git__field ${errors.profile ? "is-error" : ""}`}>
+          {/* Profile (players only) */}
+          {topic === "playing" && <div className={`git__field ${errors.profile ? "is-error" : ""}`}>
             <label className="git__label" htmlFor="profile">
               Cricheroes / CricClub Profile <span className="git__hint">(optional)</span>
             </label>
@@ -396,7 +441,7 @@ const payload = {
                 ⚠️ {errors.profile}
               </div>
             )}
-          </div>
+          </div>}
 
           {/* Message */}
           <div className={`git__field ${errors.message ? "is-error" : ""}`}>
@@ -408,7 +453,7 @@ const payload = {
               name="message"
               rows={5}
               className="git__textarea"
-              placeholder="Tell us about your cricket experience, availability and what you’d like to ask…"
+              placeholder={copy.placeholder}
               onBlur={handleBlur}
               onChange={handleChange}
               aria-invalid={!!errors.message}
@@ -435,7 +480,7 @@ const payload = {
           />
 
           <button type="submit" className="git__btn" disabled={loading} aria-busy={loading}>
-            {loading ? "Sending..." : "Send Enquiry"}
+            {loading ? "Sending..." : copy.button}
           </button>
 
           {/* Global Status */}

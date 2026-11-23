@@ -487,7 +487,7 @@ export default function HistoryPage() {
             <h2 id="history-outro-heading">History is written.<br /><em>Legacy is earned.</em></h2>
             <p>Yesterday made the club. Tomorrow belongs to the players who wear the crest next.</p>
             <div className={styles.outroActions}>
-              <Link className={styles.primaryLink} to="/contact">Become part of the story <Arrow /></Link>
+              <Link className={styles.primaryLink} to="/join">Become part of the story <Arrow /></Link>
               <Link className={styles.outroSecondary} to="/squad">Meet the current squad <Arrow diagonal /></Link>
             </div>
             <span className={styles.outroWatermark} aria-hidden="true">CANTERBURY</span>

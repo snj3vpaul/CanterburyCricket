@@ -218,3 +218,18 @@
     transition: none;
   }
 }
+/* "What's this about?" choice */
+.git__topics { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 4px; padding: 0; border: 0; }
+.git__topics legend { margin-bottom: 10px; padding: 0; }
+.git__topic {
+  display: inline-flex; align-items: center;
+  padding: 8px 16px; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+.git__topic input { position: absolute; opacity: 0; pointer-events: none; }
+.git__topic:hover { border-color: rgba(255, 211, 106, 0.5); }
+.git__topic.is-on { background: #ffd36a; border-color: #ffd36a; color: #0b0c10; }
+.git__topic:has(input:focus-visible) { outline: 2px solid #ffd36a; outline-offset: 3px; }

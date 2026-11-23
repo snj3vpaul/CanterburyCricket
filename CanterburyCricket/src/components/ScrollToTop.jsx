@@ -8,16 +8,16 @@ export default function ScrollToTop() {
   useEffect(() => {
     // If there is a hash, scroll to that element (with a small delay for render)
     if (hash) {
-      requestAnimationFrame(() => {
+      // Pages load lazily, so the target may appear a moment later: keep looking for up to ~2 s.
+      let tries = 0, timer;
+      const find = () => {
         const el = document.querySelector(hash);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else {
-          // fallback if element not found yet
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-      });
-      return;
+        if (el) return el.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (++tries < 40) timer = setTimeout(find, 50);
+        else window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+      find();
+      return () => clearTimeout(timer);
     }
 
     // Otherwise behave like normal ScrollToTop
