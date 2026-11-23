@@ -1,7 +1,7 @@
 import React from "react";
 import SponsorsAccordion from "../components/SponsorsAccordion/SponsorsAccordion";
-import "./sponsors.css";
-import bgSvg from "../assets/CGPT.png"; // make sure the relative path is correct
+import "./SponsorsPage.css";
+import bgSvg from "../assets/LightStreaksBackground.png"; // make sure the relative path is correct
 
 
 export default function Sponsors() {

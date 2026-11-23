@@ -1,0 +1,187 @@
+/* GalleryPage.css: CSS-columns gallery (no JS layout) + lightbox */
+
+.gallery {
+  width: min(1400px, 100% - 32px);
+  margin: 0 auto;
+  padding: 24px 0 48px;
+}
+
+.gallery__header { max-width: 720px; margin-bottom: 24px; }
+.gallery__header h1 { margin: 6px 0 8px; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.1; }
+.gallery__header p { margin: 0; opacity: 0.8; }
+.gallery__eyebrow { font-size: 0.78rem; letter-spacing: 0.14em; font-weight: 700; opacity: 0.7; }
+
+.gallery__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 12px;
+}
+@media (min-width: 700px)  { .gallery__grid { columns: 3; column-gap: 16px; } }
+@media (min-width: 1000px) { .gallery__grid { columns: 4; } }
+@media (min-width: 1500px) { .gallery__grid { columns: 5; } }
+
+.gallery__tile {
+  break-inside: avoid;
+  margin-bottom: 12px;
+}
+@media (min-width: 700px) { .gallery__tile { margin-bottom: 16px; } }
+
+.gallery__tile button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.06); /* placeholder colour while the photo loads */
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+.gallery__tile img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 220ms ease;
+}
+
+.gallery__tile button:hover img,
+.gallery__tile button:focus-visible img { transform: scale(1.03); }
+.gallery__tile button:focus-visible { outline: 3px solid #f5c542; outline-offset: 3px; }
+
+/* Scroll reveal: added by JS only, so photos are always visible without it */
+.gallery--reveal .gallery__tile {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+.gallery--reveal .gallery__tile.is-visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery--reveal .gallery__tile { opacity: 1; transform: none; transition: none; }
+  .gallery__tile img { transition: none; }
+}
+
+/* ===== Lightbox ===== */
+.mModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.mBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.mPanel {
+  position: relative;
+  width: min(980px, 100%);
+  border-radius: 18px;
+  background: rgba(10, 10, 12, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+.mTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.mCount {
+  opacity: 0.85;
+  font-weight: 700;
+}
+
+.mActions {
+  display: flex;
+  gap: 10px;
+}
+
+.mBtn {
+  cursor: pointer;
+  text-decoration: none;
+  font: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.mBtn:hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.mBtnGhost {
+  background: transparent;
+}
+
+.mStage {
+  position: relative;
+  touch-action: pan-y;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.mFull {
+  width: 100%;
+  height: min(70vh, 640px);
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+}
+
+.mNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  font-size: 28px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.mNavLeft { left: 14px; }
+.mNavRight { right: 14px; }
+
+.mFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.mCaption {
+  opacity: 0.9;
+  font-weight: 650;
+}
+
+.mHint {
+  opacity: 0.7;
+  font-size: 0.92rem;
+}

@@ -1,6 +1,6 @@
 // src/pages/OurSquad/OurSquad.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import "./OurSquadFlip.css";
+import "./OurSquad.css";
 
 // Ranked, tap-to-expand squad list (jersey order)
 import SquadRanking from "../components/SquadRanking/SquadRanking";

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import styles from "./Footer.module.css";
 
 // Optional: replace with your actual logo path
-import clubLogo from "../../assets/CburyLogo.png";
+import clubLogo from "../../assets/CanterburyCrest.png";
 
 export default function Footer() {
   const year = new Date().getFullYear();

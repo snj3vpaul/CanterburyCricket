@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import Captaincy2026 from "../components/Captaincy/Captaincy2026";
-import DivisionMatches from "../components/Matches/DivisionMatches";
+import SeasonCaptains from "../components/SeasonCaptains/SeasonCaptains";
+import DivisionMatches from "../components/DivisionMatches/DivisionMatches";
 import SeasonTable from "../components/SeasonTable/SeasonTable";
 import styles from "./Season.module.css";
 
@@ -62,7 +62,7 @@ export default function Season() {
       <div className={styles.body}>
         <div className={styles.shell}>
           <div id="season-leadership" className={styles.sectionAnchor}>
-            <Captaincy2026 />
+            <SeasonCaptains />
           </div>
           <div className={styles.sectionRule} aria-hidden="true" />
           <div id="season-matches" className={styles.sectionAnchor}>

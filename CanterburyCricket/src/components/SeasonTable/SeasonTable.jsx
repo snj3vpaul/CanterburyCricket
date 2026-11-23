@@ -8,7 +8,7 @@ const CATEGORIES = ["batting", "bowling", "fielding"];
 const DEFAULT_SORT = { batting: "runs", bowling: "wickets", fielding: "catches" };
 
 // Dataset files are loaded only when a visitor selects a season and division.
-const DATASET_MODULES = import.meta.glob("../../assets/*division_stats*.json", { import: "default" });
+const DATASET_MODULES = import.meta.glob("../../data/stats/*.json", { import: "default" });
 const datasetCache = new Map();
 
 const COLUMNS = {
@@ -33,7 +33,7 @@ const COLUMNS = {
 };
 
 function datasetPath(year, division) {
-  return `../../assets/${division}_division_stats${year === "2025" ? "" : `_${year}`}.json`;
+  return `../../data/stats/${division}-${year}.json`;
 }
 
 function toNum(value) {
