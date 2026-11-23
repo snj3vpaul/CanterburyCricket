@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import matchPhoto from "../assets/CanterburyCrest.png";
+import clubCrest from "../assets/CanterburyCrest.webp";
 import trophyPhoto from "../assets/gallery/previews/IMG_1383.webp";
 import clubPhoto from "../assets/gallery/previews/IMG_1477.webp";
 import styles from "./HomePage.module.css";
@@ -83,7 +83,7 @@ export default function Home() {
             <div className={styles.heroVisual}>
               <div className={styles.heroPhotoFrame}>
                 <img
-                  src={matchPhoto}
+                  src={clubCrest}
                   alt="Canterbury Cricket Club Ottawa crest"
                   fetchPriority="high"
                   decoding="async"

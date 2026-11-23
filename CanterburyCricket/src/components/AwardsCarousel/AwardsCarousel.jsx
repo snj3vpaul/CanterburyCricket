@@ -21,24 +21,24 @@ import "./AwardsCarousel.css";
 // =========================
 
 // Club award images
-import PlayerOfTheYearImg from "./PlayerOfTheYear2025.jpg";
-import BestKnockImg from "./BestKnock.jpg";
-import BestSpellImg from "./BestSpell.jpg";
+import PlayerOfTheYearImg from "./PlayerOfTheYear2025.webp";
+import BestKnockImg from "./BestKnock.webp";
+import BestSpellImg from "./BestSpell.webp";
 
 // CHG Division
-import BatCHGImg from "./BattingCHG.png";
-import BowlCHGImg from "./BowlingCHG.jpg";
-import FielderCHGImg from "./FieldingCHG.jpg";
+import BatCHGImg from "../../assets/players/ameer-khan.webp"; // CHG best batter: same photo as his player portrait
+import BowlCHGImg from "./BowlingCHG.webp";
+import FielderCHGImg from "./FieldingCHG.webp";
 
 // CTZ Division
-import BatCTZImg from "./BattingCTZ.jpg";
-import BowlCTZImg from "./BowlingCTZ.jpg";
-import FielderCTZImg from "./FieldingCTZ.jpg";
+import BatCTZImg from "./BattingCTZ.webp";
+import BowlCTZImg from "./BowlingCTZ.webp";
+import FielderCTZImg from "./FieldingCTZ.webp";
 
 // T20 Division
-import BatT20Img from "./BattingT20.jpg";
-import BowlT20Img from "./BowlingT20.jpg";
-import FielderT20Img from "./FieldingT20.jpg";
+import BatT20Img from "./BattingT20.webp";
+import BowlT20Img from "./BowlingT20.webp";
+import FielderT20Img from "./FieldingT20.webp";
 
 // =========================
 // Config

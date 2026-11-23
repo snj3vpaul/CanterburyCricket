@@ -1,7 +1,7 @@
 import { useState } from "react";
 import styles from "./SponsorsAccordion.module.css";
 
-import image1 from "./Cha.png";
+import image1 from "./Cha.webp";
 import image2 from "./RedSwan.jpeg";
 import image3 from "./Akram.jpg";
 import image4 from "./Varun.jpg";

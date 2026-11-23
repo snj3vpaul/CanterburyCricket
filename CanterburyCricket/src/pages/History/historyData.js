@@ -1,9 +1,9 @@
 // src/pages/History/historyData.js
 
-import AmeerImg from "../../assets/Ameer.png";
-import PaulImg from "../../assets/Sanjeev.webp";
-import HarisImg from "../../assets/Haris.png";
-import ZainImg from "../../assets/Zain.png";
+import AmeerImg from "../../assets/players/ameer-khan.webp";
+import PaulImg from "../../assets/players/sanjeev-k-paul.webp";
+import HarisImg from "../../assets/players/haris-chaudhry.webp";
+import ZainImg from "../../assets/players/zain-mahmood.webp";
 
 // ✅ Timeline = finals/titles only (Golden Era moved to top highlight component)
 export const championships = [
@@ -55,7 +55,6 @@ export const championships = [
       "A strong season with big performances across batting, bowling, and fielding. The team stayed competitive all year.",
     scoreboardUrl:
       "https://cricheroes.com/scorecard/5777355/2022-challenge/cumberland-(chl)-vs-canterbury-(chl)/summary",
-    photos: ["/images/history/2022-chg-1.jpg", "/images/history/2022-chg-2.jpg"],
     highlights: ["Fierce playoff run", "Clutch spells under pressure"],
     keyPerformers: ["Akram", "Haris", "Jitesh"],
   },
@@ -204,7 +203,7 @@ export const leagueLegends = [
     id: "l-akbar",
     name: "Akbar Hussain",
     role: "All Rounder",
-    headshot: "/images/legends/akbar.jpg",
+    headshot: null, // no photo on file yet; the card shows his initials
     bio:
       "A pillar of the club’s success era — reliable, fearless, and clutch when it mattered most.",
     stats: {

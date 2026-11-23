@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import "./Navbar.css";
-import clubCrest from "../../assets/CanterburyCrest.png";
+import clubCrest from "../../assets/CanterburyCrest-small.webp";
 import { useMember } from "../../fantasy/MemberContext";
 
 export default function Navbar() {
