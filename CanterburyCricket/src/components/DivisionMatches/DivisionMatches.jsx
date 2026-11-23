@@ -19,11 +19,10 @@ export default function DivisionMatches() {
             href={team.matchesUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`View ${team.name} fixtures and results on CricHeroes (opens in new tab)`}
           >
             <div className="dmCardTop"><span className="dmBadge">{team.key}</span><span className="dmExternal" aria-hidden="true">↗</span></div>
             <div className="dmCardBody"><p className="dmCardDiv">{team.division}</p><h3 className="dmCardName">{team.name}</h3></div>
-            <span className="dmCardCta">View scorecards <span aria-hidden="true">→</span></span>
+            <span className="dmCardCta">View scorecards <span aria-hidden="true">→</span><span className="sr-only"> on CricHeroes (opens in new tab)</span></span>
           </a>
         ))}
       </div>
