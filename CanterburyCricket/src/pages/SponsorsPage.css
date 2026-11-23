@@ -50,3 +50,18 @@
     padding: 40px 16px; /* ✅ consistent mobile gutters */
   }
 }
+
+/* "Become a sponsor" link under the sponsor list */
+.sponsors-cta {
+  margin: 28px auto 0;
+  text-align: center;
+  color: rgba(251, 248, 241, 0.75);
+  font-size: 15px;
+}
+.sponsors-cta a {
+  margin-left: 6px;
+  color: #ffd36a;
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 211, 106, 0.5);
+}

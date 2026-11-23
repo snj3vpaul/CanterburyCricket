@@ -158,6 +158,34 @@
   background: var(--nav-accent);
 }
 
+/* "Join Us": the one call to action. Gold outline pill; fills in on the Join page. */
+.navCta {
+  margin-left: 6px;
+  padding: 9px 18px;
+  border: 1px solid var(--nav-accent);
+  border-radius: 999px;
+  color: var(--nav-accent);
+}
+.navCta:hover {
+  background: rgba(255, 211, 106, 0.14);
+}
+.navCta.active,
+.navCta.active:hover {
+  color: #0b0c10;
+  background: var(--nav-accent);
+}
+
+.navLinksMobile .mobileNavItem.mobileCta,
+.navLinksMobile .mobileNavItem.mobileCta.active {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+  color: #0b0c10;
+  background: var(--nav-accent);
+  border-color: transparent;
+  font-weight: 800;
+}
+
 .burger {
   display: none;
   width: 44px;
@@ -420,6 +448,34 @@
 .historyDropdown > button.navLink.active {
   color: #0b0c10;
   background: var(--nav-accent);
+}
+
+/* "Join Us": the one call to action. Gold outline pill; fills in on the Join page. */
+.navCta {
+  margin-left: 6px;
+  padding: 9px 18px;
+  border: 1px solid var(--nav-accent);
+  border-radius: 999px;
+  color: var(--nav-accent);
+}
+.navCta:hover {
+  background: rgba(255, 211, 106, 0.14);
+}
+.navCta.active,
+.navCta.active:hover {
+  color: #0b0c10;
+  background: var(--nav-accent);
+}
+
+.navLinksMobile .mobileNavItem.mobileCta,
+.navLinksMobile .mobileNavItem.mobileCta.active {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+  color: #0b0c10;
+  background: var(--nav-accent);
+  border-color: transparent;
+  font-weight: 800;
 }
 
 /* Dropdown menu (polished entrance + hover effects) */

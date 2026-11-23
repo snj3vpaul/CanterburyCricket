@@ -276,16 +276,17 @@ export default function Navbar() {
               Sponsors
             </NavLink>
 
-            <NavLink to="/join" className={linkClass} onClick={closeDesktopDropdowns}>
-              Join Us
-            </NavLink>
-
-            <NavLink to="/contact" className={linkClass} onClick={closeDesktopDropdowns}>
-              Contact Us!
-            </NavLink>
-
             <NavLink to={memberLink.to} className={linkClass} onClick={closeDesktopDropdowns}>
               {memberLink.label}
+            </NavLink>
+
+            {/* One call to action in the menu. Contact lives in the footer, the Join page and Sponsors. */}
+            <NavLink
+              to="/join"
+              className={({ isActive }) => `navLink navCta${isActive ? " active" : ""}`}
+              onClick={closeDesktopDropdowns}
+            >
+              Join Us
             </NavLink>
           </nav>
 
@@ -444,12 +445,8 @@ export default function Navbar() {
             Sponsors
           </NavLink>
 
-          <NavLink to="/join" className={mobileLinkClass} onClick={closeAll}>
+          <NavLink to="/join" className={({ isActive }) => `mobileNavItem mobileCta${isActive ? " active" : ""}`} onClick={closeAll}>
             Join Us
-          </NavLink>
-
-          <NavLink to="/contact" className={mobileLinkClass} onClick={closeAll}>
-            Contact Us
           </NavLink>
 
           <NavLink to={memberLink.to} className={mobileLinkClass} onClick={closeAll}>

@@ -25,7 +25,7 @@ export default function JoinCricket() {
         <p><strong>How to join:</strong> send us a message on Instagram with your name, your role, where you have played
           and the part of Ottawa you live in. A captain will get back to you to talk about the right team for you.</p>
         <a href={CLUB.instagram} target="_blank" rel="noopener noreferrer">Message Canterbury on Instagram →</a>
-        <br /><Link to="/contact">Or use the contact form →</Link>
+        <br /><Link to="/contact">Not a player? Sponsors, parents and other clubs can contact us here →</Link>
       </div>
 
       <section className={styles.chapter}>

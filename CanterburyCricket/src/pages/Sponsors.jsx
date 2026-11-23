@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import React from "react";
 import SponsorsAccordion from "../components/SponsorsAccordion/SponsorsAccordion";
 import "./SponsorsPage.css";
@@ -16,6 +17,9 @@ export default function Sponsors() {
       {/* Accordion */}
       <div className="sponsors-content">
         <SponsorsAccordion />
+        <p className="sponsors-cta">
+          Want to support Ottawa cricket? <Link to="/contact">Become a sponsor →</Link>
+        </p>
       </div>
 
       
